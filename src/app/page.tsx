@@ -67,25 +67,14 @@ export default function LoginPage() {
     <div className="bg-dot-matrix min-h-screen flex flex-col justify-center items-center p-4 sm:p-6 font-sans text-slate-900 selection:bg-slate-900 selection:text-white">
       <main className="w-full max-w-[490px] flex flex-col items-center">
         {/* Brand Logo */}
-        <header className="mb-9 flex items-center justify-center select-none">
-          <div className="flex items-center space-x-2">
-            <Image
-              src="/larvifort.png"
-              alt="LarviFort"
-              width={100}
-              height={100}
-              className="w-10 h-10 object-contain"
-            />
-            <div className="flex items-baseline space-x-1 tracking-tight">
-              <span className="text-2xl font-black tracking-wider text-[#0284c7]">
-                LARVI
-                <span className="text-slate-900">FORT</span>
-              </span>
-              <span className="text-xs font-bold uppercase tracking-widest px-1.5 py-0.5 rounded bg-sky-100 text-sky-700 ml-1.5">
-                CRM
-              </span>
-            </div>
-          </div>
+        <header className="mb-12 flex items-center justify-center select-none">
+          <Image
+            src="/larvifort.png"
+            alt="LarviFort"
+            width={200}
+            height={200}
+            className="w-40 h-40 object-contain"
+          />
         </header>
 
         {/* Login Card */}
