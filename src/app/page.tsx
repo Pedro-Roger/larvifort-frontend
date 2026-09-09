@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { useAuth } from "@/contexts/AuthContext";
 
 function isValidEmail(email: string): boolean {
@@ -68,18 +69,13 @@ export default function LoginPage() {
         {/* Brand Logo */}
         <header className="mb-9 flex items-center justify-center select-none">
           <div className="flex items-center space-x-2">
-            <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-600 to-cyan-500 shadow-sm shadow-sky-500/20 text-white">
-              <svg
-                className="w-6 h-6 stroke-current"
-                fill="none"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2.2"
-                viewBox="0 0 24 24"
-              >
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-              </svg>
-            </div>
+            <Image
+              src="/larvifort.png"
+              alt="LarviFort"
+              width={100}
+              height={100}
+              className="w-10 h-10 object-contain"
+            />
             <div className="flex items-baseline space-x-1 tracking-tight">
               <span className="text-2xl font-black tracking-wider text-[#0284c7]">
                 LARVI
