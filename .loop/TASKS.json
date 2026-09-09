@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "tasks": [
+    { "id": "CRM-001", "title": "Finalizar confirmacoes de exclusao", "status": "completed", "priority": 1, "dependsOn": [] },
+    { "id": "CRM-002", "title": "Integrar busca global com a API", "status": "completed", "priority": 2, "dependsOn": ["API-001"] },
+    { "id": "CRM-003", "title": "Remover mocks restantes de dashboard e formularios", "status": "completed", "priority": 3, "dependsOn": ["API-001", "API-002"] },
+    { "id": "CRM-004", "title": "Validar fluxo completo login, dashboard e CRUD", "status": "pending", "priority": 4, "dependsOn": ["API-001", "API-002"] },
+    { "id": "CRM-005", "title": "Adicionar atalhos de teclado do CRM", "status": "completed", "priority": 5, "dependsOn": [] },
+    { "id": "CRM-006", "title": "Frontend: Múltiplos Quadros/Setores e Participantes (AvatarGroup)", "status": "completed", "priority": 6, "dependsOn": [] },
+    { "id": "CRM-007", "title": "Frontend: Gestão Dinâmica de Colunas (Criar, Excluir com Migração)", "status": "completed", "priority": 7, "dependsOn": ["CRM-006"] },
+    { "id": "CRM-008", "title": "Frontend: Modal Completa de Tarefa (TaskDetailModal: Título, Descrição, WhatsApp, Ordem de Pedido, Responsável, Anexos)", "status": "completed", "priority": 8, "dependsOn": ["CRM-006"] },
+    { "id": "CRM-009", "title": "Frontend: Herança e Roteamento Intersetorial (Parent/Child, Gatilhos e Histórico)", "status": "completed", "priority": 9, "dependsOn": ["CRM-007", "CRM-008"] },
+    { "id": "API-003", "title": "Backend: Modelagem e Endpoints de Quadros/Setores e Colunas (/tasks/boards, /tasks/columns)", "status": "pending", "priority": 6, "dependsOn": [] },
+    { "id": "API-004", "title": "Backend: Endpoints de Tarefas com Herança, Anexos e Transferência (/tasks, /tasks/:id/transfer, /tasks/:id/attachments)", "status": "pending", "priority": 7, "dependsOn": ["API-003"] },
+    { "id": "API-005", "title": "Backend: Endpoints de Ordem de Pedido para Vínculo com Tarefas (/orders)", "status": "pending", "priority": 8, "dependsOn": [] }
+  ]
+}
