@@ -1,4 +1,11 @@
-import { apiPost, clearAuthToken, getAuthToken, setAuthToken } from "./api";
+import {
+  apiPost,
+  clearAuthToken,
+  getAuthToken,
+  getRefreshToken,
+  setAuthToken,
+  setRefreshToken,
+} from "./api";
 
 export type LoginCredentials = {
   email: string;
@@ -18,6 +25,7 @@ export type AuthUser = {
 
 export type LoginResult = {
   token: string;
+  refreshToken: string;
   user: AuthUser | null;
 };
 
@@ -25,6 +33,7 @@ type RawLoginResponse = {
   token?: unknown;
   accessToken?: unknown;
   access_token?: unknown;
+  refreshToken?: unknown;
   user?: unknown;
   data?: unknown;
 };
@@ -47,6 +56,14 @@ function extractToken(raw: RawLoginResponse): string | null {
     );
   }
 
+  return null;
+}
+
+function extractRefreshToken(raw: RawLoginResponse): string | null {
+  if (asString(raw.refreshToken)) return asString(raw.refreshToken);
+  if (typeof raw.data === "object" && raw.data !== null) {
+    return asString((raw.data as RawLoginResponse).refreshToken);
+  }
   return null;
 }
 
@@ -84,9 +101,14 @@ export async function login(credentials: LoginCredentials): Promise<LoginResult>
   if (!token) {
     throw new Error("Resposta de login sem token.");
   }
+  const refreshToken = extractRefreshToken(raw ?? {});
+  if (!refreshToken) {
+    throw new Error("Resposta de login sem refresh token.");
+  }
 
   setAuthToken(token);
-  return { token, user: extractUser(raw ?? {}) };
+  setRefreshToken(refreshToken);
+  return { token, refreshToken, user: extractUser(raw ?? {}) };
 }
 
 export function logout(): void {
@@ -101,9 +123,11 @@ export function logout(): void {
  */
 export async function refreshToken(): Promise<string | null> {
   try {
+    const storedRefreshToken = getRefreshToken();
+    if (!storedRefreshToken) return null;
     const raw = await apiPost<RawLoginResponse>(
       "/auth/refresh",
-      {},
+      { refreshToken: storedRefreshToken },
       { auth: false },
     );
     const token = extractToken(raw ?? {});
@@ -111,6 +135,8 @@ export async function refreshToken(): Promise<string | null> {
       return null;
     }
     setAuthToken(token);
+    const nextRefreshToken = extractRefreshToken(raw ?? {});
+    if (nextRefreshToken) setRefreshToken(nextRefreshToken);
     return token;
   } catch {
     return null;

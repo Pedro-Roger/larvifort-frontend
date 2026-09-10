@@ -19,6 +19,7 @@ type ApiOptions = Omit<RequestInit, "body"> & {
 };
 
 const TOKEN_STORAGE_KEY = "larvifort:token";
+const REFRESH_TOKEN_STORAGE_KEY = "larvifort:refreshToken";
 
 // Cookie espelho (leitura server-side pelo middleware). Nome sem ":" por
 // compatibilidade; localStorage continua sendo a fonte de verdade no client.
@@ -63,7 +64,22 @@ export function setAuthToken(token: string): void {
 export function clearAuthToken(): void {
   if (typeof window === "undefined") return;
   window.localStorage.removeItem(TOKEN_STORAGE_KEY);
+  window.localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY);
   removeAuthCookie();
+}
+
+export function getRefreshToken(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return window.localStorage.getItem(REFRESH_TOKEN_STORAGE_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function setRefreshToken(token: string): void {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(REFRESH_TOKEN_STORAGE_KEY, token);
 }
 
 type UnauthorizedHandler = (status: number, path: string) => void;
