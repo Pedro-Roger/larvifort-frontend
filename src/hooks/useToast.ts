@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from "react";
 
-type ToastType = "success" | "error" | "warning";
+export type ToastType = "info" | "success" | "warning" | "error";
 
-interface Toast {
+export interface Toast {
   id: string;
   message: string;
   type: ToastType;

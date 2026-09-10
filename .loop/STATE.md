@@ -9,7 +9,7 @@ VERIFICATION: PASS (2026-09-07 - iteracao 23: FASE 4 Task 3 Error states (fallba
 
 ## Current Task
 
-Nenhuma (iteração 24 concluída). CRM-001 Confirmações de delete COMPLETA.
+CRM-010: Frontend: Módulo de Notificações (Notification Center + Toasts)
 
 PENDENCIAS ABERTAS (nao pertencem a esta iteracao):
 - (a) Backend lavifort-API ainda NAO tem /dashboard/stats, /dashboard/charts, /clients, /companies, /companies/groups, /tasks, /tasks/projects, /appointments, /users, /teams, /searches. O frontend contrata o shape via services; validacao E2E depende do backend entregar os endpoints.

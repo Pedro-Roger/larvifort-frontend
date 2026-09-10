@@ -12,6 +12,12 @@
     { "id": "CRM-009", "title": "Frontend: Herança e Roteamento Intersetorial (Parent/Child, Gatilhos e Histórico)", "status": "completed", "priority": 9, "dependsOn": ["CRM-007", "CRM-008"] },
     { "id": "API-003", "title": "Backend: Modelagem e Endpoints de Quadros/Setores e Colunas (/tasks/boards, /tasks/columns)", "status": "pending", "priority": 6, "dependsOn": [] },
     { "id": "API-004", "title": "Backend: Endpoints de Tarefas com Herança, Anexos e Transferência (/tasks, /tasks/:id/transfer, /tasks/:id/attachments)", "status": "pending", "priority": 7, "dependsOn": ["API-003"] },
-    { "id": "API-005", "title": "Backend: Endpoints de Ordem de Pedido para Vínculo com Tarefas (/orders)", "status": "pending", "priority": 8, "dependsOn": [] }
+{
+    "id": "CRM-010",
+    "title": "Frontend: Módulo de Notificações (Notification Center + Toasts)",
+    "status": "pending",
+    "priority": 10,
+    "dependsOn": ["CRM-006"]
+  }
   ]
 }

@@ -1,15 +1,23 @@
 "use client";
 
 import { TrayArrowDown, Plus } from "@phosphor-icons/react";
+import NotificationCenter from "@/components/ui/NotificationCenter";
 
 interface HeaderProps {
   title: string;
   count?: number;
   countLabel?: string;
   onAdd?: () => void;
+  addLabel?: string;
 }
 
-export default function Header({ title, count, countLabel, onAdd }: HeaderProps) {
+export default function Header({
+  title,
+  count,
+  countLabel,
+  onAdd,
+  addLabel = "Adicionar Contato",
+}: HeaderProps) {
   return (
     <header className="h-16 px-8 flex items-center justify-between border-b border-slate-200 bg-white/70 backdrop-blur-md shrink-0">
       <div className="flex items-center gap-3">
@@ -23,6 +31,7 @@ export default function Header({ title, count, countLabel, onAdd }: HeaderProps)
         )}
       </div>
       <div className="flex items-center gap-3">
+        <NotificationCenter variant="header" />
         <button className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 shadow-sm transition-all">
           <TrayArrowDown size={14} />
           <span>Importar / Exportar</span>
@@ -33,7 +42,7 @@ export default function Header({ title, count, countLabel, onAdd }: HeaderProps)
             className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-lg shadow-sm shadow-brand-500/25 transition-all"
           >
             <Plus size={14} />
-            <span>Adicionar Contato</span>
+            <span>{addLabel}</span>
           </button>
         )}
       </div>

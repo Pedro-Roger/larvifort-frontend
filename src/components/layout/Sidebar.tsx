@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
+import NotificationCenter from "@/components/ui/NotificationCenter";
 import GlobalSearch from "./GlobalSearch";
 import {
   SquaresFour,
@@ -41,7 +42,7 @@ const registros = [
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
 
   function handleLogout() {
     logout();
@@ -76,34 +77,37 @@ export default function Sidebar() {
               Menu Principal
             </span>
             <nav className="mt-1.5 space-y-0.5 text-xs font-medium">
-              {mainMenu.map((item) => {
-                const Icon = item.icon;
-                const isActive = pathname === item.href;
-                return (
-                  <Link
-                    key={item.label}
-                    href={item.href}
-                    className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors ${
-                      isActive
-                        ? "bg-brand-50/80 text-brand-700 font-semibold border border-brand-100 shadow-sm"
-                        : "text-slate-600 hover:bg-slate-100/80"
-                    }`}
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <Icon
-                        size={18}
-                        className={isActive ? "text-brand-600" : "text-slate-500"}
-                      />
-                      <span>{item.label}</span>
-                    </div>
-                    {item.badge && (
-                      <span className="bg-brand-100 text-brand-700 text-[10px] px-1.5 py-0.5 rounded-full font-semibold">
-                        {item.badge}
-                      </span>
-                    )}
-                  </Link>
-                );
-              })}
+              {mainMenu
+                .filter((item) => item.label !== "Notificações")
+                .map((item) => {
+                  const Icon = item.icon;
+                  const isActive = pathname === item.href;
+                  return (
+                    <Link
+                      key={item.label}
+                      href={item.href}
+                      className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors ${
+                        isActive
+                          ? "bg-brand-50/80 text-brand-700 font-semibold border border-brand-100 shadow-sm"
+                          : "text-slate-600 hover:bg-slate-100/80"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <Icon
+                          size={18}
+                          className={isActive ? "text-brand-600" : "text-slate-500"}
+                        />
+                        <span>{item.label}</span>
+                      </div>
+                      {item.badge && (
+                        <span className="bg-brand-100 text-brand-700 text-[10px] px-1.5 py-0.5 rounded-full font-semibold">
+                          {item.badge}
+                        </span>
+                      )}
+                    </Link>
+                  );
+                })}
+              <NotificationCenter variant="sidebar" />
             </nav>
           </div>
 
@@ -144,10 +148,10 @@ export default function Sidebar() {
         <div className="mb-3 flex items-center justify-between rounded-lg border border-slate-200 bg-white px-3 py-2">
           <div className="min-w-0 text-left leading-tight">
             <p className="truncate text-xs font-semibold text-slate-800">
-              Roberto Viana
+              {user ? `${user.firstName} ${user.lastName}`.trim() : "Usuário"}
             </p>
             <p className="truncate text-[11px] text-slate-400">
-              roberto@larvifort.com.br
+              {user?.email ?? ""}
             </p>
           </div>
           <CaretUpDown className="shrink-0 text-slate-400" size={14} />

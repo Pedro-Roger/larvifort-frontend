@@ -1,7 +1,7 @@
 "use client";
 
 import { Clock } from "@phosphor-icons/react";
-import { fetchTasks, type Task, type StatusTarefa } from "@/services/tasks";
+import { type Task, type StatusTarefa } from "@/services/tasks";
 
 interface TaskWithStatus extends Task {
   status: StatusTarefa;

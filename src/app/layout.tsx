@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { NotificationProvider } from "@/contexts/NotificationContext";
 import { ToastProvider } from "@/components/ui/ToastProvider";
 import "./globals.css";
 
@@ -23,7 +24,9 @@ export default function RootLayout({
     <html lang="pt-BR" className={`${inter.variable} h-full antialiased`}>
       <body>
         <AuthProvider>
-          <ToastProvider>{children}</ToastProvider>
+          <NotificationProvider>
+            <ToastProvider>{children}</ToastProvider>
+          </NotificationProvider>
         </AuthProvider>
       </body>
     </html>
