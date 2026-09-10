@@ -1,4 +1,6 @@
 import { apiGet, apiPost, apiPatch, apiDelete } from "./api";
+import { normalizeList } from "./normalizeList";
+export { normalizeList } from "./normalizeList";
 
 // Contrato espelhado no schema Prisma do lavifort-API (model Task + model
 // Projeto + enum StatusTarefa + enum Prioridade). O backend ainda não entrega
@@ -187,24 +189,6 @@ export function normalizeProjeto(raw: unknown): Projeto {
     createdAt: str(p.createdAt) ?? "",
     updatedAt: str(p.updatedAt) ?? "",
   };
-}
-
-function normalizeList<T>(raw: unknown, normalizer: (item: unknown) => T): T[] {
-  const envelope = asObject(raw);
-  const source =
-    "data" in envelope &&
-    typeof envelope.data === "object" &&
-    envelope.data !== null
-      ? asObject(envelope.data)
-      : envelope;
-
-  const items = Array.isArray(source.items)
-    ? source.items
-    : Array.isArray(source)
-      ? source
-      : [];
-
-  return items.map(normalizer);
 }
 
 // ---------- API calls ----------

@@ -79,7 +79,6 @@ export default function NovoUsuarioModal({
   const validate = (): boolean => {
     const errors: { firstName?: string; lastName?: string; email?: string; password?: string } = {};
     if (!form.firstName.trim()) errors.firstName = "Nome é obrigatório";
-    if (!form.lastName.trim()) errors.lastName = "Sobrenome é obrigatório";
     if (!form.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
       errors.email = "E-mail inválido";
     }
@@ -206,7 +205,7 @@ export default function NovoUsuarioModal({
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Sobrenome <span className="text-red-500">*</span>
+                Sobrenome <span className="text-slate-400">(opcional)</span>
               </label>
               <input
                 type="text"
