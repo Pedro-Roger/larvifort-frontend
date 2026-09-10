@@ -9,14 +9,20 @@ import {
   Warning,
   CaretRight,
   Trash,
+  Gear,
+  FileText,
 } from "@phosphor-icons/react";
 import KanbanColumn from "@/components/kanban/KanbanColumn";
 import QuickEditDrawer from "@/components/kanban/QuickEditDrawer";
 import NovaTarefaModal from "@/components/kanban/NovaTarefaModal";
 import NovoQuadroWizard from "@/components/kanban/NovoQuadroWizard";
 import NovaColunaModal from "@/components/kanban/NovaColunaModal";
+import EditarColunaModal from "@/components/kanban/EditarColunaModal";
 import ExcluirColunaModal from "@/components/kanban/ExcluirColunaModal";
 import ExcluirQuadroModal from "@/components/kanban/ExcluirQuadroModal";
+import RegrasQuadroModal from "@/components/kanban/RegrasQuadroModal";
+import AutomacoesQuadroModal from "@/components/kanban/AutomacoesQuadroModal";
+import TemplatesQuadroModal from "@/components/kanban/TemplatesQuadroModal";
 import PassagemBastaoModal from "@/components/kanban/PassagemBastaoModal";
 import TaskDetailModal from "@/components/kanban/TaskDetailModal";
 import { Avatar, AvatarFallback, AvatarGroup, AvatarGroupCount } from "@/components/ui/avatar";
@@ -26,6 +32,7 @@ import {
   fetchTasks,
   fetchProjetos,
   fetchColumns,
+  reorderColumns,
   updateTaskStatus,
   mapTaskToCard,
   type Task,
@@ -40,12 +47,17 @@ export default function KanbanPage() {
   const [novaTarefaModalOpen, setNovaTarefaModalOpen] = useState(false);
   const [novoQuadroWizardOpen, setNovoQuadroWizardOpen] = useState(false);
   const [novaColunaModalOpen, setNovaColunaModalOpen] = useState(false);
+  const [regrasQuadroModalOpen, setRegrasQuadroModalOpen] = useState(false);
+  const [automacoesQuadroModalOpen, setAutomacoesQuadroModalOpen] = useState(false);
+  const [templatesQuadroModalOpen, setTemplatesQuadroModalOpen] = useState(false);
+  const [editarColunaTarget, setEditarColunaTarget] = useState<TaskColumn | null>(null);
   const [excluirColunaTarget, setExcluirColunaTarget] = useState<{id: string, title: string} | null>(null);
   const [excluirQuadroTarget, setExcluirQuadroTarget] = useState<Projeto | null>(null);
   const [selectedCard, setSelectedCard] = useState<ProjectCard | null>(null);
   const [taskDetailOpen, setTaskDetailOpen] = useState(false);
   const [passagemTask, setPassagemTask] = useState<{ id: string; titulo: string; projetoId: string } | null>(null);
   const [draggedCardId, setDraggedCardId] = useState<string | null>(null);
+  const [draggedColumnId, setDraggedColumnId] = useState<string | null>(null);
   const [allTasks, setAllTasks] = useState<Task[]>([]);
 
   const [projetos, setProjetos] = useState<Projeto[]>([]);
@@ -67,12 +79,16 @@ export default function KanbanPage() {
         if (novaTarefaModalOpen) setNovaTarefaModalOpen(false);
         else if (novoQuadroWizardOpen) setNovoQuadroWizardOpen(false);
         else if (novaColunaModalOpen) setNovaColunaModalOpen(false);
+         else if (regrasQuadroModalOpen) setRegrasQuadroModalOpen(false);
+         else if (automacoesQuadroModalOpen) setAutomacoesQuadroModalOpen(false);
+         else if (templatesQuadroModalOpen) setTemplatesQuadroModalOpen(false);
+         else if (editarColunaTarget) setEditarColunaTarget(null);
         else if (selectedCard) { setTaskDetailOpen(false); setSelectedCard(null); }
       }
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [novaTarefaModalOpen, novoQuadroWizardOpen, novaColunaModalOpen, selectedCard, taskDetailOpen]);
+  }, [novaTarefaModalOpen, novoQuadroWizardOpen, novaColunaModalOpen, regrasQuadroModalOpen, editarColunaTarget, selectedCard, taskDetailOpen]);
 
   const [busca, setBusca] = useState("");
 
@@ -234,6 +250,55 @@ export default function KanbanPage() {
       setDraggedCardId(null);
     },
     [projetoId, allTasks, columnToStatus, columns]
+  );
+
+  // Column reordering handlers
+  const handleColumnDragStart = useCallback((columnId: string) => {
+    setDraggedColumnId(columnId);
+  }, []);
+
+  const handleColumnDragEnd = useCallback(() => {
+    setDraggedColumnId(null);
+  }, []);
+
+  const handleColumnDragOver = useCallback((_columnId: string) => {
+    // Visual feedback handled by component
+  }, []);
+
+  const handleColumnDrop = useCallback(
+    async (fromColumnId: string, toColumnId: string) => {
+      if (fromColumnId === toColumnId) return;
+
+      const fromColumn = columns.find((c) => c.id === fromColumnId);
+      const toColumn = columns.find((c) => c.id === toColumnId);
+      if (!fromColumn || !toColumn) return;
+
+      const fromOrder = fromColumn.order ?? 0;
+      const toOrder = toColumn.order ?? 0;
+
+      // Optimistic update - swap orders
+      setColumns((prev) =>
+        prev.map((c) => {
+          if (c.id === fromColumnId) return { ...c, order: toOrder };
+          if (c.id === toColumnId) return { ...c, order: fromOrder };
+          return c;
+        })
+      );
+
+      // Persist to API
+      try {
+        const columnOrders = columns.map((c) => ({
+          id: c.id,
+          order: c.id === fromColumnId ? toOrder : c.id === toColumnId ? fromOrder : c.order ?? 0,
+        }));
+        await reorderColumns(projetoId, columnOrders);
+      } catch {
+        startLoad();
+      }
+
+      setDraggedColumnId(null);
+    },
+    [projetoId, columns]
   );
 
   if (loading) {
@@ -404,14 +469,50 @@ export default function KanbanPage() {
                 <AvatarGroupCount size="sm">+{sectorMembers.length - 4}</AvatarGroupCount>
               )}
             </AvatarGroup>
-            <button
-              type="button"
-              onClick={() => setNovaTarefaModalOpen(true)}
-              className="px-4 py-2 rounded-lg bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold flex items-center gap-2 shadow-sm shadow-sky-500/25 transition-all cursor-pointer"
-            >
-              <Plus size={14} />
-              Nova Tarefa
-            </button>
+             <button
+               type="button"
+               onClick={() => setRegrasQuadroModalOpen(true)}
+               className="h-9 px-3 rounded-lg bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 flex items-center gap-2 border border-slate-200 shadow-sm transition-all cursor-pointer"
+               title="Regras do Quadro"
+             >
+               <Gear size={14} className="text-sky-600" />
+               <span>Regras</span>
+             </button>
+             <button
+               type="button"
+               onClick={() => setAutomacoesQuadroModalOpen(true)}
+               className="h-9 px-3 rounded-lg bg-white hover:bg-amber-50 text-xs font-semibold text-slate-700 flex items-center gap-2 border border-slate-200 shadow-sm transition-all cursor-pointer"
+               title="Automações do Quadro"
+             >
+               <Gear size={14} className="text-amber-600" />
+               <span>Automações</span>
+             </button>
+             <button
+               type="button"
+               onClick={() => setTemplatesQuadroModalOpen(true)}
+               className="h-9 px-3 rounded-lg bg-white hover:bg-emerald-50 text-xs font-semibold text-slate-700 flex items-center gap-2 border border-slate-200 shadow-sm transition-all cursor-pointer"
+               title="Templates do Quadro"
+             >
+               <FileText size={14} className="text-emerald-600" />
+               <span>Templates</span>
+             </button>
+             <button
+               type="button"
+               onClick={() => setTemplatesQuadroModalOpen(true)}
+               className="h-9 px-3 rounded-lg bg-white hover:bg-emerald-50 text-xs font-semibold text-slate-700 flex items-center gap-2 border border-slate-200 shadow-sm transition-all cursor-pointer"
+               title="Templates do Quadro"
+             >
+               <FileText size={14} className="text-emerald-600" />
+               <span>Templates</span>
+             </button>
+             <button
+               type="button"
+               onClick={() => setNovaTarefaModalOpen(true)}
+               className="px-4 py-2 rounded-lg bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold flex items-center gap-2 shadow-sm shadow-sky-500/25 transition-all cursor-pointer"
+             >
+               <Plus size={14} />
+               Nova Tarefa
+             </button>
           </div>
         </div>
 
@@ -488,7 +589,9 @@ export default function KanbanPage() {
                   count={cards[col.title]?.length || 0}
                   color={col.color}
                   cards={cards[col.title] || []}
-                  highlighted={col.status === "EM_ANDAMENTO"} // Highlight "Em Andamento" column
+                  highlighted={col.status === "EM_ANDAMENTO"}
+                  columnId={col.id}
+                  columnOrder={col.order}
                   onCardClick={(card) => {
                     setSelectedCard(card);
                     setTaskDetailOpen(true);
@@ -498,9 +601,15 @@ export default function KanbanPage() {
                   onDragStart={handleDragStart}
                   onDragEnd={handleDragEnd}
                   onAddColumn={() => setNovaColunaModalOpen(true)}
+                  onEditColumn={() => setEditarColunaTarget(col)}
                   onDeleteColumn={() => {
                     setExcluirColunaTarget({ id: col.id, title: col.title });
                   }}
+                  onColumnDragStart={handleColumnDragStart}
+                  onColumnDragEnd={handleColumnDragEnd}
+                  onColumnDragOver={handleColumnDragOver}
+                  onColumnDrop={handleColumnDrop}
+                  draggedColumnId={draggedColumnId}
                 />
             ))}
         </div>
@@ -603,7 +712,46 @@ export default function KanbanPage() {
         }}
       />
 
-      {excluirQuadroTarget && (
+      <EditarColunaModal
+        open={!!editarColunaTarget}
+        onClose={() => setEditarColunaTarget(null)}
+        column={editarColunaTarget!}
+        onSuccess={(updatedColumn) => {
+          setColumns((prev) =>
+            prev.map((c) => (c.id === updatedColumn.id ? updatedColumn : c))
+          );
+        }}
+      />
+
+       <RegrasQuadroModal
+         open={regrasQuadroModalOpen}
+         onClose={() => setRegrasQuadroModalOpen(false)}
+         boardId={projetoId}
+         onSuccess={() => {
+           // Rules are managed internally by the modal
+         }}
+       />
+
+       <AutomacoesQuadroModal
+         open={automacoesQuadroModalOpen}
+         onClose={() => setAutomacoesQuadroModalOpen(false)}
+         boardId={projetoId}
+         onSuccess={() => {
+           // Automations are managed internally by the modal
+         }}
+       />
+
+       <TemplatesQuadroModal
+         open={templatesQuadroModalOpen}
+         onClose={() => setTemplatesQuadroModalOpen(false)}
+         boardId={projetoId}
+         onSuccess={(task) => {
+           // Optionally handle task creation success
+           console.log("Template applied, task created:", task);
+         }}
+       />
+
+       {excluirQuadroTarget && (
         <ExcluirQuadroModal
           open
           onClose={() => setExcluirQuadroTarget(null)}

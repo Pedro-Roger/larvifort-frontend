@@ -6,6 +6,8 @@ import { cn } from "@/lib/utils";
 
 type AvatarSize = "xs" | "sm" | "md" | "lg" | "xl" | "xxl";
 
+type AvatarColor = "slate" | "gray" | "zinc" | "neutral" | "stone" | "red" | "orange" | "amber" | "yellow" | "lime" | "green" | "emerald" | "teal" | "cyan" | "sky" | "blue" | "indigo" | "violet" | "purple" | "fuchsia" | "pink" | "rose";
+
 interface AvatarContextValue {
   size: AvatarSize;
 }
@@ -13,7 +15,7 @@ interface AvatarContextValue {
 const AvatarContext = createContext<AvatarContextValue>({ size: "md" });
 
 const avatarSizes = cva(
-  "relative inline-flex shrink-0 items-center justify-center rounded-full bg-slate-100 font-semibold text-slate-700 select-none overflow-hidden",
+  "relative inline-flex shrink-0 items-center justify-center rounded-full font-semibold text-slate-700 select-none overflow-hidden",
   {
     variants: {
       size: {
@@ -24,9 +26,34 @@ const avatarSizes = cva(
         xl: "h-14 w-14 text-lg",
         xxl: "h-16 w-16 text-xl",
       },
+      color: {
+        slate: "bg-slate-100",
+        gray: "bg-gray-100",
+        zinc: "bg-zinc-100",
+        neutral: "bg-neutral-100",
+        stone: "bg-stone-100",
+        red: "bg-red-100",
+        orange: "bg-orange-100",
+        amber: "bg-amber-100",
+        yellow: "bg-yellow-100",
+        lime: "bg-lime-100",
+        green: "bg-green-100",
+        emerald: "bg-emerald-100",
+        teal: "bg-teal-100",
+        cyan: "bg-cyan-100",
+        sky: "bg-sky-100",
+        blue: "bg-blue-100",
+        indigo: "bg-indigo-100",
+        violet: "bg-violet-100",
+        purple: "bg-purple-100",
+        fuchsia: "bg-fuchsia-100",
+        pink: "bg-pink-100",
+        rose: "bg-rose-100",
+      },
     },
     defaultVariants: {
       size: "md",
+      color: "slate",
     },
   }
 );
@@ -34,10 +61,12 @@ const avatarSizes = cva(
 export type AvatarProps = React.HTMLAttributes<HTMLDivElement> &
   VariantProps<typeof avatarSizes> & {
     size?: AvatarSize;
+    color?: AvatarColor;
   };
 
 export function Avatar({
   size = "md",
+  color = "slate",
   className,
   children,
   ...props
@@ -47,7 +76,7 @@ export function Avatar({
       <div
         data-slot="avatar"
         data-size={size}
-        className={cn(avatarSizes({ size }), className)}
+        className={cn(avatarSizes({ size, color }), className)}
         {...props}
       >
         {children}

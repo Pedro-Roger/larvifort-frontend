@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Plus, Trash, DotsThree } from "@phosphor-icons/react";
+import { Plus, Trash, DotsThree, Palette } from "@phosphor-icons/react";
 import KanbanCard, { type ProjectCard } from "./KanbanCard";
+import { DropdownMenu, DropdownTrigger } from "@/components/ui/DropdownMenu";
 
 interface KanbanColumnProps {
   title: string;
@@ -10,6 +11,8 @@ interface KanbanColumnProps {
   color: string;
   cards: ProjectCard[];
   highlighted?: boolean;
+  columnId?: string;
+  columnOrder?: number;
   onCardClick?: (card: ProjectCard) => void;
   onCardMove?: (cardId: string, toColumn: string, toIndex: number) => void;
   draggedCardId?: string | null;
@@ -17,6 +20,13 @@ interface KanbanColumnProps {
   onDragEnd?: () => void;
   onAddColumn?: () => void;
   onDeleteColumn?: (toColumnTitle?: string) => void;
+  onEditColumn?: () => void;
+  // Column reordering
+  onColumnDragStart?: (columnId: string) => void;
+  onColumnDragEnd?: () => void;
+  onColumnDragOver?: (columnId: string) => void;
+  onColumnDrop?: (fromColumnId: string, toColumnId: string) => void;
+  draggedColumnId?: string | null;
 }
 
 const dotColors: Record<string, string> = {
@@ -33,6 +43,8 @@ export default function KanbanColumn({
   color,
   cards,
   highlighted = false,
+  columnId,
+  columnOrder,
   onCardClick,
   onCardMove,
   draggedCardId,
@@ -40,11 +52,17 @@ export default function KanbanColumn({
   onDragEnd,
   onAddColumn,
   onDeleteColumn,
+  onEditColumn,
+  onColumnDragStart,
+  onColumnDragEnd,
+  onColumnDragOver,
+  onColumnDrop,
+  draggedColumnId,
 }: KanbanColumnProps) {
   const [isDragOver, setIsDragOver] = useState(false);
   const [dropIndex, setDropIndex] = useState<number | null>(null);
-  const [showMenu, setShowMenu] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
 
   function handleDragOver(e: React.DragEvent) {
     e.preventDefault();
@@ -84,17 +102,60 @@ export default function KanbanColumn({
     setDropIndex(null);
   }
 
+  // Column reordering handlers
+  function handleColumnDragStart(e: React.DragEvent) {
+    if (!columnId) return;
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", columnId);
+    onColumnDragStart?.(columnId);
+  }
+
+  function handleColumnDragOver(e: React.DragEvent) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    if (columnId) {
+      onColumnDragOver?.(columnId);
+    }
+  }
+
+  function handleColumnDragLeave(e: React.DragEvent) {
+    if (e.currentTarget === e.target) {
+      // Optional: handle drag leave
+    }
+  }
+
+  function handleColumnDrop(e: React.DragEvent) {
+    e.preventDefault();
+    const fromColumnId = e.dataTransfer.getData("text/plain");
+    if (fromColumnId && columnId && fromColumnId !== columnId) {
+      onColumnDrop?.(fromColumnId, columnId);
+    }
+    onColumnDragEnd?.();
+  }
+
+  function handleColumnDragEnd() {
+    onColumnDragEnd?.();
+  }
+
+  const isColumnDragging = draggedColumnId === columnId;
+
   return (
     <div
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
+      ref={headerRef}
+      draggable={!!columnId}
+      onDragStart={handleColumnDragStart}
+      onDragOver={handleColumnDragOver}
+      onDragLeave={handleColumnDragLeave}
+      onDrop={handleColumnDrop}
+      onDragEnd={handleColumnDragEnd}
       className={`w-[320px] shrink-0 flex flex-col rounded-xl flex-none h-[calc(100vh-250px)] transition-all ${
         highlighted
           ? "bg-sky-50/80 border-2 border-sky-300 shadow-sm"
           : isDragOver
-            ? "bg-sky-50/60 border-2 border-dashed border-sky-400 shadow-inner"
-            : "bg-slate-50/80 border border-slate-200/80"
+          ? "bg-sky-50/60 border-2 border-dashed border-sky-400 shadow-inner"
+          : isColumnDragging
+          ? "bg-sky-50/60 border-2 border-dashed border-sky-400 opacity-75"
+          : "bg-slate-50/80 border border-slate-200/80"
       }`}
     >
       {/* Stage Header */}
@@ -107,6 +168,15 @@ export default function KanbanColumn({
       >
         <div className="flex flex-col">
           <div className="flex items-center gap-2">
+            {columnId && (
+              <button
+                type="button"
+                className="w-7 h-7 rounded-md hover:bg-slate-200/60 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors cursor-grab active:cursor-grabbing"
+                aria-label="Reordenar coluna"
+              >
+                <DotsThree size={16} />
+              </button>
+            )}
             <div
               className={`w-2.5 h-2.5 rounded-full ${dotColors[color] || "bg-slate-400"}`}
             />
@@ -121,32 +191,26 @@ export default function KanbanColumn({
               {count}
             </span>
           </div>
+         </div>
+         <div className="flex items-center gap-1">
+           <DropdownMenu
+             trigger={<DropdownTrigger />}
+             align="left"
+             items={[
+               { label: "+ Criar Coluna", onClick: () => onAddColumn?.() },
+               ...(onEditColumn ? [{ label: "Editar Coluna", icon: <Palette size={12} />, onClick: () => onEditColumn() }] : []),
+               { label: "Excluir Coluna", icon: <Trash size={12} />, onClick: () => onDeleteColumn?.(), variant: "danger" as const },
+             ]}
+           />
+           <button 
+             type="button"
+             onClick={() => onAddColumn?.()}
+             className="w-7 h-7 rounded-md hover:bg-slate-200/60 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors ml-1 cursor-pointer"
+             aria-label="Nova coluna"
+           >
+             <Plus size={16} />
+           </button>
         </div>
-        <button 
-          type="button"
-          onClick={() => { setShowMenu(!showMenu); }}
-          className="w-7 h-7 rounded-md hover:bg-slate-200/60 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors relative cursor-pointer"
-          aria-label="Opções da coluna"
-        >
-          <DotsThree size={16} />
-        </button>
-        {showMenu && (
-          <>
-            <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)} />
-            <div className="absolute right-0 top-10 w-40 bg-white rounded-xl border border-slate-200 shadow-xl z-50 py-1 overflow-hidden text-xs font-medium text-slate-700">
-              <button type="button" onClick={() => { setShowMenu(false); onAddColumn?.(); }} className="w-full px-3 py-2 text-left hover:bg-slate-50 transition-colors cursor-pointer flex items-center gap-2">+ Criar Coluna</button>
-              <button type="button" onClick={() => { setShowMenu(false); onDeleteColumn?.(); }} className="w-full px-3 py-2 text-left hover:bg-red-50 text-red-600 transition-colors cursor-pointer flex items-center gap-2"><Trash size={12}/> Excluir Coluna</button>
-            </div>
-          </>
-        )}
-        <button 
-          type="button"
-          onClick={() => onAddColumn?.()}
-          className="w-7 h-7 rounded-md hover:bg-slate-200/60 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors ml-1 cursor-pointer"
-          aria-label="Nova coluna"
-        >
-          <Plus size={16} />
-        </button>
       </div>
 
       {/* Cards List */}

@@ -108,6 +108,23 @@ export default function NovoUsuarioModal({
 
     try {
       const created = await createUser(payload);
+
+      // Enviar e-mail de boas-vindas
+      try {
+        await fetch('/api/send-welcome', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: payload.email,
+            nome: `${payload.firstName} ${payload.lastName}`.trim(),
+            usuario: payload.email,
+            senhaProvisoria: payload.password,
+          }),
+        });
+      } catch (emailErr) {
+        console.error("Erro ao enviar e-mail de boas-vindas", emailErr);
+      }
+
       onSuccess?.(created);
       handleClose();
     } catch (err) {

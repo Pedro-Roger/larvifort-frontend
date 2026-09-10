@@ -308,6 +308,119 @@ export function fetchColumns(boardId: string): Promise<TaskColumn[]> {
     .then((raw) => normalizeList(raw, (item) => item as TaskColumn));
 }
 
+export function updateColumn(
+  columnId: string,
+  input: { title?: string; color?: string; order?: number; triggerAction?: string }
+): Promise<TaskColumn> {
+  return apiPatch<unknown>(`/tasks/columns/${columnId}`, input).then((raw: unknown) => raw as TaskColumn);
+}
+
+export function reorderColumns(boardId: string, columnOrders: { id: string; order: number }[]): Promise<void> {
+  return apiPatch<unknown>(`/tasks/boards/${boardId}/columns/reorder`, { columnOrders }).then(() => undefined);
+}
+
+// ========== Board Rules ==========
+
+export type BoardRule = {
+  id: string;
+  boardId: string;
+  type: "AUTO_TRANSITION" | "WIP_LIMIT" | "AUTO_ASSIGN" | "NOTIFICATION" | "CUSTOM";
+  name: string;
+  description: string;
+  enabled: boolean;
+  config: Record<string, unknown>;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type BoardRuleInput = Omit<BoardRule, "id" | "createdAt" | "updatedAt">;
+
+export function fetchBoardRules(boardId: string): Promise<BoardRule[]> {
+  return apiGet<unknown>(`/tasks/boards/${boardId}/rules`)
+    .then((raw) => normalizeList(raw, (item) => item as BoardRule));
+}
+
+export function createBoardRule(boardId: string, input: BoardRuleInput): Promise<BoardRule> {
+  return apiPost<unknown>(`/tasks/boards/${boardId}/rules`, input).then((raw: unknown) => raw as BoardRule);
+}
+
+export function updateBoardRule(ruleId: string, input: Partial<BoardRuleInput>): Promise<BoardRule> {
+  return apiPatch<unknown>(`/tasks/rules/${ruleId}`, input).then((raw: unknown) => raw as BoardRule);
+}
+
+export function deleteBoardRule(ruleId: string): Promise<void> {
+  return apiDelete<unknown>(`/tasks/rules/${ruleId}`).then(() => undefined);
+}
+
+export function reorderBoardRules(boardId: string, ruleOrders: { id: string; order: number }[]): Promise<void> {
+  return apiPatch<unknown>(`/tasks/boards/${boardId}/rules/reorder`, { ruleOrders }).then(() => undefined);
+}
+
+// ========== Board Automations ==========
+
+export type AutomationTrigger = 
+  | "TASK_CREATED"
+  | "TASK_MOVED"
+  | "TASK_COMPLETED"
+  | "TASK_ASSIGNED"
+  | "DUE_DATE_APPROACHING"
+  | "COLUMN_WIP_EXCEEDED"
+  | "SCHEDULED";
+
+export type AutomationAction = 
+  | "MOVE_TASK"
+  | "ASSIGN_USER"
+  | "SET_PRIORITY"
+  | "ADD_TAG"
+  | "SEND_NOTIFICATION"
+  | "CREATE_CHILD_TASK"
+  | "UPDATE_FIELD"
+  | "WEBHOOK";
+
+export type BoardAutomation = {
+  id: string;
+  boardId: string;
+  name: string;
+  description: string;
+  enabled: boolean;
+  trigger: AutomationTrigger;
+  triggerConfig: Record<string, unknown>;
+  actions: Array<{
+    type: AutomationAction;
+    config: Record<string, unknown>;
+    order: number;
+  }>;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type BoardAutomationInput = Omit<BoardAutomation, "id" | "createdAt" | "updatedAt">;
+
+export function fetchBoardAutomations(boardId: string): Promise<BoardAutomation[]> {
+  return apiGet<unknown>(`/tasks/boards/${boardId}/automations`)
+    .then((raw) => normalizeList(raw, (item) => item as BoardAutomation));
+}
+
+export function createBoardAutomation(boardId: string, input: BoardAutomationInput): Promise<BoardAutomation> {
+  return apiPost<unknown>(`/tasks/boards/${boardId}/automations`, input).then((raw: unknown) => raw as BoardAutomation);
+}
+
+export function updateBoardAutomation(automationId: string, input: Partial<BoardAutomationInput>): Promise<BoardAutomation> {
+  return apiPatch<unknown>(`/tasks/automations/${automationId}`, input).then((raw: unknown) => raw as BoardAutomation);
+}
+
+export function deleteBoardAutomation(automationId: string): Promise<void> {
+  return apiDelete<unknown>(`/tasks/automations/${automationId}`).then(() => undefined);
+}
+
+export function reorderBoardAutomations(boardId: string, automationOrders: { id: string; order: number }[]): Promise<void> {
+  return apiPatch<unknown>(`/tasks/boards/${boardId}/automations/reorder`, { automationOrders }).then(() => undefined);
+}
+
+export function testBoardAutomation(automationId: string, testPayload?: Record<string, unknown>): Promise<{ success: boolean; logs: string[] }> {
+  return apiPost<unknown>(`/tasks/automations/${automationId}/test`, testPayload || {}).then((raw: unknown) => raw as { success: boolean; logs: string[] });
+}
+
 export type TransferTaskInput = {
   targetBoardId: string;
   targetColumnId?: string;
@@ -334,6 +447,58 @@ export function createProjeto(input: { name: string }): Promise<Projeto> {
 
 export function deleteProjeto(id: string): Promise<void> {
   return apiDelete<unknown>(`/tasks/projects/${id}`).then(() => undefined);
+}
+
+// ========== Board Templates (Opt-in) ==========
+
+export type TemplateField = {
+  key: string;
+  label: string;
+  value: string;
+  type: "text" | "textarea" | "select" | "number" | "date";
+  options?: string[];
+  required: boolean;
+};
+
+export type BoardTemplate = {
+  id: string;
+  boardId: string;
+  name: string;
+  description: string;
+  enabled: boolean;
+  status: StatusTarefa;
+  priority: Prioridade;
+  tags: string[];
+  fields: TemplateField[];
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type BoardTemplateInput = Omit<BoardTemplate, "id" | "createdAt" | "updatedAt">;
+
+export function fetchBoardTemplates(boardId: string): Promise<BoardTemplate[]> {
+  return apiGet<unknown>(`/tasks/boards/${boardId}/templates`)
+    .then((raw) => normalizeList(raw, (item) => item as BoardTemplate));
+}
+
+export function createBoardTemplate(boardId: string, input: BoardTemplateInput): Promise<BoardTemplate> {
+  return apiPost<unknown>(`/tasks/boards/${boardId}/templates`, input).then((raw: unknown) => raw as BoardTemplate);
+}
+
+export function updateBoardTemplate(templateId: string, input: Partial<BoardTemplateInput>): Promise<BoardTemplate> {
+  return apiPatch<unknown>(`/tasks/templates/${templateId}`, input).then((raw: unknown) => raw as BoardTemplate);
+}
+
+export function deleteBoardTemplate(templateId: string): Promise<void> {
+  return apiDelete<unknown>(`/tasks/templates/${templateId}`).then(() => undefined);
+}
+
+export function reorderBoardTemplates(boardId: string, templateOrders: { id: string; order: number }[]): Promise<void> {
+  return apiPatch<unknown>(`/tasks/boards/${boardId}/templates/reorder`, { templateOrders }).then(() => undefined);
+}
+
+export function applyBoardTemplate(templateId: string, taskOverrides?: Partial<Task>): Promise<Task> {
+  return apiPost<unknown>(`/tasks/templates/${templateId}/apply`, taskOverrides || {}).then((raw: unknown) => normalizeTask(raw as Task));
 }
 
 // ---------- Helpers de UI ----------
