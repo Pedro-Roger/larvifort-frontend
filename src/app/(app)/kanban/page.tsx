@@ -8,6 +8,7 @@ import {
   MagnifyingGlass,
   Warning,
   CaretRight,
+  Trash,
 } from "@phosphor-icons/react";
 import KanbanColumn from "@/components/kanban/KanbanColumn";
 import QuickEditDrawer from "@/components/kanban/QuickEditDrawer";
@@ -15,6 +16,7 @@ import NovaTarefaModal from "@/components/kanban/NovaTarefaModal";
 import NovoQuadroModal from "@/components/kanban/NovoQuadroModal";
 import NovaColunaModal from "@/components/kanban/NovaColunaModal";
 import ExcluirColunaModal from "@/components/kanban/ExcluirColunaModal";
+import ExcluirQuadroModal from "@/components/kanban/ExcluirQuadroModal";
 import PassagemBastaoModal from "@/components/kanban/PassagemBastaoModal";
 import TaskDetailModal from "@/components/kanban/TaskDetailModal";
 import { Avatar, AvatarFallback, AvatarGroup, AvatarGroupCount } from "@/components/ui/avatar";
@@ -51,6 +53,7 @@ export default function KanbanPage() {
   const [novoQuadroModalOpen, setNovoQuadroModalOpen] = useState(false);
   const [novaColunaModalOpen, setNovaColunaModalOpen] = useState(false);
   const [excluirColunaTarget, setExcluirColunaTarget] = useState<{id: string, title: string} | null>(null);
+  const [excluirQuadroTarget, setExcluirQuadroTarget] = useState<Projeto | null>(null);
   const [selectedCard, setSelectedCard] = useState<ProjectCard | null>(null);
   const [taskDetailOpen, setTaskDetailOpen] = useState(false);
   const [passagemTask, setPassagemTask] = useState<{ id: string; titulo: string; projetoId: string } | null>(null);
@@ -273,6 +276,21 @@ export default function KanbanPage() {
     );
   }
 
+  if (projetos.length === 0) {
+    return (
+      <main className="flex flex-1 items-center justify-center p-8">
+        <div className="max-w-md text-center">
+          <h1 className="text-2xl font-bold text-slate-800">Nenhum quadro criado</h1>
+          <p className="mt-2 text-sm text-slate-500">Crie seu primeiro quadro ou setor para começar a organizar as tarefas.</p>
+          <button type="button" onClick={() => setNovoQuadroModalOpen(true)} className="mt-5 inline-flex cursor-pointer items-center gap-2 rounded-lg bg-sky-600 px-4 py-2 text-sm font-bold text-white hover:bg-sky-700">
+            <Plus size={16} /> Criar quadro
+          </button>
+        </div>
+        <NovoQuadroModal open={novoQuadroModalOpen} onClose={() => setNovoQuadroModalOpen(false)} onSuccess={(newProjeto) => { setProjetos([newProjeto]); setProjetoId(newProjeto.id); }} />
+      </main>
+    );
+  }
+
   return (
     <>
       {/* Header */}
@@ -312,24 +330,13 @@ export default function KanbanPage() {
                         </div>
                       ) : (
                         projetos.map((p) => (
-                          <button
-                            key={p.id}
-                            type="button"
-                            onClick={() => {
-                              setProjetoId(p.id);
-                              setDropdownOpen(false);
-                            }}
-                            className={`w-full px-3 py-2 text-left text-xs font-medium flex items-center gap-2 transition-colors cursor-pointer ${
-                              p.id === projetoId
-                                ? "bg-sky-50 text-sky-700"
-                                : "text-slate-600 hover:bg-slate-50"
-                            }`}
-                          >
-                            <span
-                              className={`w-2 h-2 rounded-full ${p.id === projetoId ? "bg-sky-500" : "bg-slate-300"}`}
-                            />
-                            {p.name}
-                          </button>
+                          <div key={p.id} className={`flex items-center ${p.id === projetoId ? "bg-sky-50" : "hover:bg-slate-50"}`}>
+                            <button type="button" onClick={() => { setProjetoId(p.id); setDropdownOpen(false); }} className={`min-w-0 flex-1 px-3 py-2 text-left text-xs font-medium flex items-center gap-2 transition-colors cursor-pointer ${p.id === projetoId ? "text-sky-700" : "text-slate-600"}`}>
+                              <span className={`w-2 h-2 shrink-0 rounded-full ${p.id === projetoId ? "bg-sky-500" : "bg-slate-300"}`} />
+                              <span className="truncate">{p.name}</span>
+                            </button>
+                            <button type="button" aria-label={`Excluir ${p.name}`} onClick={() => { setDropdownOpen(false); setExcluirQuadroTarget(p); }} className="mr-2 cursor-pointer rounded p-1.5 text-slate-600 hover:bg-red-50 hover:text-red-600"><Trash size={14} /></button>
+                          </div>
                         ))
                       )}
                     </div>
@@ -555,6 +562,19 @@ export default function KanbanPage() {
           console.log("Coluna excluída. Atualizaríamos estado local removendo a coluna e redirecionando tarefas.");
         }}
       />
+
+      {excluirQuadroTarget && (
+        <ExcluirQuadroModal
+          open
+          onClose={() => setExcluirQuadroTarget(null)}
+          projeto={excluirQuadroTarget}
+          taskCount={allTasks.filter((task) => task.projetoId === excluirQuadroTarget.id).length}
+          onSuccess={() => {
+            setExcluirQuadroTarget(null);
+            startLoad();
+          }}
+        />
+      )}
     </>
   );
 }

@@ -286,21 +286,11 @@ export function deleteTaskAttachment(taskId: string, attachmentId: string): Prom
   return apiDelete<unknown>(`/tasks/${taskId}/attachments/${attachmentId}`).then(() => undefined);
 }
 
-export const DEFAULT_SECTORES: Projeto[] = [
-  { id: "comercial", name: "Comercial", createdAt: "", updatedAt: "" },
-  { id: "financeiro", name: "Financeiro", createdAt: "", updatedAt: "" },
-  { id: "desenvolvimento", name: "Desenvolvimento", createdAt: "", updatedAt: "" },
-  { id: "operacoes", name: "Operações", createdAt: "", updatedAt: "" },
-  { id: "administrativo", name: "Administrativo", createdAt: "", updatedAt: "" },
-];
-
 export function fetchProjetos(): Promise<Projeto[]> {
   return apiGet<unknown>("/tasks/projects")
     .then((raw) => {
-      const list = normalizeList(raw, normalizeProjeto);
-      return list.length > 0 ? list : DEFAULT_SECTORES;
-    })
-    .catch(() => DEFAULT_SECTORES);
+      return normalizeList(raw, normalizeProjeto);
+    });
 }
 
 export function createColumn(boardId: string, input: { title: string; color: string; statusKey?: string; order?: number }): Promise<TaskColumn> {
@@ -335,6 +325,10 @@ export function transferTask(
 
 export function createProjeto(input: { name: string }): Promise<Projeto> {
   return apiPost<unknown>("/tasks/projects", input).then(normalizeProjeto);
+}
+
+export function deleteProjeto(id: string): Promise<void> {
+  return apiDelete<unknown>(`/tasks/projects/${id}`).then(() => undefined);
 }
 
 // ---------- Helpers de UI ----------
