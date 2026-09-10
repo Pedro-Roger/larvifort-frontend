@@ -48,11 +48,11 @@ export default function WorkloadCard({
         <div className="flex gap-6">
           <div>
             <span className="text-2xl font-bold text-slate-800">{notDone}</span>
-            <p className="text-xs text-slate-500 mt-0.5">Not done</p>
+            <p className="text-xs text-slate-500 mt-0.5">Pendentes</p>
           </div>
           <div>
             <span className="text-2xl font-bold text-slate-800">{done}</span>
-            <p className="text-xs text-slate-500 mt-0.5">Done</p>
+            <p className="text-xs text-slate-500 mt-0.5">Concluídas</p>
           </div>
         </div>
         <div className="relative h-20 w-20">
@@ -102,35 +102,35 @@ export default function WorkloadCard({
 
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold tracking-wide text-sky-600">TIME ESTIMATE</span>
+          <span className="text-xs font-semibold tracking-wide text-sky-600">ESTIMATIVA DE TEMPO</span>
           <span className="text-xs font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">
-            {remaining} remaining
+            {remaining} restantes
           </span>
         </div>
 
         <div className="flex gap-4 text-xs text-slate-500">
-          <span>{timeEstimate.notDone} Not done</span>
-          <span>{timeEstimate.done} Done</span>
+          <span>{timeEstimate.notDone} pendentes</span>
+          <span>{timeEstimate.done} concluídas</span>
         </div>
 
         {(ready > 0 || inProgress > 0 || review > 0) && (
           <div className="flex items-center gap-1 text-xs text-amber-600">
             <Warning size={12} weight="fill" />
-            <span>{notDone} tasks without estimate</span>
+            <span>{notDone} tarefas sem estimativa</span>
           </div>
         )}
 
         <div className="pt-2 space-y-1">
           <div className="flex items-center justify-between text-xs">
-            <span className="font-semibold text-sky-600">READY</span>
+            <span className="font-semibold text-sky-600">PRONTAS</span>
             <span className="text-slate-500">({ready})</span>
           </div>
           <div className="flex items-center justify-between text-xs">
-            <span className="font-semibold text-violet-600">IN PROGRESS</span>
+            <span className="font-semibold text-violet-600">EM ANDAMENTO</span>
             <span className="text-slate-500">({inProgress})</span>
           </div>
           <div className="flex items-center justify-between text-xs">
-            <span className="font-semibold text-amber-500">REVIEW</span>
+            <span className="font-semibold text-amber-500">EM REVISÃO</span>
             <span className="text-slate-500">({review})</span>
           </div>
         </div>

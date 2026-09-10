@@ -171,7 +171,7 @@ export default function DashboardPage() {
                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-100">
                   <Kanban size={16} className="text-violet-600" />
                 </div>
-                <h2 className="text-lg font-bold text-slate-800">Release Project</h2>
+                <h2 className="text-lg font-bold text-slate-800">Projeto de Lançamento</h2>
               </div>
               <div className="flex items-center gap-1 rounded-lg border border-slate-200 bg-white p-0.5 shadow-sm">
                 {viewOptions.map((v) => (
