@@ -137,6 +137,15 @@ Completar e integrar o CRM Larvifort com o backend.
   - [x] Cálculo de progresso consolidado na tarefa-mãe
   - [x] Automação de transição: ao mover para coluna-gatilho, abrir modal de passagem de bastão (Transferir ou Gerar Tarefa-Filha no setor destino)
   - [x] Trilha de histórico de transferências (`originBoardId` ➜ `currentBoardId`)
+- [ ] Módulo de Notificações (`CRM-010`)
+  - [ ] Notification Center (bell icon + dropdown drawer)
+  - [ ] Lista de notificações com persistência (localStorage + API)
+  - [ ] Tipos: info, success, warning, error
+  - [ ] Marcar como lida/não lida
+  - [ ] Arquivar/excluir notificações
+  - [ ] Badge contador no ícone de sino
+  - [ ] Toast notifications integradas (success, error, warning, info)
+  - [ ] Preferências de notificação por usuário
 
 #### Backend (`lavifort-api` - Endpoints Previstos):
 - [ ] Módulo de Quadros e Colunas (`API-003`)
@@ -163,6 +172,19 @@ Completar e integrar o CRM Larvifort com o backend.
   - [ ] `GET /orders/:id` (detalhes da ordem para visualização na tarefa)
 
 ## Critérios de Conclusão
+
+### FASE 6 - Módulo de Projetos inspirado no UPSprint
+
+- [ ] CRM-011: Kanban renderizado exclusivamente por colunas reais da API
+- [ ] CRM-012: Criação guiada de quadro com colunas personalizadas
+- [ ] CRM-013: CRUD e ordenação de colunas sem simulação local
+- [ ] CRM-014: Editor de regras por quadro
+- [ ] CRM-015: Editor de automações por quadro
+- [ ] CRM-016: Templates opt-in
+- [ ] CRM-017: UX transversal, dropdowns consistentes e avatar real
+
+- [ ] Backend publicado antes dos fluxos dependentes do frontend
+- [ ] Zero fallback/mock nos fluxos de produção
 
 - [ ] Zero dados mockados em produção
 - [ ] Typecheck passa

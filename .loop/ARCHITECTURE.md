@@ -14,3 +14,7 @@ de verificacao ou limite explicito de iteracoes.
 
 Limites: preservar o App Router e os services existentes, consumir a API real
 quando o endpoint existir e nao manter mocks em fluxos de producao.
+
+No Kanban, quadros e colunas devem vir da API. O frontend não deve inventar
+setores, colunas, cards, usuários ou opções de regras; templates só podem ser
+aplicados por ação explícita do usuário.
