@@ -2,6 +2,9 @@
 
 Formato por iteracao: `YYYY-MM-DD | TASK-ID | PASS/FAIL/BLOCKED | resumo curto`
 
+2026-09-10 | CRM-012 | PASS | Wizard guiado de criação de quadros com colunas personalizadas (NovoQuadroWizard). Passos: nome, colunas (título, cor, ordem), revisão e criação via API. Build passando.
+2026-09-10 | CRM-011 | PASS | Kanban renderizado exclusivamente por colunas da API: fetchColumns no service/tasks, colunas ordenadas por 'order' do backend, removido array COLUNAS hardcoded, loading skeleton adaptado, handleCardMove usa columnToStatus derivado das colunas da API, ExcluirColunaModal usa availableColumns da API.
+2026-09-09 | CRM-010 | PASS | Módulo de Notificações completo: NotificationProvider, useNotifications hook, NotificationCenter component (variants sidebar/header/icon-only), persistência localStorage + API fallback, preferências de notificação, tipos info/success/warning/error, badge contador no ícone de sino, toast integrado com 4 tipos.
 2026-09-08 | CRM-009 | PASS | Herança, hand-off intersetorial e gatilhos implementados (transferTask, PassagemBastaoModal, botão transferir no TaskDetailModal, gatilho Em Revisão).
 2026-09-08 | CRM-008 | PASS | TaskDetailModal completo (seletor de responsável, seletor de setor, whatsapp real, ordem de pedido, anexos e persistência).
 2026-09-08 | CRM-006 | PASS | Gestão de múltiplos quadros/setores, seletor de setor e AvatarGroup contextual integrado.

@@ -15,9 +15,16 @@
 {
     "id": "CRM-010",
     "title": "Frontend: Módulo de Notificações (Notification Center + Toasts)",
-    "status": "pending",
+    "status": "completed",
     "priority": 10,
     "dependsOn": ["CRM-006"]
-  }
+  },
+  { "id": "CRM-011", "title": "Frontend: Kanban renderizado exclusivamente por colunas reais da API", "status": "completed", "priority": 11, "dependsOn": ["CRM-007", "CRM-010"] },
+  { "id": "CRM-012", "title": "Frontend: Criação guiada de quadro com colunas personalizadas", "status": "completed", "priority": 12, "dependsOn": ["CRM-011"] },
+  { "id": "CRM-013", "title": "Frontend: CRUD e ordenação de colunas sem simulação local", "status": "pending", "priority": 13, "dependsOn": ["CRM-011"] },
+  { "id": "CRM-014", "title": "Frontend: Editor de regras por quadro", "status": "pending", "priority": 14, "dependsOn": ["CRM-012"] },
+  { "id": "CRM-015", "title": "Frontend: Editor de automações por quadro", "status": "pending", "priority": 15, "dependsOn": ["CRM-012"] },
+  { "id": "CRM-016", "title": "Frontend: Templates opt-in", "status": "pending", "priority": 16, "dependsOn": ["CRM-014", "CRM-015"] },
+  { "id": "CRM-017", "title": "Frontend: UX transversal, dropdowns consistentes e avatar real", "status": "pending", "priority": 17, "dependsOn": ["CRM-013"] }
   ]
 }

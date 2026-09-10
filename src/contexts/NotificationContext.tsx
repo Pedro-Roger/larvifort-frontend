@@ -13,7 +13,6 @@ import {
   Notification,
   NotificationPreferences,
   CreateNotificationInput,
-  DEFAULT_PREFERENCES,
   fetchNotifications,
   saveStoredNotifications,
   markNotificationReadApi,
@@ -23,6 +22,8 @@ import {
   deleteNotificationApi,
   fetchNotificationPreferencesApi,
   updateNotificationPreferencesApi,
+  getStoredNotifications,
+  getStoredPreferences,
 } from "@/services/notifications";
 
 interface NotificationContextType {
@@ -48,23 +49,35 @@ const NotificationContext = createContext<NotificationContextType | undefined>(
 
 const NOTIFICATION_EVENT = "larvifort:notification";
 
+function readStoredNotifications(userId?: string): Notification[] {
+  return getStoredNotifications(userId);
+}
+
+function readStoredPrefs(userId?: string): NotificationPreferences {
+  return getStoredPreferences(userId);
+}
+
 export function NotificationProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const userId = user?.id != null ? String(user.id) : undefined;
 
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [preferences, setPreferences] =
-    useState<NotificationPreferences>(DEFAULT_PREFERENCES);
+  const [notifications, setNotifications] = useState<Notification[]>(() =>
+    readStoredNotifications(userId)
+  );
+  const [preferences, setPreferences] = useState<NotificationPreferences>(() =>
+    readStoredPrefs(userId)
+  );
   const [isLoading, setIsLoading] = useState(true);
 
   const loadData = useCallback(async () => {
-    setIsLoading(true);
     try {
       const [notifs, prefs] = await Promise.all([
         fetchNotifications(userId),
         fetchNotificationPreferencesApi(userId),
       ]);
-      setNotifications(notifs);
+      if (notifs.length > 0) {
+        setNotifications(notifs);
+      }
       setPreferences(prefs);
     } finally {
       setIsLoading(false);
@@ -99,6 +112,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     [userId]
   );
 
+  // Initial data load - async, no synchronous setState
   useEffect(() => {
     let cancelled = false;
     const load = async () => {

@@ -176,7 +176,7 @@ Completar e integrar o CRM Larvifort com o backend.
 ### FASE 6 - Módulo de Projetos inspirado no UPSprint
 
 - [ ] CRM-011: Kanban renderizado exclusivamente por colunas reais da API
-- [ ] CRM-012: Criação guiada de quadro com colunas personalizadas
+- [x] CRM-012: Criação guiada de quadro com colunas personalizadas
 - [ ] CRM-013: CRUD e ordenação de colunas sem simulação local
 - [ ] CRM-014: Editor de regras por quadro
 - [ ] CRM-015: Editor de automações por quadro

@@ -13,7 +13,7 @@ import {
 import KanbanColumn from "@/components/kanban/KanbanColumn";
 import QuickEditDrawer from "@/components/kanban/QuickEditDrawer";
 import NovaTarefaModal from "@/components/kanban/NovaTarefaModal";
-import NovoQuadroModal from "@/components/kanban/NovoQuadroModal";
+import NovoQuadroWizard from "@/components/kanban/NovoQuadroWizard";
 import NovaColunaModal from "@/components/kanban/NovaColunaModal";
 import ExcluirColunaModal from "@/components/kanban/ExcluirColunaModal";
 import ExcluirQuadroModal from "@/components/kanban/ExcluirQuadroModal";
@@ -25,32 +25,20 @@ import type { ProjectCard } from "@/components/kanban/KanbanCard";
 import {
   fetchTasks,
   fetchProjetos,
+  fetchColumns,
   updateTaskStatus,
   mapTaskToCard,
   type Task,
   type StatusTarefa,
   type Projeto,
+  type TaskColumn,
 } from "@/services/tasks";
-
-const COLUNAS = [
-  { title: "Backlog", color: "slate", status: "BACKLOG" as StatusTarefa },
-  { title: "Em Andamento", color: "sky", status: "EM_ANDAMENTO" as StatusTarefa, highlighted: true },
-  { title: "Em Revisão", color: "amber", status: "EM_REVISAO" as StatusTarefa },
-  { title: "Concluído", color: "emerald", status: "CONCLUIDO" as StatusTarefa },
-];
-
-const COLUMN_TO_STATUS: Record<string, StatusTarefa> = {
-  Backlog: "BACKLOG",
-  "Em Andamento": "EM_ANDAMENTO",
-  "Em Revisão": "EM_REVISAO",
-  Concluído: "CONCLUIDO",
-};
 
 export default function KanbanPage() {
   const [projetoId, setProjetoId] = useState<string>("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [novaTarefaModalOpen, setNovaTarefaModalOpen] = useState(false);
-  const [novoQuadroModalOpen, setNovoQuadroModalOpen] = useState(false);
+  const [novoQuadroWizardOpen, setNovoQuadroWizardOpen] = useState(false);
   const [novaColunaModalOpen, setNovaColunaModalOpen] = useState(false);
   const [excluirColunaTarget, setExcluirColunaTarget] = useState<{id: string, title: string} | null>(null);
   const [excluirQuadroTarget, setExcluirQuadroTarget] = useState<Projeto | null>(null);
@@ -63,6 +51,7 @@ export default function KanbanPage() {
   const [projetos, setProjetos] = useState<Projeto[]>([]);
   const [users, setUsers] = useState<User[]>([]);
 
+  const [columns, setColumns] = useState<TaskColumn[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [tryCount, setTryCount] = useState(0);
@@ -72,18 +61,18 @@ export default function KanbanPage() {
     const onKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && !e.repeat) {
         if (e.key.toLowerCase() === "n") { e.preventDefault(); setNovaTarefaModalOpen(true); }
-        if (e.key.toLowerCase() === "b") { e.preventDefault(); setNovoQuadroModalOpen(true); }
+        if (e.key.toLowerCase() === "b") { e.preventDefault(); setNovoQuadroWizardOpen(true); }
       }
       if (e.key === "Escape") {
         if (novaTarefaModalOpen) setNovaTarefaModalOpen(false);
-        else if (novoQuadroModalOpen) setNovoQuadroModalOpen(false);
+        else if (novoQuadroWizardOpen) setNovoQuadroWizardOpen(false);
         else if (novaColunaModalOpen) setNovaColunaModalOpen(false);
         else if (selectedCard) { setTaskDetailOpen(false); setSelectedCard(null); }
       }
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [novaTarefaModalOpen, novoQuadroModalOpen, novaColunaModalOpen, selectedCard, taskDetailOpen]);
+  }, [novaTarefaModalOpen, novoQuadroWizardOpen, novaColunaModalOpen, selectedCard, taskDetailOpen]);
 
   const [busca, setBusca] = useState("");
 
@@ -126,6 +115,42 @@ export default function KanbanPage() {
     };
   }, [tryCount]);
 
+  // Fetch columns for selected board/projeto
+  useEffect(() => {
+    let cancelled = false;
+
+    async function fetchBoardColumns() {
+      if (!projetoId) {
+        setColumns([]);
+        return;
+      }
+      try {
+        const columnsResult = await fetchColumns(projetoId);
+        if (!cancelled) {
+          setColumns(columnsResult);
+        }
+      } catch {
+        if (!cancelled) {
+          setColumns([]);
+        }
+      }
+    }
+
+    void fetchBoardColumns();
+    return () => {
+      cancelled = true;
+    };
+  }, [projetoId]);
+
+  // Build column-to-status map from API columns
+  const columnToStatus = useMemo(() => {
+    const map: Record<string, StatusTarefa> = {};
+    for (const col of columns) {
+      map[col.title] = col.status;
+    }
+    return map;
+  }, [columns]);
+
   const cards = useMemo(() => {
     const term = busca.trim().toLowerCase();
     const filtered = allTasks.filter((t) => {
@@ -139,13 +164,14 @@ export default function KanbanPage() {
     });
 
     const data: Record<string, ProjectCard[]> = {};
-    for (const col of COLUNAS) {
+    for (const col of columns) {
+      const colStatus = col.status;
       data[col.title] = filtered
-        .filter((t) => t.status === col.status)
+        .filter((t) => t.status === colStatus)
         .map(mapTaskToCard);
     }
     return data;
-  }, [projetoId, allTasks, busca]);
+  }, [projetoId, allTasks, busca, columns]);
 
   const startLoad = () => setTryCount((c) => c + 1);
 
@@ -165,7 +191,7 @@ export default function KanbanPage() {
     return users;
   }, [allTasks, projetoId, users]);
 
-  const totalTasks = COLUNAS.reduce(
+  const totalTasks = columns.reduce(
     (acc, col) => acc + (cards[col.title]?.length || 0),
     0
   );
@@ -183,7 +209,7 @@ export default function KanbanPage() {
   const handleCardMove = useCallback(
     (cardId: string, toColumn: string, toIndex: number) => {
       void toIndex;
-      const newStatus = COLUMN_TO_STATUS[toColumn];
+      const newStatus = columnToStatus[toColumn];
       if (!newStatus) return;
 
       // Optimistic update — change the task status in local state
@@ -196,8 +222,9 @@ export default function KanbanPage() {
         startLoad();
       });
 
-      // Trigger column hand-off: when moved to "Em Revisão", open passagem modal
-      if (toColumn === "Em Revisão") {
+      // Trigger column hand-off: when moved to column with status EM_REVISAO, open passagem modal
+      const targetColumn = columns.find((c) => c.title === toColumn);
+      if (targetColumn?.status === "EM_REVISAO") {
         const task = allTasks.find((t) => t.id === cardId);
         if (task) {
           setPassagemTask({ id: task.id, titulo: task.titulo, projetoId: task.projetoId || projetoId });
@@ -206,7 +233,7 @@ export default function KanbanPage() {
 
       setDraggedCardId(null);
     },
-    [projetoId, allTasks]
+    [projetoId, allTasks, columnToStatus, columns]
   );
 
   if (loading) {
@@ -222,9 +249,9 @@ export default function KanbanPage() {
         </header>
         <main className="flex-1 overflow-hidden p-8">
           <div className="flex gap-5 h-full">
-            {COLUNAS.map((col) => (
+            {columns.length > 0 ? columns.map((col) => (
               <div
-                key={col.title}
+                key={col.id}
                 className="flex-1 bg-slate-100 rounded-xl p-4 animate-pulse min-w-[260px]"
               >
                 <div className="h-5 w-24 bg-slate-200 rounded mb-4" />
@@ -238,7 +265,12 @@ export default function KanbanPage() {
                   </div>
                 ))}
               </div>
-            ))}
+            )) : (
+              <div className="flex-1 bg-slate-100 rounded-xl p-4 animate-pulse min-w-[260px]">
+                <div className="h-5 w-32 bg-slate-200 rounded mb-4" />
+                <p className="text-sm text-slate-400 text-center py-8">Carregando colunas...</p>
+              </div>
+            )}
           </div>
         </main>
       </>
@@ -282,11 +314,11 @@ export default function KanbanPage() {
         <div className="max-w-md text-center">
           <h1 className="text-2xl font-bold text-slate-800">Nenhum quadro criado</h1>
           <p className="mt-2 text-sm text-slate-500">Crie seu primeiro quadro ou setor para começar a organizar as tarefas.</p>
-          <button type="button" onClick={() => setNovoQuadroModalOpen(true)} className="mt-5 inline-flex cursor-pointer items-center gap-2 rounded-lg bg-sky-600 px-4 py-2 text-sm font-bold text-white hover:bg-sky-700">
+          <button type="button" onClick={() => setNovoQuadroWizardOpen(true)} className="mt-5 inline-flex cursor-pointer items-center gap-2 rounded-lg bg-sky-600 px-4 py-2 text-sm font-bold text-white hover:bg-sky-700">
             <Plus size={16} /> Criar quadro
           </button>
         </div>
-        <NovoQuadroModal open={novoQuadroModalOpen} onClose={() => setNovoQuadroModalOpen(false)} onSuccess={(newProjeto) => { setProjetos([newProjeto]); setProjetoId(newProjeto.id); }} />
+        <NovoQuadroWizard open={novoQuadroWizardOpen} onClose={() => setNovoQuadroWizardOpen(false)} onSuccess={(newProjeto) => { const fullProjeto = { ...newProjeto, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }; setProjetos((prev) => [...prev, fullProjeto]); setProjetoId(fullProjeto.id); }} />
       </main>
     );
   }
@@ -345,7 +377,7 @@ export default function KanbanPage() {
                         type="button"
                         onClick={() => {
                           setDropdownOpen(false);
-                          setNovoQuadroModalOpen(true);
+                          setNovoQuadroWizardOpen(true);
                         }}
                         className="w-full px-3 py-1.5 text-left text-xs font-semibold text-sky-600 hover:bg-sky-50 rounded-lg flex items-center gap-2 transition-colors cursor-pointer"
                       >
@@ -446,28 +478,31 @@ export default function KanbanPage() {
           className="flex gap-5 overflow-x-auto p-8 h-full"
           style={{ scrollSnapType: "x mandatory" }}
         >
-          {COLUNAS.map((col) => (
-              <KanbanColumn
-                key={col.title}
-                title={col.title}
-                count={cards[col.title]?.length || 0}
-                color={col.color}
-                cards={cards[col.title] || []}
-                highlighted={col.highlighted}
-                onCardClick={(card) => {
-                  setSelectedCard(card);
-                  setTaskDetailOpen(true);
-                }}
-                onCardMove={handleCardMove}
-                draggedCardId={draggedCardId}
-                onDragStart={handleDragStart}
-                onDragEnd={handleDragEnd}
-                onAddColumn={() => setNovaColunaModalOpen(true)}
-                onDeleteColumn={() => {
-                  setExcluirColunaTarget({ id: col.status, title: col.title }); // Simulating real column ID with status for this local state setup
-                }}
-              />
-          ))}
+          {columns
+            .slice()
+            .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+            .map((col) => (
+                <KanbanColumn
+                  key={col.id}
+                  title={col.title}
+                  count={cards[col.title]?.length || 0}
+                  color={col.color}
+                  cards={cards[col.title] || []}
+                  highlighted={col.status === "EM_ANDAMENTO"} // Highlight "Em Andamento" column
+                  onCardClick={(card) => {
+                    setSelectedCard(card);
+                    setTaskDetailOpen(true);
+                  }}
+                  onCardMove={handleCardMove}
+                  draggedCardId={draggedCardId}
+                  onDragStart={handleDragStart}
+                  onDragEnd={handleDragEnd}
+                  onAddColumn={() => setNovaColunaModalOpen(true)}
+                  onDeleteColumn={() => {
+                    setExcluirColunaTarget({ id: col.id, title: col.title });
+                  }}
+                />
+            ))}
         </div>
       </main>
 
@@ -535,12 +570,17 @@ export default function KanbanPage() {
         }}
       />
 
-      <NovoQuadroModal
-        open={novoQuadroModalOpen}
-        onClose={() => setNovoQuadroModalOpen(false)}
+<NovoQuadroWizard
+        open={novoQuadroWizardOpen}
+        onClose={() => setNovoQuadroWizardOpen(false)}
         onSuccess={(newProjeto) => {
-          setProjetos((prev) => [...prev, newProjeto]);
-          setProjetoId(newProjeto.id);
+          const fullProjeto = {
+            ...newProjeto,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          };
+          setProjetos((prev) => [...prev, fullProjeto]);
+          setProjetoId(fullProjeto.id);
         }}
       />
 
@@ -557,7 +597,7 @@ export default function KanbanPage() {
         open={!!excluirColunaTarget}
         onClose={() => setExcluirColunaTarget(null)}
         column={excluirColunaTarget!}
-        availableColumns={COLUNAS.map(c => ({ id: c.status, title: c.title }))}
+        availableColumns={columns.map((c) => ({ id: c.id, title: c.title }))}
         onSuccess={() => {
           console.log("Coluna excluída. Atualizaríamos estado local removendo a coluna e redirecionando tarefas.");
         }}

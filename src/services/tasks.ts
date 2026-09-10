@@ -303,6 +303,11 @@ export function deleteColumn(columnId: string, moveToColumnId: string): Promise<
   return apiDelete<unknown>(`/tasks/columns/${columnId}`, { body: { moveToColumnId } }).then(() => undefined);
 }
 
+export function fetchColumns(boardId: string): Promise<TaskColumn[]> {
+  return apiGet<unknown>(`/tasks/boards/${boardId}/columns`)
+    .then((raw) => normalizeList(raw, (item) => item as TaskColumn));
+}
+
 export type TransferTaskInput = {
   targetBoardId: string;
   targetColumnId?: string;
