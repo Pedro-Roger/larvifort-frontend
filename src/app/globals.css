@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -34,7 +40,85 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+  font-family:
+    var(--font-sans),
+    system-ui,
+    -apple-system,
+    sans-serif;
+  min-width: 320px;
+  overflow-x: hidden;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--color-brand-400) 55%, transparent);
+  outline-offset: 2px;
+}
+
+@media (max-width: 639px) {
+  .p-8,
+  .p-6 {
+    padding: 1rem !important;
+  }
+
+  .px-8,
+  .px-6 {
+    padding-inline: 1rem !important;
+  }
+
+  .grid-cols-2 {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .max-w-4xl,
+  .max-w-3xl,
+  .max-w-2xl,
+  .max-w-xl,
+  .max-w-lg,
+  .max-w-md {
+    max-width: calc(100vw - 2rem) !important;
+  }
+
+  [class*="w-[460px]"] {
+    width: calc(100vw - 1rem) !important;
+  }
+
+  [class*="w-[420px]"],
+  [class*="w-[360px]"] {
+    width: min(calc(100vw - 1rem), 420px) !important;
+  }
+
+  [class*="max-h-[92vh]"],
+  [class*="max-h-[90vh]"] {
+    max-height: calc(100dvh - 1rem) !important;
+  }
+
+  [class*="h-[calc(100vh-250px)]"] {
+    height: calc(100dvh - 10rem) !important;
+  }
+
+  table {
+    min-width: 640px;
+  }
+}
+
+@media (pointer: coarse) {
+  button,
+  a,
+  [role="button"] {
+    min-height: 44px;
+  }
 }
 
 /* Dot matrix background pattern */

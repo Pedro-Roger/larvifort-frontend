@@ -20,9 +20,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="h-screen flex overflow-hidden bg-[#f8f9fa] font-sans antialiased">
+    <div className="min-h-dvh flex overflow-hidden bg-[#f8f9fa] font-sans antialiased">
       <Sidebar />
-      <div className="flex-1 flex flex-col h-screen overflow-y-auto relative bg-[#f8f9fb]">
+      <div className="min-w-0 flex-1 flex flex-col min-h-dvh overflow-y-auto relative bg-[#f8f9fb] pt-14 lg:pt-0">
         {children}
       </div>
     </div>

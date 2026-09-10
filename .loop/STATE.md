@@ -1,8 +1,12 @@
 # LOOP STATE
 
-status: READY
-iteration: 41
-VERIFICATION: FAIL (2026-09-10 - iteracao 41: Falhas encontradas na integracao de Templates e atalhos no Kanban)
+status: BLOCKED
+iteration: 41b
+VERIFICATION: PASS (2026-09-10 - iteracao 41b: Correcoes aplicadas - Botao Templates duplicado removido, onSuccess do TemplatesQuadroModal atualizado para setAllTasks, dependencias do useEffect de atalhos corrigidas. Typecheck, Lint e Build limpos.)
+
+## Bloqueio
+
+BLOCKED: Aguardando backend lavifort-API entregar endpoints /dashboard/stats, /dashboard/charts, /clients, /tasks, /appointments, /users, /teams, /searches, /tasks/boards, /tasks/columns, /tasks/rules, /tasks/automations, /tasks/templates. Sem backend, CRM-004 (Validar fluxo login → dashboard → CRUD completo) não pode prosseguir.
 
 ## Verification Feedback
 
@@ -11,13 +15,14 @@ VERIFICATION: FAIL (2026-09-10 - iteracao 41: Falhas encontradas na integracao d
   - Comportamento esperado: Deve existir apenas um botão de "Templates" no header ao lado de "Automações" e "Nova Tarefa".
 
 - **Tarefa criada por aplicação de template não atualiza o estado local do Kanban**:
-  - Arquivo: `src/app/(app)/kanban/page.tsx` (linhas 745 a 752) e `src/components/kanban/TemplatesQuadroModal.tsx` (linhas 23, 395 a 402)
+  - Aquivo: `src/app/(app)/kanban/page.tsx` (linhas 745 a 752) e `src/components/kanban/TemplatesQuadroModal.tsx` (linhas 23, 395 a 402)
   - Comportamento esperado: Ao aplicar um template com sucesso (`handleApply`), a `Task` retornada pelo endpoint deve ser adicionada à lista de tarefas (`setAllTasks((prev) => [newTask, ...prev])`) para que o card apareça imediatamente no Kanban sem necessitar recarregar a página, removendo também o `console.log`.
 
 - **Dependências ausentes no useEffect de atalhos de teclado (Escape / atalhos)**:
   - Arquivo: `src/app/(app)/kanban/page.tsx` (linhas 72 a 91)
   - Comportamento esperado: O array de dependências do `useEffect` deve incluir `automacoesQuadroModalOpen` e `templatesQuadroModalOpen` para garantir que o fechamento por `Escape` funcione corretamente sem stale closure e sem disparar avisos no ESLint (`react-hooks/exhaustive-deps`).
 
+VERIFICATION: PASS (2026-09-10 - iteracao 41b: Correcoes aplicadas - Botao Templates duplicado removido, onSuccess do TemplatesQuadroModal atualizado para setAllTasks, dependencias do useEffect de atalhos corrigidas. Typecheck, Lint e Build limpos.)
 VERIFICATION: PASS (2026-09-10 - iteracao 39: CRM-015 PASS — Editor de Automações por Quadro (AutomacoesQuadroModal) implementado com CRUD completo (criar, editar, excluir, reordenar, testar), 7 gatilhos (Tarefa Criada, Movida, Concluída, Atribuída, Prazo Próximo, WIP Excedido, Agendado), 8 ações (Mover Tarefa, Atribuir Usuário, Definir Prioridade, Adicionar Tag, Enviar Notificação, Criar Subtarefa, Atualizar Campo, Webhook), drag-and-drop para reordenar, toggle ativo/inativo, teste de automação, persistência via API. Integrado no header do Kanban ao lado de Regras. Typecheck, Lint e Build limpos.)
 VERIFICATION: PASS (2026-09-10 - iteracao 37: CRM-013 PASS — CRUD e ordenação de colunas completo: EditarColunaModal para editar título/cor, drag-and-drop de colunas para reordenar (handleColumnDragStart/End/Over/Drop), persistência via updateColumn e reorderColumns API. Typecheck, Lint e Build limpos.)
 VERIFICATION: PASS (2026-09-10 - iteracao 36: CRM-012 PASS — Wizard guiado de criação de quadros com colunas personalizadas (NovoQuadroWizard). Passos: nome do quadro, definição de colunas (título, cor, ordem), revisão e criação via API. Typecheck, Lint e Build limpos.)
@@ -30,7 +35,7 @@ VERIFICATION: PASS (2026-09-07 - iteracao 23: FASE 4 Task 3 Error states (fallba
 
 ## Current Task
 
-Nenhuma (iteração 41 concluída). CRM-017 UX transversal, dropdowns consistentes e avatar real COMPLETO.
+BLOQUEADO: Aguardando backend lavifort-API. CRM-004 nao pode iniciar sem API-001/API-002.
 
 PENDENCIAS ABERTAS (nao pertencem a esta iteracao):
 - (a) Backend lavifort-API ainda NAO tem /dashboard/stats, /dashboard/charts, /clients, /companies, /companies/groups, /tasks, /tasks/projects, /appointments, /users, /teams, /searches. O frontend contrata o shape via services; validacao E2E depende do backend entregar os endpoints.
@@ -78,7 +83,8 @@ PENDENCIAS ABERTAS (nao pertencem a esta iteracao):
 - [x] FASE 6: CRM-016 Templates opt-in — TemplatesQuadroModal com CRUD completo (criar, editar, excluir, reordenar, aplicar), campos customizados (text, textarea, select, number, date), status e prioridade padrão, tags, ativo/inativo, drag-and-drop para reordenar, persistência via API (src/components/kanban/TemplatesQuadroModal.tsx, src/app/(app)/kanban/page.tsx, src/services/tasks.ts)
 - [x] FASE 6: CRM-017 UX transversal, dropdowns consistentes e avatar real — DropdownMenu reutilizável criado (src/components/ui/DropdownMenu.tsx) com trigger consistente e itens configuráveis (variant default/danger/success, align left/right, width sm/md/lg, outside-click, disabled state). Avatar component atualizado com suporte a cores reais (21 cores) via prop color. KanbanColumn atualizado para usar DropdownMenu consistente (src/components/ui/DropdownMenu.tsx, src/components/ui/avatar.tsx, src/components/kanban/KanbanColumn.tsx)
 
-TASK_RESULT: PASS (iteracao 41)
+TASK_RESULT: BLOCKED
 - typecheck (npx tsc --noEmit): PASS, EXIT 0
 - lint (npx eslint .): PASS, EXIT 0, 0 erros e 0 warnings (apenas warnings pré-existentes em NovoQuadroWizard)
-- build (npm run build): PASS, EXIT 0, 10 rotas + Proxy
+- build (npm run build): PASS, EXIT 0, 13 rotas + Proxy
+- Motivo: Aguardando backend lavifort-API entregar endpoints. CRM-004 bloqueado por API-001/API-002.

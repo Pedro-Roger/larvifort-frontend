@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useEffect, useCallback } from "react";
 import { X, CircleNotch, WarningCircle, Plus, Trash, DotsThree, FileText, CheckCircle } from "@phosphor-icons/react";
 import {
@@ -14,13 +12,14 @@ import {
   type TemplateField,
   type StatusTarefa,
   type Prioridade,
+  type Task,
 } from "@/services/tasks";
 
 interface TemplatesQuadroModalProps {
   open: boolean;
   onClose: () => void;
   boardId: string;
-  onSuccess?: (task: { id: string; titulo: string }) => void;
+  onSuccess?: (task: Task) => void;
 }
 
 const STATUS_OPTIONS: { value: StatusTarefa; label: string }[] = [
@@ -394,7 +393,7 @@ export default function TemplatesQuadroModal({ open, onClose, boardId, onSuccess
   const handleApply = async (template: BoardTemplate) => {
     try {
       const result = await applyBoardTemplate(template.id);
-      onSuccess?.({ id: result.id, titulo: result.titulo });
+      onSuccess?.(result);
       onClose();
     } catch (err: unknown) {
       alert("Erro ao aplicar template: " + (err instanceof Error ? err.message : "Erro desconhecido"));

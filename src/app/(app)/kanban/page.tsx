@@ -88,7 +88,7 @@ export default function KanbanPage() {
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [novaTarefaModalOpen, novoQuadroWizardOpen, novaColunaModalOpen, regrasQuadroModalOpen, editarColunaTarget, selectedCard, taskDetailOpen]);
+   }, [novaTarefaModalOpen, novoQuadroWizardOpen, novaColunaModalOpen, regrasQuadroModalOpen, automacoesQuadroModalOpen, templatesQuadroModalOpen, editarColunaTarget, selectedCard, taskDetailOpen]);
 
   const [busca, setBusca] = useState("");
 
@@ -487,27 +487,18 @@ export default function KanbanPage() {
                <Gear size={14} className="text-amber-600" />
                <span>Automações</span>
              </button>
-             <button
-               type="button"
-               onClick={() => setTemplatesQuadroModalOpen(true)}
-               className="h-9 px-3 rounded-lg bg-white hover:bg-emerald-50 text-xs font-semibold text-slate-700 flex items-center gap-2 border border-slate-200 shadow-sm transition-all cursor-pointer"
-               title="Templates do Quadro"
-             >
-               <FileText size={14} className="text-emerald-600" />
-               <span>Templates</span>
-             </button>
-             <button
-               type="button"
-               onClick={() => setTemplatesQuadroModalOpen(true)}
-               className="h-9 px-3 rounded-lg bg-white hover:bg-emerald-50 text-xs font-semibold text-slate-700 flex items-center gap-2 border border-slate-200 shadow-sm transition-all cursor-pointer"
-               title="Templates do Quadro"
-             >
-               <FileText size={14} className="text-emerald-600" />
-               <span>Templates</span>
-             </button>
-             <button
-               type="button"
-               onClick={() => setNovaTarefaModalOpen(true)}
+              <button
+                type="button"
+                onClick={() => setTemplatesQuadroModalOpen(true)}
+                className="h-9 px-3 rounded-lg bg-white hover:bg-emerald-50 text-xs font-semibold text-slate-700 flex items-center gap-2 border border-slate-200 shadow-sm transition-all cursor-pointer"
+                title="Templates do Quadro"
+              >
+                <FileText size={14} className="text-emerald-600" />
+                <span>Templates</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setNovaTarefaModalOpen(true)}
                className="px-4 py-2 rounded-lg bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold flex items-center gap-2 shadow-sm shadow-sky-500/25 transition-all cursor-pointer"
              >
                <Plus size={14} />
@@ -741,14 +732,13 @@ export default function KanbanPage() {
          }}
        />
 
-       <TemplatesQuadroModal
-         open={templatesQuadroModalOpen}
-         onClose={() => setTemplatesQuadroModalOpen(false)}
-         boardId={projetoId}
-         onSuccess={(task) => {
-           // Optionally handle task creation success
-           console.log("Template applied, task created:", task);
-         }}
+        <TemplatesQuadroModal
+          open={templatesQuadroModalOpen}
+          onClose={() => setTemplatesQuadroModalOpen(false)}
+          boardId={projetoId}
+          onSuccess={(task) => {
+            setAllTasks((prev) => [task, ...prev]);
+          }}
        />
 
        {excluirQuadroTarget && (
