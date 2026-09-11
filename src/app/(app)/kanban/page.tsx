@@ -11,6 +11,7 @@ import {
   Trash,
   Gear,
   FileText,
+  Kanban,
 } from "@phosphor-icons/react";
 import KanbanColumn from "@/components/kanban/KanbanColumn";
 import QuickEditDrawer from "@/components/kanban/QuickEditDrawer";
@@ -529,6 +530,25 @@ export default function KanbanPage() {
           className="flex gap-5 overflow-x-auto p-8 h-full"
           style={{ scrollSnapType: "x mandatory" }}
         >
+          {columns.length === 0 && (
+            <div className="flex min-w-[min(100%,24rem)] flex-1 items-center justify-center rounded-2xl border-2 border-dashed border-sky-200 bg-sky-50/40 p-8 text-center">
+              <div className="max-w-sm">
+                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-100 text-sky-600">
+                  <Kanban size={24} />
+                </div>
+                <h2 className="text-base font-bold text-slate-800">Este quadro ainda não tem colunas</h2>
+                <p className="mt-2 text-sm text-slate-500">Crie a primeira coluna para começar a organizar suas tarefas.</p>
+                <button
+                  type="button"
+                  onClick={() => setNovaColunaModalOpen(true)}
+                  className="mt-5 inline-flex cursor-pointer items-center gap-2 rounded-lg bg-sky-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-sky-700"
+                >
+                  <Plus size={17} weight="bold" />
+                  Criar primeira coluna
+                </button>
+              </div>
+            </div>
+          )}
           {columns
             .slice()
             .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
@@ -560,6 +580,16 @@ export default function KanbanPage() {
                   draggedColumnId={draggedColumnId}
                 />
             ))}
+          {columns.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setNovaColunaModalOpen(true)}
+              className="flex h-40 w-64 shrink-0 cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-200 text-sm font-semibold text-slate-400 transition-colors hover:border-sky-300 hover:bg-sky-50/50 hover:text-sky-600"
+            >
+              <Plus size={22} weight="bold" />
+              Adicionar coluna
+            </button>
+          )}
         </div>
       </main>
 
@@ -646,7 +676,17 @@ export default function KanbanPage() {
         onClose={() => setNovaColunaModalOpen(false)}
         boardId={projetoId}
         onSuccess={(col) => {
-          console.log("Aqui atualizaríamos o estado de colunas no board:", col.title);
+          setColumns((prev) => [
+            ...prev,
+            {
+              id: col.id,
+              boardId: projetoId,
+              status: "BACKLOG",
+              title: col.title,
+              color: col.color,
+              order: col.order,
+            },
+          ]);
         }}
       />
 

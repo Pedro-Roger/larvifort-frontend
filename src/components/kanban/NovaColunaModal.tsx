@@ -2,15 +2,16 @@
 
 import { useState } from "react";
 import { X, CircleNotch, WarningCircle, Kanban } from "@phosphor-icons/react";
+import { createColumn } from "@/services/tasks";
 
 interface NovaColunaModalProps {
   open: boolean;
   onClose: () => void;
-  boardId?: string;
-  onSuccess?: (col: { title: string; color: string }) => void;
+  boardId: string;
+  onSuccess?: (col: { id: string; title: string; color: string; order: number }) => void;
 }
 
-export default function NovaColunaModal({ open, onClose, onSuccess }: NovaColunaModalProps) {
+export default function NovaColunaModal({ open, onClose, boardId, onSuccess }: NovaColunaModalProps) {
   const [title, setTitle] = useState("");
   const [color, setColor] = useState("slate");
   const [loading, setLoading] = useState(false);
@@ -34,10 +35,23 @@ export default function NovaColunaModal({ open, onClose, onSuccess }: NovaColuna
     }
     setLoading(true);
     setError(null);
-    // Simula criação — backend endpoint /tasks/boards/:id/columns ainda pendente
-    onSuccess?.({ title: title.trim(), color });
-    handleClose();
-    setLoading(false);
+    try {
+      const created = await createColumn(boardId, {
+        title: title.trim(),
+        color,
+      });
+      onSuccess?.({
+        id: created.id,
+        title: created.title,
+        color: created.color,
+        order: created.order,
+      });
+      handleClose();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Erro ao criar coluna.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const colors = [
