@@ -54,6 +54,9 @@ export default function Sidebar() {
   }
 
   const closeMobile = () => setMobileOpen(false);
+  const displayName = [user?.firstName, user?.lastName]
+    .filter((part): part is string => Boolean(part?.trim()))
+    .join(" ") || user?.name || user?.email?.split("@")[0] || "Usuário";
 
   return (
     <>
@@ -188,7 +191,7 @@ export default function Sidebar() {
           <div className="mb-3 flex items-center justify-between rounded-lg border border-slate-200 bg-white px-3 py-2">
             <div className="min-w-0 text-left leading-tight">
               <p className="truncate text-xs font-semibold text-slate-800">
-                {user ? `${user.firstName} ${user.lastName}`.trim() : "Usuário"}
+                {displayName}
               </p>
               <p className="truncate text-[11px] text-slate-400">
                 {user?.email ?? ""}
