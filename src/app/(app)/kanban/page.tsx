@@ -33,10 +33,8 @@ import {
   fetchProjetos,
   fetchColumns,
   reorderColumns,
-  updateTaskStatus,
   mapTaskToCard,
   type Task,
-  type StatusTarefa,
   type Projeto,
   type TaskColumn,
 } from "@/services/tasks";
@@ -158,15 +156,6 @@ export default function KanbanPage() {
     };
   }, [projetoId]);
 
-  // Build column-to-status map from API columns
-  const columnToStatus = useMemo(() => {
-    const map: Record<string, StatusTarefa> = {};
-    for (const col of columns) {
-      map[col.title] = col.status;
-    }
-    return map;
-  }, [columns]);
-
   const cards = useMemo(() => {
     const term = busca.trim().toLowerCase();
     const filtered = allTasks.filter((t) => {
@@ -222,36 +211,6 @@ export default function KanbanPage() {
     setDraggedCardId(null);
   }, []);
 
-  const handleCardMove = useCallback(
-    (cardId: string, toColumn: string, toIndex: number) => {
-      void toIndex;
-      const newStatus = columnToStatus[toColumn];
-      if (!newStatus) return;
-
-      // Optimistic update — change the task status in local state
-      setAllTasks((prev) =>
-        prev.map((t) => (t.id === cardId ? { ...t, status: newStatus } : t))
-      );
-
-      // Persist to API
-      void updateTaskStatus(cardId, { status: newStatus }).catch(() => {
-        startLoad();
-      });
-
-      // Trigger column hand-off: when moved to column with status EM_REVISAO, open passagem modal
-      const targetColumn = columns.find((c) => c.title === toColumn);
-      if (targetColumn?.status === "EM_REVISAO") {
-        const task = allTasks.find((t) => t.id === cardId);
-        if (task) {
-          setPassagemTask({ id: task.id, titulo: task.titulo, projetoId: task.projetoId || projetoId });
-        }
-      }
-
-      setDraggedCardId(null);
-    },
-    [projetoId, allTasks, columnToStatus, columns]
-  );
-
   // Column reordering handlers
   const handleColumnDragStart = useCallback((columnId: string) => {
     setDraggedColumnId(columnId);
@@ -261,7 +220,7 @@ export default function KanbanPage() {
     setDraggedColumnId(null);
   }, []);
 
-  const handleColumnDragOver = useCallback((_columnId: string) => {
+  const handleColumnDragOver = useCallback(() => {
     // Visual feedback handled by component
   }, []);
 
@@ -582,12 +541,10 @@ export default function KanbanPage() {
                   cards={cards[col.title] || []}
                   highlighted={col.status === "EM_ANDAMENTO"}
                   columnId={col.id}
-                  columnOrder={col.order}
                   onCardClick={(card) => {
                     setSelectedCard(card);
                     setTaskDetailOpen(true);
                   }}
-                  onCardMove={handleCardMove}
                   draggedCardId={draggedCardId}
                   onDragStart={handleDragStart}
                   onDragEnd={handleDragEnd}
@@ -693,26 +650,30 @@ export default function KanbanPage() {
         }}
       />
 
-      <ExcluirColunaModal
-        open={!!excluirColunaTarget}
-        onClose={() => setExcluirColunaTarget(null)}
-        column={excluirColunaTarget!}
-        availableColumns={columns.map((c) => ({ id: c.id, title: c.title }))}
-        onSuccess={() => {
-          console.log("Coluna excluída. Atualizaríamos estado local removendo a coluna e redirecionando tarefas.");
-        }}
-      />
+      {excluirColunaTarget && (
+        <ExcluirColunaModal
+          open
+          onClose={() => setExcluirColunaTarget(null)}
+          column={excluirColunaTarget}
+          availableColumns={columns.map((c) => ({ id: c.id, title: c.title }))}
+          onSuccess={() => {
+            console.log("Coluna excluída. Atualizaríamos estado local removendo a coluna e redirecionando tarefas.");
+          }}
+        />
+      )}
 
-      <EditarColunaModal
-        open={!!editarColunaTarget}
-        onClose={() => setEditarColunaTarget(null)}
-        column={editarColunaTarget!}
-        onSuccess={(updatedColumn) => {
-          setColumns((prev) =>
-            prev.map((c) => (c.id === updatedColumn.id ? updatedColumn : c))
-          );
-        }}
-      />
+      {editarColunaTarget && (
+        <EditarColunaModal
+          open
+          onClose={() => setEditarColunaTarget(null)}
+          column={editarColunaTarget}
+          onSuccess={(updatedColumn) => {
+            setColumns((prev) =>
+              prev.map((c) => (c.id === updatedColumn.id ? updatedColumn : c))
+            );
+          }}
+        />
+      )}
 
        <RegrasQuadroModal
          open={regrasQuadroModalOpen}
