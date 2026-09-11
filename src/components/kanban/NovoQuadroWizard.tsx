@@ -231,17 +231,19 @@ export default function NovoQuadroWizard({
             </div>
             <h2 className="text-base font-bold text-slate-800 flex items-center gap-2">
               <Kanban size={18} className="text-sky-600" />
-              Novo Quadro / Setor
+              <span className="truncate">Novo Quadro / Setor</span>
             </h2>
-            <button
-              type="button"
-              onClick={handleClose}
-              className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
-            >
-              <X size={18} />
-            </button>
           </div>
-          <div className="px-6 py-3 border-b border-slate-100 bg-slate-50/50">
+          <button
+            type="button"
+            onClick={handleClose}
+            aria-label="Fechar"
+            className="ml-3 shrink-0 rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 cursor-pointer"
+          >
+            <X size={18} />
+          </button>
+        </div>
+        <div className="px-6 py-3 border-b border-slate-100 bg-slate-50/50">
             <div className="flex items-center justify-between text-xs font-medium">
               {[1, 2, 3].map((s) => (
                 <div
@@ -442,8 +444,7 @@ export default function NovoQuadroWizard({
                 </button>
               )}
             </div>
-          </form>
-        </div>
+        </form>
       </div>
     </div>
   );
