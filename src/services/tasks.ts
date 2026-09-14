@@ -500,8 +500,8 @@ export function reorderBoardTemplates(boardId: string, templateOrders: { id: str
   return apiPatch<unknown>(`/tasks/boards/${boardId}/templates/reorder`, { templateOrders }).then(() => undefined);
 }
 
-export function applyBoardTemplate(templateId: string, taskOverrides?: Partial<Task>): Promise<Task> {
-  return apiPost<unknown>(`/tasks/templates/${templateId}/apply`, taskOverrides || {}).then((raw: unknown) => normalizeTask(raw as Task));
+export function applyBoardTemplate(templateId: string, boardId: string, taskOverrides?: Partial<Task>): Promise<Task> {
+  return apiPost<unknown>(`/tasks/templates/${templateId}/apply`, { ...taskOverrides, projetoId: boardId }).then((raw: unknown) => normalizeTask(raw as Task));
 }
 
 // ---------- Helpers de UI ----------

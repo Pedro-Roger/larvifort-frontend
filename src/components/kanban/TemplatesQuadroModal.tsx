@@ -45,7 +45,6 @@ const FIELD_TYPES: { value: TemplateField["type"]; label: string }[] = [
 
 function TemplateItem({
   template,
-  index,
   draggedId,
   onDragStart,
   onDragOver,
@@ -57,7 +56,6 @@ function TemplateItem({
   onApply,
 }: {
   template: BoardTemplate;
-  index: number;
   draggedId: string | null;
   onDragStart: (e: React.DragEvent, id: string) => void;
   onDragOver: (e: React.DragEvent) => void;
@@ -136,7 +134,6 @@ function TemplateItem({
 }
 
 function EditForm({
-  template,
   editName,
   setEditName,
   editDescription,
@@ -155,7 +152,6 @@ function EditForm({
   onCancel,
   loading,
 }: {
-  template: BoardTemplate;
   editName: string;
   setEditName: (v: string) => void;
   editDescription: string;
@@ -392,7 +388,7 @@ export default function TemplatesQuadroModal({ open, onClose, boardId, onSuccess
 
   const handleApply = async (template: BoardTemplate) => {
     try {
-      const result = await applyBoardTemplate(template.id);
+      const result = await applyBoardTemplate(template.id, boardId);
       onSuccess?.(result);
       onClose();
     } catch (err: unknown) {
@@ -507,11 +503,10 @@ export default function TemplatesQuadroModal({ open, onClose, boardId, onSuccess
               </div>
             ) : (
               <div className="space-y-3">
-                {templates.map((template, index) => (
+                {templates.map((template) => (
                   editingTemplate?.id === template.id ? (
                     <EditForm
                       key={template.id}
-                      template={template}
                       editName={editName}
                       setEditName={setEditName}
                       editDescription={editDescription}
@@ -534,7 +529,6 @@ export default function TemplatesQuadroModal({ open, onClose, boardId, onSuccess
                     <TemplateItem
                       key={template.id}
                       template={template}
-                      index={index}
                       draggedId={draggedId}
                       onDragStart={handleDragStart}
                       onDragOver={handleDragOver}
