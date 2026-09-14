@@ -12,13 +12,12 @@ interface KanbanColumnProps {
   cards: ProjectCard[];
   highlighted?: boolean;
   columnId?: string;
-  columnOrder?: number;
   onCardClick?: (card: ProjectCard) => void;
-  onCardMove?: (cardId: string, toColumn: string, toIndex: number) => void;
   draggedCardId?: string | null;
   onDragStart?: (cardId: string) => void;
   onDragEnd?: () => void;
   onAddColumn?: () => void;
+  onAddTask?: (status: string) => void;
   onDeleteColumn?: (toColumnTitle?: string) => void;
   onEditColumn?: () => void;
   // Column reordering
@@ -44,13 +43,12 @@ export default function KanbanColumn({
   cards,
   highlighted = false,
   columnId,
-  columnOrder,
   onCardClick,
-  onCardMove,
   draggedCardId,
   onDragStart,
   onDragEnd,
   onAddColumn,
+  onAddTask,
   onDeleteColumn,
   onEditColumn,
   onColumnDragStart,
@@ -59,48 +57,10 @@ export default function KanbanColumn({
   onColumnDrop,
   draggedColumnId,
 }: KanbanColumnProps) {
-  const [isDragOver, setIsDragOver] = useState(false);
-  const [dropIndex, setDropIndex] = useState<number | null>(null);
+  const [isDragOver] = useState(false);
+  const [dropIndex] = useState<number | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
-
-  function handleDragOver(e: React.DragEvent) {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = "move";
-    setIsDragOver(true);
-
-    if (!listRef.current) return;
-
-    const cardElements = listRef.current.querySelectorAll("[data-card-wrapper]");
-    let closestIndex = cards.length;
-
-    cardElements.forEach((el, i) => {
-      const rect = el.getBoundingClientRect();
-      const midY = rect.top + rect.height / 2;
-      if (e.clientY < midY) {
-        closestIndex = i;
-      }
-    });
-
-    setDropIndex(closestIndex);
-  }
-
-  function handleDragLeave(e: React.DragEvent) {
-    if (e.currentTarget === e.target) {
-      setIsDragOver(false);
-      setDropIndex(null);
-    }
-  }
-
-  function handleDrop(e: React.DragEvent) {
-    e.preventDefault();
-    const cardId = e.dataTransfer.getData("text/plain");
-    if (cardId && onCardMove) {
-      onCardMove(cardId, title, dropIndex ?? cards.length);
-    }
-    setIsDragOver(false);
-    setDropIndex(null);
-  }
 
   // Column reordering handlers
   function handleColumnDragStart(e: React.DragEvent) {
@@ -196,20 +156,30 @@ export default function KanbanColumn({
            <DropdownMenu
              trigger={<DropdownTrigger />}
              align="left"
-             items={[
-               { label: "+ Criar Coluna", onClick: () => onAddColumn?.() },
-               ...(onEditColumn ? [{ label: "Editar Coluna", icon: <Palette size={12} />, onClick: () => onEditColumn() }] : []),
-               { label: "Excluir Coluna", icon: <Trash size={12} />, onClick: () => onDeleteColumn?.(), variant: "danger" as const },
-             ]}
+              items={[
+                { label: "+ Criar Coluna", onClick: () => onAddColumn?.() },
+                { label: "+ Criar Tarefa", onClick: () => onAddTask?.(title) },
+                ...(onEditColumn ? [{ label: "Editar Coluna", icon: <Palette size={12} />, onClick: () => onEditColumn() }] : []),
+                { label: "Excluir Coluna", icon: <Trash size={12} />, onClick: () => onDeleteColumn?.(), variant: "danger" as const },
+              ]}
            />
-           <button 
-             type="button"
-             onClick={() => onAddColumn?.()}
-             className="w-7 h-7 rounded-md hover:bg-slate-200/60 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors ml-1 cursor-pointer"
-             aria-label="Nova coluna"
-           >
-             <Plus size={16} />
-           </button>
+            <button
+              type="button"
+              onClick={() => onAddColumn?.()}
+              className="w-7 h-7 rounded-md hover:bg-slate-200/60 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors ml-1 cursor-pointer"
+              aria-label="Nova coluna"
+            >
+              <Plus size={16} />
+            </button>
+            <button
+              type="button"
+              onClick={() => onAddTask?.(title)}
+              className="w-7 h-7 rounded-md hover:bg-sky-200/60 flex items-center justify-center text-sky-400 hover:text-sky-600 transition-colors ml-1 cursor-pointer"
+              aria-label="Nova tarefa"
+              title="Nova tarefa"
+            >
+              <Plus size={14} weight="bold" />
+            </button>
         </div>
       </div>
 

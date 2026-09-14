@@ -23,6 +23,7 @@ export type Prioridade = (typeof PRIORIDADE_VALUES)[number];
 export type Task = {
   id: string;
   projetoId: string;
+  columnId?: string | null;
   titulo: string;
   descricao: string | null;
   status: StatusTarefa;
@@ -80,6 +81,10 @@ export type TaskStatusUpdate = {
 export type Projeto = {
   id: string;
   name: string;
+  teamId?: string | null;
+  responsibleId?: string | null;
+  teamName?: string | null;
+  responsibleName?: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -183,9 +188,16 @@ export function normalizeTask(raw: unknown): Task {
 
 export function normalizeProjeto(raw: unknown): Projeto {
   const p = asObject(raw);
+  const team = asObject(p.team);
+  const responsible = asObject(p.responsible);
+  const responsibleName = `${str(responsible.firstName) ?? ""} ${str(responsible.lastName) ?? ""}`.trim();
   return {
     id: str(p.id) ?? "",
     name: str(p.name) ?? "",
+    teamId: str(p.teamId),
+    responsibleId: str(p.responsibleId),
+    teamName: str(p.teamName) ?? str(team.name),
+    responsibleName: str(p.responsibleName) ?? (responsibleName || null),
     createdAt: str(p.createdAt) ?? "",
     updatedAt: str(p.updatedAt) ?? "",
   };
@@ -349,7 +361,9 @@ export type AutomationTrigger =
   | "TASK_ASSIGNED"
   | "DUE_DATE_APPROACHING"
   | "COLUMN_WIP_EXCEEDED"
-  | "SCHEDULED";
+  | "SCHEDULED"
+  | "APPOINTMENT_CREATED"
+  | "APPOINTMENT_COMPLETED";
 
 export type AutomationAction = 
   | "MOVE_TASK"
@@ -359,7 +373,8 @@ export type AutomationAction =
   | "SEND_NOTIFICATION"
   | "CREATE_CHILD_TASK"
   | "UPDATE_FIELD"
-  | "WEBHOOK";
+  | "WEBHOOK"
+  | "CREATE_TASK_FROM_APPOINTMENT";
 
 export type BoardAutomation = {
   id: string;
@@ -425,7 +440,11 @@ export function transferTask(
   }));
 }
 
-export function createProjeto(input: { name: string }): Promise<Projeto> {
+export function createProjeto(input: {
+  name: string;
+  teamId?: string;
+  responsibleId?: string | null;
+}): Promise<Projeto> {
   return apiPost<unknown>("/tasks/projects", input).then(normalizeProjeto);
 }
 

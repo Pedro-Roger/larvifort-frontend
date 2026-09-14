@@ -26,8 +26,15 @@ import AutomacoesQuadroModal from "@/components/kanban/AutomacoesQuadroModal";
 import TemplatesQuadroModal from "@/components/kanban/TemplatesQuadroModal";
 import PassagemBastaoModal from "@/components/kanban/PassagemBastaoModal";
 import TaskDetailModal from "@/components/kanban/TaskDetailModal";
-import { Avatar, AvatarFallback, AvatarGroup, AvatarGroupCount } from "@/components/ui/avatar";
-import { fetchUsers, type User } from "@/services/users";
+import { Avatar, AvatarFallback, AvatarGroup, AvatarGroupCount, AvatarBadge } from "@/components/ui/avatar";
+import { useAuth } from "@/contexts/AuthContext";
+import { useWebSocket } from "@/hooks/useWebSocket";
+import { fetchTeams, fetchUsers, type Team, type User } from "@/services/users";
+import {
+  getKanbanProjectStorageKey,
+  readStoredKanbanProjectId,
+  resolveInitialKanbanProjectId,
+} from "@/services/kanbanProjectSelection";
 import type { ProjectCard } from "@/components/kanban/KanbanCard";
 import {
   fetchTasks,
@@ -41,6 +48,8 @@ import {
 } from "@/services/tasks";
 
 export default function KanbanPage() {
+  const { user } = useAuth();
+  const userIdentity = user?.id ?? user?.email ?? null;
   const [projetoId, setProjetoId] = useState<string>("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [novaTarefaModalOpen, setNovaTarefaModalOpen] = useState(false);
@@ -61,11 +70,103 @@ export default function KanbanPage() {
 
   const [projetos, setProjetos] = useState<Projeto[]>([]);
   const [users, setUsers] = useState<User[]>([]);
+  const [equipes, setEquipes] = useState<Team[]>([]);
 
   const [columns, setColumns] = useState<TaskColumn[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [tryCount, setTryCount] = useState(0);
+
+  const [taskColumnStatus, setTaskColumnStatus] = useState<string | null>(null);
+
+  const startLoad = () => setTryCount((c) => c + 1);
+
+  const { on } = useWebSocket({
+    boardId: projetoId,
+    enabled: !!projetoId,
+  });
+
+  // WebSocket event handlers
+  useEffect(() => {
+    if (!projetoId) return;
+
+    const unsubs: (() => void)[] = [];
+
+    unsubs.push(
+      on("task:created", (data: unknown) => {
+        const task = data as Task;
+        if (task.projetoId === projetoId) {
+          setAllTasks((prev) => {
+            if (prev.some((t) => t.id === task.id)) return prev;
+            return [task, ...prev];
+          });
+        }
+      }),
+    );
+
+    unsubs.push(
+      on("task:updated", (data: unknown) => {
+        const task = data as Task;
+        if (task.projetoId === projetoId) {
+          setAllTasks((prev) =>
+            prev.map((t) => (t.id === task.id ? task : t)),
+          );
+        }
+      }),
+    );
+
+    unsubs.push(
+      on("task:deleted", (data: unknown) => {
+        const { id } = data as { id: string };
+        setAllTasks((prev) => prev.filter((t) => t.id !== id));
+      }),
+    );
+
+    unsubs.push(
+      on("task:moved", () => {
+        void startLoad();
+      }),
+    );
+
+    unsubs.push(
+      on("column:created", (data: unknown) => {
+        const col = data as TaskColumn;
+        if (col.boardId === projetoId || col.status) {
+          setColumns((prev) => {
+            if (prev.some((c) => c.id === col.id)) return prev;
+            return [...prev, col];
+          });
+        }
+      }),
+    );
+
+    unsubs.push(
+      on("column:updated", (data: unknown) => {
+        const col = data as TaskColumn;
+        setColumns((prev) =>
+          prev.map((c) => (c.id === col.id ? col : c)),
+        );
+      }),
+    );
+
+    unsubs.push(
+      on("column:deleted", (data: unknown) => {
+        const { id } = data as { id: string };
+        setColumns((prev) => prev.filter((c) => c.id !== id));
+        setAllTasks((prev) => prev.filter((t) => t.columnId !== id));
+      }),
+    );
+
+    unsubs.push(
+      on("columns:reordered", (data: unknown) => {
+        setColumns(data as TaskColumn[]);
+      }),
+    );
+
+    return () => {
+      unsubs.forEach((u) => u());
+    };
+  }, [projetoId, on]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -91,6 +192,23 @@ export default function KanbanPage() {
 
   const [busca, setBusca] = useState("");
 
+  const selectProjeto = useCallback(
+    (nextProjetoId: string) => {
+      setProjetoId(nextProjetoId);
+      if (userIdentity === null) return;
+
+      try {
+        window.localStorage.setItem(
+          getKanbanProjectStorageKey(userIdentity),
+          nextProjetoId,
+        );
+      } catch {
+        // A seleção continua funcionando mesmo se o storage estiver indisponível.
+      }
+    },
+    [userIdentity],
+  );
+
   // Load projetos + tasks
   useEffect(() => {
     let cancelled = false;
@@ -99,19 +217,27 @@ export default function KanbanPage() {
       setLoading(true);
       setError(false);
       try {
-    const [projetosResult, usersResult, tasksResult] = await Promise.all([
+    const [projetosResult, usersResult, teamsResult, tasksResult] = await Promise.all([
       fetchProjetos(),
       fetchUsers(),
+      fetchTeams(),
       fetchTasks(),
     ]);
         if (cancelled) return;
 
         setProjetos(projetosResult);
         setUsers(usersResult);
+        setEquipes(teamsResult);
 
-        const firstId = projetosResult.length > 0 ? projetosResult[0].id : "";
+        const storedProjectId = userIdentity === null
+          ? null
+          : readStoredKanbanProjectId(window.localStorage, userIdentity);
+        const initialProjectId = resolveInitialKanbanProjectId(
+          projetosResult,
+          storedProjectId,
+        );
         if (!cancelled) {
-          setProjetoId(firstId);
+          setProjetoId(initialProjectId);
           setAllTasks(tasksResult);
         }
       } catch {
@@ -128,7 +254,7 @@ export default function KanbanPage() {
     return () => {
       cancelled = true;
     };
-  }, [tryCount]);
+  }, [tryCount, userIdentity]);
 
   // Fetch columns for selected board/projeto
   useEffect(() => {
@@ -178,8 +304,6 @@ export default function KanbanPage() {
     }
     return data;
   }, [projetoId, allTasks, busca, columns]);
-
-  const startLoad = () => setTryCount((c) => c + 1);
 
   const projetoAtual = projetos.find((p) => p.id === projetoId);
 
@@ -260,6 +384,16 @@ export default function KanbanPage() {
     },
     [projetoId, columns]
   );
+
+  const openTaskModalForColumn = useCallback((status: string) => {
+    setTaskColumnStatus(status);
+    setNovaTarefaModalOpen(true);
+  }, []);
+
+  const closeTaskModal = useCallback(() => {
+    setNovaTarefaModalOpen(false);
+    setTaskColumnStatus(null);
+  }, []);
 
   if (loading) {
     return (
@@ -343,7 +477,7 @@ export default function KanbanPage() {
             <Plus size={16} /> Criar quadro
           </button>
         </div>
-        <NovoQuadroWizard open={novoQuadroWizardOpen} onClose={() => setNovoQuadroWizardOpen(false)} onSuccess={(newProjeto) => { const fullProjeto = { ...newProjeto, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }; setProjetos((prev) => [...prev, fullProjeto]); setProjetoId(fullProjeto.id); }} />
+        <NovoQuadroWizard open={novoQuadroWizardOpen} onClose={() => setNovoQuadroWizardOpen(false)} equipes={equipes} responsaveis={users} defaultTeamId={typeof user?.teamId === "string" ? user.teamId : null} onSuccess={(newProjeto) => { const fullProjeto = { ...newProjeto, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }; setProjetos((prev) => [...prev, fullProjeto]); selectProjeto(fullProjeto.id); }} />
       </main>
     );
   }
@@ -388,7 +522,7 @@ export default function KanbanPage() {
                       ) : (
                         projetos.map((p) => (
                           <div key={p.id} className={`flex items-center ${p.id === projetoId ? "bg-sky-50" : "hover:bg-slate-50"}`}>
-                            <button type="button" onClick={() => { setProjetoId(p.id); setDropdownOpen(false); }} className={`min-w-0 flex-1 px-3 py-2 text-left text-xs font-medium flex items-center gap-2 transition-colors cursor-pointer ${p.id === projetoId ? "text-sky-700" : "text-slate-600"}`}>
+                            <button type="button" onClick={() => { selectProjeto(p.id); setDropdownOpen(false); }} className={`min-w-0 flex-1 px-3 py-2 text-left text-xs font-medium flex items-center gap-2 transition-colors cursor-pointer ${p.id === projetoId ? "text-sky-700" : "text-slate-600"}`}>
                               <span className={`w-2 h-2 shrink-0 rounded-full ${p.id === projetoId ? "bg-sky-500" : "bg-slate-300"}`} />
                               <span className="truncate">{p.name}</span>
                             </button>
@@ -423,6 +557,7 @@ export default function KanbanPage() {
                   <AvatarFallback className="bg-brand-600 text-white text-[10px] font-bold">
                     {(u.firstName?.[0] || "").toUpperCase()}{(u.lastName?.[0] || "").toUpperCase()}
                   </AvatarFallback>
+                  <AvatarBadge status={u.active ? "online" : "offline"} size="sm" ping={u.active} live />
                 </Avatar>
               ))}
               {sectorMembers.length > 4 && (
@@ -430,40 +565,40 @@ export default function KanbanPage() {
               )}
             </AvatarGroup>
              <button
-               type="button"
-               onClick={() => setRegrasQuadroModalOpen(true)}
-               className="h-9 px-3 rounded-lg bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 flex items-center gap-2 border border-slate-200 shadow-sm transition-all cursor-pointer"
-               title="Regras do Quadro"
-             >
-               <Gear size={14} className="text-sky-600" />
-               <span>Regras</span>
-             </button>
-             <button
-               type="button"
-               onClick={() => setAutomacoesQuadroModalOpen(true)}
-               className="h-9 px-3 rounded-lg bg-white hover:bg-amber-50 text-xs font-semibold text-slate-700 flex items-center gap-2 border border-slate-200 shadow-sm transition-all cursor-pointer"
-               title="Automações do Quadro"
-             >
-               <Gear size={14} className="text-amber-600" />
-               <span>Automações</span>
-             </button>
-              <button
                 type="button"
-                onClick={() => setTemplatesQuadroModalOpen(true)}
-                className="h-9 px-3 rounded-lg bg-white hover:bg-emerald-50 text-xs font-semibold text-slate-700 flex items-center gap-2 border border-slate-200 shadow-sm transition-all cursor-pointer"
-                title="Templates do Quadro"
+                onClick={() => setRegrasQuadroModalOpen(true)}
+                className="h-9 px-3 rounded-lg bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 flex items-center gap-2 border border-slate-200 shadow-sm transition-all cursor-pointer"
+                title="Regras do Quadro"
               >
-                <FileText size={14} className="text-emerald-600" />
-                <span>Templates</span>
+                <Gear size={14} className="text-sky-600" />
+                <span>Regras</span>
               </button>
               <button
                 type="button"
-                onClick={() => setNovaTarefaModalOpen(true)}
-               className="px-4 py-2 rounded-lg bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold flex items-center gap-2 shadow-sm shadow-sky-500/25 transition-all cursor-pointer"
-             >
-               <Plus size={14} />
-               Nova Tarefa
-             </button>
+                onClick={() => setAutomacoesQuadroModalOpen(true)}
+                className="h-9 px-3 rounded-lg bg-white hover:bg-amber-50 text-xs font-semibold text-slate-700 flex items-center gap-2 border border-slate-200 shadow-sm transition-all cursor-pointer"
+                title="Automações do Quadro"
+              >
+                <Gear size={14} className="text-amber-600" />
+                <span>Automações</span>
+              </button>
+               <button
+                 type="button"
+                 onClick={() => setTemplatesQuadroModalOpen(true)}
+                 className="h-9 px-3 rounded-lg bg-white hover:bg-emerald-50 text-xs font-semibold text-slate-700 flex items-center gap-2 border border-slate-200 shadow-sm transition-all cursor-pointer"
+                 title="Templates do Quadro"
+               >
+                 <FileText size={14} className="text-emerald-600" />
+                 <span>Templates</span>
+               </button>
+               <button
+                 type="button"
+                 onClick={() => setNovaTarefaModalOpen(true)}
+                className="px-4 py-2 rounded-lg bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold flex items-center gap-2 shadow-sm shadow-sky-500/25 transition-all cursor-pointer"
+              >
+                <Plus size={14} />
+                Nova Tarefa
+              </button>
           </div>
         </div>
 
@@ -569,6 +704,7 @@ export default function KanbanPage() {
                   onDragStart={handleDragStart}
                   onDragEnd={handleDragEnd}
                   onAddColumn={() => setNovaColunaModalOpen(true)}
+                  onAddTask={() => openTaskModalForColumn(col.status)}
                   onEditColumn={() => setEditarColunaTarget(col)}
                   onDeleteColumn={() => {
                     setExcluirColunaTarget({ id: col.id, title: col.title });
@@ -649,8 +785,9 @@ export default function KanbanPage() {
 
       <NovaTarefaModal
         open={novaTarefaModalOpen}
-        onClose={() => setNovaTarefaModalOpen(false)}
+        onClose={closeTaskModal}
         defaultProjetoId={projetoId}
+        defaultStatus={taskColumnStatus ?? undefined}
         projetos={projetos}
         onSuccess={(newTask) => {
           setAllTasks((prev) => [newTask, ...prev]);
@@ -660,6 +797,9 @@ export default function KanbanPage() {
 <NovoQuadroWizard
         open={novoQuadroWizardOpen}
         onClose={() => setNovoQuadroWizardOpen(false)}
+        equipes={equipes}
+        responsaveis={users}
+        defaultTeamId={typeof user?.teamId === "string" ? user.teamId : null}
         onSuccess={(newProjeto) => {
           const fullProjeto = {
             ...newProjeto,
@@ -667,7 +807,7 @@ export default function KanbanPage() {
             updatedAt: new Date().toISOString(),
           };
           setProjetos((prev) => [...prev, fullProjeto]);
-          setProjetoId(fullProjeto.id);
+          selectProjeto(fullProjeto.id);
         }}
       />
 
@@ -733,27 +873,27 @@ export default function KanbanPage() {
          }}
        />
 
-        <TemplatesQuadroModal
-          open={templatesQuadroModalOpen}
-          onClose={() => setTemplatesQuadroModalOpen(false)}
-          boardId={projetoId}
-          onSuccess={(task) => {
-            setAllTasks((prev) => [task, ...prev]);
-          }}
-       />
-
-       {excluirQuadroTarget && (
-        <ExcluirQuadroModal
-          open
-          onClose={() => setExcluirQuadroTarget(null)}
-          projeto={excluirQuadroTarget}
-          taskCount={allTasks.filter((task) => task.projetoId === excluirQuadroTarget.id).length}
-          onSuccess={() => {
-            setExcluirQuadroTarget(null);
-            startLoad();
-          }}
+         <TemplatesQuadroModal
+           open={templatesQuadroModalOpen}
+           onClose={() => setTemplatesQuadroModalOpen(false)}
+           boardId={projetoId}
+           onSuccess={(task) => {
+             setAllTasks((prev) => [task, ...prev]);
+           }}
         />
-      )}
+
+        {excluirQuadroTarget && (
+         <ExcluirQuadroModal
+           open
+           onClose={() => setExcluirQuadroTarget(null)}
+           projeto={excluirQuadroTarget}
+           taskCount={allTasks.filter((task) => task.projetoId === excluirQuadroTarget.id).length}
+           onSuccess={() => {
+             setExcluirQuadroTarget(null);
+             startLoad();
+           }}
+         />
+       )}
     </>
   );
 }

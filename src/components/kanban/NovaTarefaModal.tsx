@@ -20,6 +20,7 @@ interface NovaTarefaModalProps {
   onClose: () => void;
   onSuccess?: (created: Task) => void;
   defaultProjetoId?: string;
+  defaultStatus?: string;
   projetos: { id: string; name: string }[];
 }
 
@@ -40,6 +41,7 @@ export default function NovaTarefaModal({
   onClose,
   onSuccess,
   defaultProjetoId = "",
+  defaultStatus,
   projetos,
 }: NovaTarefaModalProps) {
   const initialProjectId =
@@ -50,7 +52,7 @@ export default function NovaTarefaModal({
     descricao: "",
     projetoId: initialProjectId,
     prioridade: "MEDIA",
-    status: "BACKLOG",
+    status: (defaultStatus as StatusTarefa) || "BACKLOG",
     progresso: 0,
     prazo: "",
     estimativaH: "",
@@ -80,7 +82,7 @@ export default function NovaTarefaModal({
       descricao: "",
       projetoId: initialProjectId,
       prioridade: "MEDIA",
-      status: "BACKLOG",
+      status: (defaultStatus as StatusTarefa) || "BACKLOG",
       progresso: 0,
       prazo: "",
       estimativaH: "",
