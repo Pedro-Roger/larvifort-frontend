@@ -14,7 +14,6 @@ import {
   Kanban,
 } from "@phosphor-icons/react";
 import KanbanColumn from "@/components/kanban/KanbanColumn";
-import QuickEditDrawer from "@/components/kanban/QuickEditDrawer";
 import NovaTarefaModal from "@/components/kanban/NovaTarefaModal";
 import NovoQuadroWizard from "@/components/kanban/NovoQuadroWizard";
 import NovaColunaModal from "@/components/kanban/NovaColunaModal";
@@ -46,6 +45,7 @@ import {
   type Projeto,
   type TaskColumn,
 } from "@/services/tasks";
+import { taskBelongsToColumn } from "@/services/kanbanBoard";
 
 export default function KanbanPage() {
   const { user } = useAuth();
@@ -78,6 +78,7 @@ export default function KanbanPage() {
   const [tryCount, setTryCount] = useState(0);
 
   const [taskColumnStatus, setTaskColumnStatus] = useState<string | null>(null);
+  const [taskColumnId, setTaskColumnId] = useState<string | null>(null);
 
   const startLoad = () => setTryCount((c) => c + 1);
 
@@ -299,7 +300,7 @@ export default function KanbanPage() {
     for (const col of columns) {
       const colStatus = col.status;
       data[col.title] = filtered
-        .filter((t) => t.status === colStatus)
+        .filter((t) => taskBelongsToColumn(t, { id: col.id, status: colStatus }))
         .map(mapTaskToCard);
     }
     return data;
@@ -385,14 +386,16 @@ export default function KanbanPage() {
     [projetoId, columns]
   );
 
-  const openTaskModalForColumn = useCallback((status: string) => {
-    setTaskColumnStatus(status);
+  const openTaskModalForColumn = useCallback((columnId: string, status?: string) => {
+    setTaskColumnId(columnId);
+    setTaskColumnStatus(status ?? "BACKLOG");
     setNovaTarefaModalOpen(true);
   }, []);
 
   const closeTaskModal = useCallback(() => {
     setNovaTarefaModalOpen(false);
     setTaskColumnStatus(null);
+    setTaskColumnId(null);
   }, []);
 
   if (loading) {
@@ -704,7 +707,7 @@ export default function KanbanPage() {
                   onDragStart={handleDragStart}
                   onDragEnd={handleDragEnd}
                   onAddColumn={() => setNovaColunaModalOpen(true)}
-                  onAddTask={() => openTaskModalForColumn(col.status)}
+                  onAddTask={() => openTaskModalForColumn(col.id, col.status)}
                   onEditColumn={() => setEditarColunaTarget(col)}
                   onDeleteColumn={() => {
                     setExcluirColunaTarget({ id: col.id, title: col.title });
@@ -768,27 +771,16 @@ export default function KanbanPage() {
         }}
       />
 
-      <QuickEditDrawer
-        open={!!selectedCard}
-        onClose={() => setSelectedCard(null)}
-        card={selectedCard}
-        onSuccess={(updatedTask) => {
-          setAllTasks((prev) =>
-            prev.map((t) => (t.id === updatedTask.id ? updatedTask : t))
-          );
-        }}
-        onDelete={(deletedId) => {
-          setAllTasks((prev) => prev.filter((t) => t.id !== deletedId));
-          setSelectedCard(null);
-        }}
-      />
+
 
       <NovaTarefaModal
         open={novaTarefaModalOpen}
         onClose={closeTaskModal}
         defaultProjetoId={projetoId}
+        defaultColumnId={taskColumnId ?? undefined}
         defaultStatus={taskColumnStatus ?? undefined}
         projetos={projetos}
+        users={users}
         onSuccess={(newTask) => {
           setAllTasks((prev) => [newTask, ...prev]);
         }}
