@@ -376,7 +376,7 @@ export default function DashboardPage() {
             Ver detalhes <ArrowUpRight size={15} />
           </button>
         </div>
-        <div className="grid gap-4 xl:grid-cols-2">
+        <div className="grid gap-4 lg:grid-cols-2 2xl:grid-cols-3">
           {visibleMembers.map((member) => (
             <TeamCard key={member.name} member={member} tasks={tasks} />
           ))}
