@@ -8,7 +8,6 @@ import {
   ChartBar,
   Check,
   CheckCircle,
-  UsersThree,
   CalendarDots,
   Target,
   SpinnerGap,
@@ -16,11 +15,9 @@ import {
 import {
   createMetricGoal,
   defaultMetricDates,
-  fetchMetricGoals,
   fetchMetricsOptions,
   METRIC_TYPES,
   METRIC_PERIODS,
-  type MetricGoal,
   type MetricGoalInput,
   type MetricTeam,
 } from "@/services/metrics";
@@ -29,7 +26,6 @@ import styles from "./metrics.module.css";
 
 export default function MetricsPage() {
   const [teams, setTeams] = useState<MetricTeam[]>([]);
-  const [goals, setGoals] = useState<MetricGoal[]>([]);
   const [step, setStep] = useState(1);
   const [form, setForm] = useState<MetricGoalInput>(() => ({
     name: "",
@@ -49,11 +45,10 @@ export default function MetricsPage() {
   const [loadAttempt, setLoadAttempt] = useState(0);
   useEffect(() => {
     let active = true;
-    Promise.all([fetchMetricsOptions(), fetchMetricGoals()])
-      .then(([options, stored]) => {
+    fetchMetricsOptions()
+      .then((options) => {
         if (!active) return;
         setTeams(options.teams);
-        setGoals(stored);
         setLoading(false);
       })
       .catch((error: unknown) => {
@@ -115,7 +110,6 @@ export default function MetricsPage() {
     setSuccess("");
     try {
       const goal = await createMetricGoal({ ...form, name: form.name.trim() });
-      setGoals((previous) => [goal, ...previous]);
       setSavedId(goal.id);
       setSuccess("Meta criada com sucesso.");
     } catch (error) {
@@ -135,9 +129,6 @@ export default function MetricsPage() {
           <h1>Métricas</h1>
           <p>Defina metas e acompanhe a evolução do seu time.</p>
         </div>
-        <Link href="/dashboard">
-          Ver dashboard <ArrowRight size={15} />
-        </Link>
       </div>
       {loadError ? (
         <div className={styles.error} role="alert">
@@ -570,63 +561,6 @@ export default function MetricsPage() {
               </div>
             </section>
           </div>
-          <section className={styles.savedGoals}>
-            <div>
-              <h2>Metas salvas</h2>
-              <p className={styles.muted}>
-                Selecione uma meta para consultar sua configuração e os
-                resultados.
-              </p>
-            </div>
-            {goals.length ? (
-              <div className={styles.goalList}>
-                {goals.map((goal) => (
-                  <button
-                    key={goal.id}
-                    disabled={saving}
-                    onClick={() => {
-                      setForm({
-                        ...goal,
-                        startDate: goal.startDate.slice(0, 10),
-                        endDate: goal.endDate.slice(0, 10),
-                      });
-                      setStep(3);
-                      setSavedId(goal.id);
-                      setSuccess("");
-                      setSaveError("");
-                    }}
-                  >
-                    <Target size={23} />
-                    <span>
-                      <strong>{goal.name}</strong>
-                      <small>
-                        {teams.find((item) => item.id === goal.teamId)?.name ??
-                          "Time"}{" "}
-                        ·{" "}
-                        {
-                          METRIC_TYPES.find((item) => item.id === goal.type)
-                            ?.label
-                        }{" "}
-                        ·{" "}
-                        {goal.target.toLocaleString(
-                          "pt-BR",
-                          goal.type === "SALES"
-                            ? { style: "currency", currency: "BRL" }
-                            : {},
-                        )}
-                      </small>
-                    </span>
-                    <ArrowRight size={18} />
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <p className={styles.empty}>
-                <UsersThree size={24} />
-                Suas metas aparecerão aqui depois de salvar.
-              </p>
-            )}
-          </section>
         </>
       )}
     </main>
