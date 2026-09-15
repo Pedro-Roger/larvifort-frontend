@@ -1,23 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { X, CircleNotch, WarningCircle, Kanban, CaretLeft, CaretRight, Check, CheckCircle, Plus, Trash } from "@phosphor-icons/react";
+import { X, CircleNotch, WarningCircle, Kanban, CaretLeft, CaretRight, Check, Plus, Trash } from "@phosphor-icons/react";
 import { createProjeto, type Projeto } from "@/services/tasks";
-import { createColumn, type TaskColumn } from "@/services/tasks";
+import { createColumn } from "@/services/tasks";
 import { ApiError } from "@/services/api";
-
-interface NovoQuadroWizardProps {
-  open: boolean;
-  onClose: () => void;
-  onSuccess?: (created: { id: string; name: string }) => void;
-}
-
-interface ColumnDraft {
-  id: string;
-  title: string;
-  color: string;
-  order: number;
-}
+import type { Team, User } from "@/services/users";
 
 const COLORS = [
   { value: "slate", label: "Cinza", className: "bg-slate-400" },
@@ -44,30 +32,26 @@ const STEP_DESCRIPTIONS = {
 
 type Step = 1 | 2 | 3;
 
-interface BoardDraft {
-  name: string;
-  columns: ColumnDraft[];
-}
-
-interface ColumnDraft {
-  id: string;
-  title: string;
-  color: string;
-  order: number;
-}
-
 export default function NovoQuadroWizard({
   open,
   onClose,
   onSuccess,
+  equipes,
+  responsaveis,
+  defaultTeamId,
 }: {
   open: boolean;
   onClose: () => void;
-  onSuccess?: (created: { id: string; name: string }) => void;
+  onSuccess?: (created: Projeto) => void;
+  equipes: Team[];
+  responsaveis: User[];
+  defaultTeamId?: string | null;
 }) {
   const [step, setStep] = useState<1 | 2 | 3>(1);
-  const [boardDraft, setBoardDraft] = useState<{ name: string; columns: { id: string; title: string; color: string; order: number }[] }>({
+  const [boardDraft, setBoardDraft] = useState<{ name: string; teamId: string; responsibleId: string; columns: { id: string; title: string; color: string; order: number }[] }>({
     name: "",
+    teamId: defaultTeamId ?? equipes[0]?.id ?? "",
+    responsibleId: "",
     columns: [
       { id: "1", title: "Backlog", color: "slate", order: 0 },
       { id: "2", title: "Em Andamento", color: "sky", order: 1 },
@@ -81,23 +65,10 @@ export default function NovoQuadroWizard({
 
   const handleClose = () => {
     if (loading) return;
-    setBoardDraft({ name: "", columns: [] });
+    setBoardDraft({ name: "", teamId: defaultTeamId ?? equipes[0]?.id ?? "", responsibleId: "", columns: [] });
     setStep(1);
     setErrorMessage(null);
     onClose();
-  };
-
-  const goToStep = (newStep: 1 | 2 | 3) => {
-    if (newStep === 2 && !boardDraft.name.trim()) {
-      setErrorMessage("Nome do quadro é obrigatório.");
-      return;
-    }
-    if (newStep === 3 && boardDraft.columns.length === 0) {
-      setErrorMessage("Adicione pelo menos uma coluna.");
-      return;
-    }
-    setStep(newStep);
-    setErrorMessage(null);
   };
 
   const handleNameChange = (name: string) => {
@@ -106,7 +77,6 @@ export default function NovoQuadroWizard({
   };
 
   const addColumn = () => {
-    const newId = String(Date.now());
     setBoardDraft((prev) => ({
       ...prev,
       columns: [
@@ -144,6 +114,10 @@ export default function NovoQuadroWizard({
       setErrorMessage("Nome do quadro é obrigatório.");
       return;
     }
+    if (!boardDraft.teamId) {
+      setErrorMessage("Selecione a equipe do projeto.");
+      return;
+    }
     if (boardDraft.columns.length === 0) {
       setErrorMessage("Adicione pelo menos uma coluna.");
       return;
@@ -159,7 +133,11 @@ export default function NovoQuadroWizard({
 
     try {
       // 1. Criar o projeto/quadro
-      const created = await createProjeto({ name: boardDraft.name.trim() });
+      const created = await createProjeto({
+        name: boardDraft.name.trim(),
+        teamId: boardDraft.teamId,
+        responsibleId: boardDraft.responsibleId || null,
+      });
 
       // 2. Criar as colunas no backend
       for (const col of boardDraft.columns) {
@@ -172,7 +150,7 @@ export default function NovoQuadroWizard({
         }
       }
 
-      onSuccess?.({ id: created.id, name: created.name });
+      onSuccess?.(created);
       handleClose();
     } catch (err) {
       if (err instanceof ApiError) {
@@ -215,7 +193,7 @@ export default function NovoQuadroWizard({
       <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-slate-100 flex flex-col max-h-[90vh] overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-150">
         {/* Header */}
         <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-          <div className="flex items-center gap-3">
+          <div className="flex min-w-0 items-center gap-3">
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium text-slate-500">Passo {step} de 3</span>
               <div className="flex items-center gap-1">
@@ -268,12 +246,12 @@ export default function NovoQuadroWizard({
               ))}
             </div>
           </div>
-          <div className="px-6 py-3 bg-slate-50/50 border-b border-slate-100">
+        <div className="px-6 py-3 bg-slate-50/50 border-b border-slate-100">
             <p className="text-xs text-slate-500 text-center">
               {STEP_DESCRIPTIONS[step as keyof typeof STEP_DESCRIPTIONS]}
             </p>
-          </div>
-          <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-5">
+        </div>
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-5">
             {errorMessage && (
               <div className="p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-xs text-red-600">
                 <WarningCircle size={16} className="shrink-0" />
@@ -296,6 +274,34 @@ export default function NovoQuadroWizard({
                     disabled={loading}
                     className="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-sky-500"
                   />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Equipe <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={boardDraft.teamId}
+                    onChange={(e) => setBoardDraft((prev) => ({ ...prev, teamId: e.target.value, responsibleId: "" }))}
+                    disabled={loading}
+                    className="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-sky-500"
+                  >
+                    <option value="">Selecione a equipe</option>
+                    {equipes.map((equipe) => <option key={equipe.id} value={equipe.id}>{equipe.name}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Responsável</label>
+                  <select
+                    value={boardDraft.responsibleId}
+                    onChange={(e) => setBoardDraft((prev) => ({ ...prev, responsibleId: e.target.value }))}
+                    disabled={loading || !boardDraft.teamId}
+                    className="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-sky-500"
+                  >
+                    <option value="">Selecione o responsável (opcional)</option>
+                    {responsaveis.filter((u) => u.teamId === boardDraft.teamId && u.active).map((responsavel) => (
+                      <option key={responsavel.id} value={responsavel.id}>{responsavel.firstName} {responsavel.lastName}</option>
+                    ))}
+                  </select>
                 </div>
                 <p className="text-xs text-slate-500">
                   Escolha um nome que identifique o setor ou projeto (ex: Financeiro, Desenvolvimento, Marketing)
@@ -386,7 +392,7 @@ export default function NovoQuadroWizard({
                     <div className="pt-2 border-t border-slate-200">
                       <p className="text-xs font-semibold text-slate-700 mb-2">Colunas:</p>
                       <div className="space-y-1">
-                        {boardDraft.columns.map((col, idx) => (
+                        {boardDraft.columns.map((col) => (
                           <div key={col.id} className="flex items-center gap-2 text-xs">
                             <span className="w-5 h-5 rounded-full" style={{ backgroundColor: col.color }} />
                             <span className="font-medium text-slate-800">{col.title}</span>

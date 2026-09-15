@@ -1,5 +1,11 @@
-export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? "/api";
+function normalizeApiBaseUrl(value: string): string {
+  const base = value.replace(/\/+$/, "");
+  return /\/api\/v1$/i.test(base) ? base : `${base}/api/v1`;
+}
+
+export const API_BASE_URL = normalizeApiBaseUrl(
+  process.env.NEXT_PUBLIC_API_URL ?? "/api",
+);
 
 export class ApiError extends Error {
   status: number;
@@ -110,6 +116,10 @@ function buildUrl(path: string): string {
   return `${base}${suffix}`;
 }
 
+export function buildApiRequestInit(init: RequestInit): RequestInit {
+  return { ...init, cache: "no-store" };
+}
+
 export async function api<T>(path: string, options: ApiOptions = {}): Promise<T> {
   const { body, headers, auth = true, ...rest } = options;
   const { _retried: retriedFlag, ...init } = rest as ApiOptions & {
@@ -125,7 +135,7 @@ export async function api<T>(path: string, options: ApiOptions = {}): Promise<T>
     }
   }
 
-  const response = await fetch(buildUrl(path), {
+  const response = await fetch(buildUrl(path), buildApiRequestInit({
     ...init,
     headers: {
       "Content-Type": "application/json",
@@ -133,7 +143,7 @@ export async function api<T>(path: string, options: ApiOptions = {}): Promise<T>
       ...headers,
     },
     body: body === undefined ? undefined : JSON.stringify(body),
-  });
+  }));
 
   if (!response.ok) {
     // Tentativa única de refresh antes do auto-logout (apenas 1x, sem loop

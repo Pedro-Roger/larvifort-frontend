@@ -28,6 +28,8 @@ const TRIGGER_CONFIG = {
   DUE_DATE_APPROACHING: { label: "Prazo Próximo", description: "Quando o prazo da tarefa está próximo" },
   COLUMN_WIP_EXCEEDED: { label: "WIP Excedido", description: "Quando o limite WIP de uma coluna é ultrapassado" },
   SCHEDULED: { label: "Agendado", description: "Execução em horário/data programada" },
+  APPOINTMENT_CREATED: { label: "Compromisso Criado", description: "Quando um novo compromisso é agendado" },
+  APPOINTMENT_COMPLETED: { label: "Compromisso Concluído", description: "Quando um compromisso é finalizado (check-in)" },
 } as const;
 
 const ACTION_CONFIG = {
@@ -39,6 +41,7 @@ const ACTION_CONFIG = {
   CREATE_CHILD_TASK: { label: "Criar Subtarefa", description: "Criar subtarefa vinculada à original" },
   UPDATE_FIELD: { label: "Atualizar Campo", description: "Atualizar campo personalizado da tarefa" },
   WEBHOOK: { label: "Webhook", description: "Enviar dados para endpoint externo" },
+  CREATE_TASK_FROM_APPOINTMENT: { label: "Criar Tarefa do Compromisso", description: "Criar tarefa no quadro a partir do compromisso agendado" },
 } as const;
 
 type TriggerType = keyof typeof TRIGGER_CONFIG;
@@ -46,7 +49,6 @@ type ActionType = keyof typeof ACTION_CONFIG;
 
 function AutomationItem({
   automation,
-  index,
   draggedId,
   onDragStart,
   onDragOver,
@@ -58,7 +60,6 @@ function AutomationItem({
   onTest,
 }: {
   automation: BoardAutomation;
-  index: number;
   draggedId: string | null;
   onDragStart: (e: React.DragEvent, id: string) => void;
   onDragOver: (e: React.DragEvent) => void;
@@ -142,7 +143,6 @@ function AutomationItem({
 }
 
 function EditForm({
-  automation,
   editName,
   setEditName,
   editDescription,
@@ -157,7 +157,6 @@ function EditForm({
   onCancel,
   loading,
 }: {
-  automation: BoardAutomation;
   editName: string;
   setEditName: (v: string) => void;
   editDescription: string;
@@ -172,8 +171,6 @@ function EditForm({
   onCancel: () => void;
   loading: boolean;
 }) {
-  const triggerInfo = TRIGGER_CONFIG[editTrigger];
-
   return (
     <form onSubmit={handleEdit} className="space-y-3">
       <div className="flex items-center gap-2">
@@ -222,7 +219,7 @@ function EditForm({
   );
 }
 
-export default function AutomacoesQuadroModal({ open, onClose, boardId, onSuccess }: AutomacoesQuadroModalProps) {
+export default function AutomacoesQuadroModal({ open, onClose, boardId }: AutomacoesQuadroModalProps) {
   const [automations, setAutomations] = useState<BoardAutomation[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -472,11 +469,10 @@ export default function AutomacoesQuadroModal({ open, onClose, boardId, onSucces
               </div>
             ) : (
               <div className="space-y-3">
-                {automations.map((automation, index) => (
+                {automations.map((automation) => (
                   editingAutomation?.id === automation.id ? (
                     <EditForm
                       key={automation.id}
-                      automation={automation}
                       editName={editName}
                       setEditName={setEditName}
                       editDescription={editDescription}
@@ -495,7 +491,6 @@ export default function AutomacoesQuadroModal({ open, onClose, boardId, onSucces
                     <AutomationItem
                       key={automation.id}
                       automation={automation}
-                      index={index}
                       draggedId={draggedId}
                       onDragStart={handleDragStart}
                       onDragOver={handleDragOver}

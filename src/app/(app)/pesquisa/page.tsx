@@ -23,6 +23,8 @@ import {
   formatDateBR,
   survivalColor,
 } from "@/services/searches";
+import { fetchClients } from "@/services/clients";
+import { fetchUsers } from "@/services/users";
 
 export default function PesquisaPage() {
   const [allSearches, setAllSearches] = useState<FieldSearch[]>([]);
@@ -36,24 +38,38 @@ export default function PesquisaPage() {
   const [error, setError] = useState(false);
   const [tryCount, setTryCount] = useState(0);
 
-  const [clientes] = useState<{ id: string; nome: string }[]>([
-    { id: "1", nome: "Distribuidora Central" },
-    { id: "2", nome: "Restaurante Sabor" },
-    { id: "3", nome: "Fazenda São João" },
-    { id: "4", nome: "Padaria Pão Quente" },
-    { id: "5", nome: "Hotel Vista Mar" },
-    { id: "6", nome: "Indústria Alfa" },
-    { id: "7", nome: "Supermercado Bom Preço" },
-    { id: "8", nome: "Clínica Saúde+" },
-  ]);
-  const [responsaveis] = useState<{ id: string; nome: string }[]>([
-    { id: "1", nome: "Fernando Lima" },
-    { id: "2", nome: "Ana Souza" },
-    { id: "3", nome: "Marcos Oliveira" },
-    { id: "4", nome: "Juliana Costa" },
-    { id: "5", nome: "Pedro Almeida" },
-    { id: "6", nome: "Luciana Rocha" },
-  ]);
+  const [clientes, setClientes] = useState<{ id: string; nome: string }[]>([]);
+  const [responsaveis, setResponsaveis] = useState<{ id: string; nome: string }[]>([]);
+
+  // Load clients and users for modal dropdowns
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      try {
+        const [clientsRes, usersRes] = await Promise.all([
+          fetchClients({ pageSize: 200 }).catch(() => ({ items: [], total: 0, page: 1, pageSize: 200 })),
+          fetchUsers().catch(() => []),
+        ]);
+        if (cancelled) return;
+        setClientes(
+          clientsRes.items.map((c) => ({
+            id: c.id,
+            nome: `${c.firstName} ${c.lastName}`.trim(),
+          }))
+        );
+        setResponsaveis(
+          usersRes.map((u) => ({
+            id: u.id,
+            nome: `${u.firstName} ${u.lastName}`.trim(),
+          }))
+        );
+      } catch {
+        // Dropdowns will be empty
+      }
+    }
+    load();
+    return () => { cancelled = true; };
+  }, []);
 
   const startLoad = () => setTryCount((c) => c + 1);
 

@@ -33,23 +33,6 @@ const priorityConfig = {
   BAIXA: { label: "Baixa", color: "text-slate-400" },
 };
 
-interface TaskWithStatus extends Task {
-  status: StatusTarefa;
-}
-
-interface ListViewProps {
-  members: {
-    name: string;
-    initials: string;
-    notDone: number;
-    done: number;
-    ready: number;
-    inProgress: number;
-    review: number;
-  }[];
-  tasksByAssignee: Record<string, TaskWithStatus[]>;
-}
-
 export default function ListView({ members, tasksByAssignee }: ListViewProps) {
   return (
     <div className="space-y-4">

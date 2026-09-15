@@ -1,21 +1,26 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Plus, Trash, DotsThree, Palette } from "@phosphor-icons/react";
+import { Plus, Trash, DotsThree, Palette, CircleNotch } from "@phosphor-icons/react";
 import KanbanCard, { type ProjectCard } from "./KanbanCard";
 import { DropdownMenu, DropdownTrigger } from "@/components/ui/DropdownMenu";
+import { CARD_DRAG_TYPE, COLUMN_DRAG_TYPE, getDragKind } from "@/services/kanbanDragDrop";
 
 interface KanbanColumnProps {
   title: string;
   count: number;
   color: string;
   cards: ProjectCard[];
+  hasMore?: boolean;
+  loadingMore?: boolean;
+  onLoadMore?: () => void;
   highlighted?: boolean;
   columnId?: string;
   onCardClick?: (card: ProjectCard) => void;
   draggedCardId?: string | null;
   onDragStart?: (cardId: string) => void;
   onDragEnd?: () => void;
+  onCardDrop?: (cardId: string, columnId: string) => void;
   onAddColumn?: () => void;
   onAddTask?: (status: string) => void;
   onDeleteColumn?: (toColumnTitle?: string) => void;
@@ -41,12 +46,16 @@ export default function KanbanColumn({
   count,
   color,
   cards,
+  hasMore = false,
+  loadingMore = false,
+  onLoadMore,
   highlighted = false,
   columnId,
   onCardClick,
   draggedCardId,
   onDragStart,
   onDragEnd,
+  onCardDrop,
   onAddColumn,
   onAddTask,
   onDeleteColumn,
@@ -64,8 +73,10 @@ export default function KanbanColumn({
 
   // Column reordering handlers
   function handleColumnDragStart(e: React.DragEvent) {
-    if (!columnId) return;
+    const target = e.target as HTMLElement;
+    if (!columnId || !target.closest("[data-column-drag-handle]")) return;
     e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData(COLUMN_DRAG_TYPE, columnId);
     e.dataTransfer.setData("text/plain", columnId);
     onColumnDragStart?.(columnId);
   }
@@ -86,7 +97,14 @@ export default function KanbanColumn({
 
   function handleColumnDrop(e: React.DragEvent) {
     e.preventDefault();
-    const fromColumnId = e.dataTransfer.getData("text/plain");
+    const kind = getDragKind(Array.from(e.dataTransfer.types));
+    if (kind === "card") {
+      const cardId = e.dataTransfer.getData(CARD_DRAG_TYPE) || e.dataTransfer.getData("text/plain");
+      if (cardId && columnId) onCardDrop?.(cardId, columnId);
+      return;
+    }
+    if (kind !== "column") return;
+    const fromColumnId = e.dataTransfer.getData(COLUMN_DRAG_TYPE) || e.dataTransfer.getData("text/plain");
     if (fromColumnId && columnId && fromColumnId !== columnId) {
       onColumnDrop?.(fromColumnId, columnId);
     }
@@ -102,7 +120,7 @@ export default function KanbanColumn({
   return (
     <div
       ref={headerRef}
-      draggable={!!columnId}
+      draggable={false}
       onDragStart={handleColumnDragStart}
       onDragOver={handleColumnDragOver}
       onDragLeave={handleColumnDragLeave}
@@ -131,6 +149,8 @@ export default function KanbanColumn({
             {columnId && (
               <button
                 type="button"
+                draggable={!!columnId}
+                data-column-drag-handle
                 className="w-7 h-7 rounded-md hover:bg-slate-200/60 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors cursor-grab active:cursor-grabbing"
                 aria-label="Reordenar coluna"
               >
@@ -184,7 +204,16 @@ export default function KanbanColumn({
       </div>
 
       {/* Cards List */}
-      <div ref={listRef} className="flex-1 p-3 space-y-3 overflow-y-auto">
+      <div
+        ref={listRef}
+        onScroll={(event) => {
+          const element = event.currentTarget;
+          if (hasMore && !loadingMore && element.scrollTop + element.clientHeight >= element.scrollHeight - 160) {
+            onLoadMore?.();
+          }
+        }}
+        className="flex-1 p-3 space-y-3 overflow-y-auto"
+      >
         {cards.map((card, index) => (
           <div key={card.id} data-card-wrapper>
             {/* Drop placeholder BEFORE this card */}
@@ -218,6 +247,13 @@ export default function KanbanColumn({
             <span className="text-xs text-slate-400 font-medium">
               {isDragOver ? "Solte aqui" : "Arraste tarefas para cá"}
             </span>
+          </div>
+        )}
+
+        {loadingMore && (
+          <div className="flex items-center justify-center gap-2 py-3 text-xs text-slate-400">
+            <CircleNotch size={14} className="animate-spin" />
+            Carregando mais tarefas...
           </div>
         )}
       </div>

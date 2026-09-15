@@ -31,7 +31,6 @@ const DEFAULT_CONFIGS: Record<RuleType, Record<string, unknown>> = {
 
 function RuleItem({
   rule,
-  index,
   draggedRuleId,
   handleDragStart,
   handleDragOver,
@@ -42,7 +41,6 @@ function RuleItem({
   startEdit,
 }: {
   rule: BoardRule;
-  index: number;
   draggedRuleId: string | null;
   handleDragStart: (e: React.DragEvent, ruleId: string) => void;
   handleDragOver: (e: React.DragEvent) => void;
@@ -205,7 +203,7 @@ function EditForm({
   );
 }
 
-export default function RegrasQuadroModal({ open, onClose, boardId, onSuccess }: RegrasQuadroModalProps) {
+export default function RegrasQuadroModal({ open, onClose, boardId }: RegrasQuadroModalProps) {
   const [rules, setRules] = useState<BoardRule[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -461,7 +459,7 @@ export default function RegrasQuadroModal({ open, onClose, boardId, onSuccess }:
               </div>
             ) : (
               <div className="space-y-3">
-                {rules.map((rule, index) => (
+                {rules.map((rule) => (
                   editingRule?.id === rule.id ? (
                     <EditForm
                       key={rule.id}
@@ -480,7 +478,6 @@ export default function RegrasQuadroModal({ open, onClose, boardId, onSuccess }:
                     <RuleItem
                       key={rule.id}
                       rule={rule}
-                      index={index}
                       draggedRuleId={draggedRuleId}
                       handleDragStart={handleDragStart}
                       handleDragOver={handleDragOver}

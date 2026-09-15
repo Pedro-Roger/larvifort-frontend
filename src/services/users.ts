@@ -83,7 +83,7 @@ export function normalizeUser(raw: unknown): User {
     role: asRole(u.role),
     active: bool(u.active),
     teamId: str(u.teamId),
-    teamName: str(team.name),
+    teamName: str(u.teamName) ?? str(team.name),
     createdAt: str(u.createdAt) ?? "",
     updatedAt: str(u.updatedAt) ?? "",
   };

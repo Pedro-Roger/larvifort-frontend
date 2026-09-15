@@ -12,18 +12,24 @@ import {
   Handshake,
   MagnifyingGlass,
   Trash,
+  CheckCircle,
+  MapPin as MapPinIcon,
 } from "@phosphor-icons/react";
 import NovoCompromissoModal from "@/components/agenda/NovoCompromissoModal";
 import ConfirmDeleteModal from "@/components/ui/ConfirmDeleteModal";
 import {
   fetchAppointments,
   deleteAppointment,
+  checkinAppointment,
   type Appointment,
   type TipoCompromisso,
   tipoCompromissoLabel,
   tipoCompromissoColor,
   formatAppointmentTime,
+  formatAppointmentDate,
 } from "@/services/appointments";
+import { fetchClients } from "@/services/clients";
+import { fetchEmpresas } from "@/services/companies";
 
 const diasSemana = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 const meses = [
@@ -39,29 +45,45 @@ export default function AgendaPage() {
   const [filtroTipo, setFiltroTipo] = useState<TipoCompromisso | "todos">("todos");
   const [busca, setBusca] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<Appointment | null>(null);
+  const [checkinLoading, setCheckinLoading] = useState<string | null>(null);
 
   const [allAppointments, setAllAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [tryCount, setTryCount] = useState(0);
 
-  const [clientes] = useState<{ id: string; nome: string }[]>([
-    { id: "1", nome: "Coopercitrus Matriz" },
-    { id: "2", nome: "NutriVale Carnes S/A" },
-    { id: "3", nome: "Granja São Cristóvão" },
-    { id: "4", nome: "Fazendas Rio Claro Agro" },
-    { id: "5", nome: "Agropecuária Santa Fé" },
-  ]);
-  const [empresas] = useState<{ id: string; nome: string }[]>([
-    { id: "1", nome: "Coopercitrus Matriz" },
-    { id: "2", nome: "NutriVale Carnes S/A" },
-    { id: "3", nome: "Granja São Cristóvão" },
-    { id: "4", nome: "Fazendas Rio Claro" },
-    { id: "5", nome: "Agropecuária Santa Fé" },
-    { id: "6", nome: "Cooperativa Vale do Pardo" },
-    { id: "7", nome: "Confinamento Boa Esperança" },
-    { id: "8", nome: "AgroAvícola Pioneira" },
-  ]);
+  const [clientes, setClientes] = useState<{ id: string; nome: string }[]>([]);
+  const [empresas, setEmpresas] = useState<{ id: string; nome: string }[]>([]);
+
+  // Load clients and companies for modal dropdowns
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      try {
+        const [clientsRes, companiesRes] = await Promise.all([
+          fetchClients({ pageSize: 200 }).catch(() => ({ items: [], total: 0, page: 1, pageSize: 200 })),
+          fetchEmpresas({ pageSize: 200 }).catch(() => ({ items: [], total: 0, page: 1, pageSize: 200 })),
+        ]);
+        if (cancelled) return;
+        setClientes(
+          clientsRes.items.map((c) => ({
+            id: c.id,
+            nome: `${c.firstName} ${c.lastName}`.trim(),
+          }))
+        );
+        setEmpresas(
+          companiesRes.items.map((e) => ({
+            id: e.id,
+            nome: e.name,
+          }))
+        );
+      } catch {
+        // Dropdowns will be empty; user can still create appointments without client/company
+      }
+    }
+    load();
+    return () => { cancelled = true; };
+  }, []);
 
   // Load appointments for current month range
   useEffect(() => {
@@ -113,6 +135,50 @@ export default function AgendaPage() {
   }
 
   const startLoad = () => setTryCount((c) => c + 1);
+
+  // Check-in handler with geolocation
+  const handleCheckin = async (appointmentId: string) => {
+    setCheckinLoading(appointmentId);
+    try {
+      // Request geolocation
+      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0,
+        });
+      });
+      const { latitude, longitude, accuracy } = position.coords;
+
+      // Call check-in API
+      const updated = await checkinAppointment(appointmentId, {
+        latitude,
+        longitude,
+        accuracy,
+      });
+
+      // Update local state
+      setAllAppointments((prev) =>
+        prev.map((a) => (a.id === appointmentId ? updated : a))
+      );
+    } catch (err) {
+      if (err instanceof Error) {
+        alert("Erro ao fazer check-in: " + err.message);
+      } else if (err && typeof err === "object" && "code" in err) {
+        const geolocationError = err as GeolocationPositionError;
+        const messages: Record<number, string> = {
+          1: "Permissão de localização negada. Habilite a localização no navegador.",
+          2: "Localização indisponível. Tente novamente.",
+          3: "Tempo esgotado ao obter localização.",
+        };
+        alert(messages[geolocationError.code] || "Erro ao obter localização.");
+      } else {
+        alert("Erro desconhecido ao fazer check-in.");
+      }
+    } finally {
+      setCheckinLoading(null);
+    }
+  };
 
   const compromissosPorDia = useMemo(() => {
     const map: Record<number, Appointment[]> = {};
@@ -412,23 +478,48 @@ export default function AgendaPage() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between gap-2">
                             <p className="text-xs font-semibold text-slate-800 truncate">{c.titulo}</p>
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setDeleteTarget(c);
-                              }}
-                              className="p-1 rounded text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
-                              title="Excluir compromisso"
-                            >
-                              <Trash size={12} />
-                            </button>
+                            <div className="flex items-center gap-1">
+                              {!c.checkinAt && (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleCheckin(c.id);
+                                  }}
+                                  disabled={checkinLoading === c.id}
+                                  className="p-1.5 rounded text-sky-600 hover:bg-sky-50 hover:text-sky-700 transition-colors cursor-pointer"
+                                  title="Fazer check-in (captura localização)"
+                                >
+                                  {checkinLoading === c.id ? (
+                                    <CheckCircle size={14} className="animate-spin" />
+                                  ) : (
+                                    <MapPinIcon size={14} />
+                                  )}
+                                </button>
+                              )}
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setDeleteTarget(c);
+                                }}
+                                className="p-1 rounded text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                                title="Excluir compromisso"
+                              >
+                                <Trash size={12} />
+                              </button>
+                            </div>
                           </div>
                           <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full ${
                             c.tipo === "REUNIAO" ? "bg-violet-100 text-violet-600" : "bg-sky-100 text-sky-600"
                           }`}>
                             {tipoCompromissoLabel(c.tipo)}
                           </span>
+                          {c.checkinAt && (
+                            <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-600">
+                              Check-in: {formatAppointmentDate(c.checkinAt)} {c.checkinAt.split("T")[1]?.slice(0, 5)}
+                            </span>
+                          )}
                           {(c.clienteNome || c.empresaNome) && (
                             <div className="flex items-center gap-1.5 mt-1.5">
                               <User size={11} className="text-slate-400 shrink-0" />

@@ -36,10 +36,11 @@ import {
 } from "@/services/kanbanProjectSelection";
 import type { ProjectCard } from "@/components/kanban/KanbanCard";
 import {
-  fetchTasks,
+  fetchTasksPage,
   fetchProjetos,
   fetchColumns,
   reorderColumns,
+  updateTaskStatus,
   mapTaskToCard,
   type Task,
   type Projeto,
@@ -67,6 +68,7 @@ export default function KanbanPage() {
   const [draggedCardId, setDraggedCardId] = useState<string | null>(null);
   const [draggedColumnId, setDraggedColumnId] = useState<string | null>(null);
   const [allTasks, setAllTasks] = useState<Task[]>([]);
+  const [columnPages, setColumnPages] = useState<Record<string, { page: number; total: number; totalPages: number; loading: boolean }>>({});
 
   const [projetos, setProjetos] = useState<Projeto[]>([]);
   const [users, setUsers] = useState<User[]>([]);
@@ -218,11 +220,10 @@ export default function KanbanPage() {
       setLoading(true);
       setError(false);
       try {
-    const [projetosResult, usersResult, teamsResult, tasksResult] = await Promise.all([
+    const [projetosResult, usersResult, teamsResult] = await Promise.all([
       fetchProjetos(),
       fetchUsers(),
       fetchTeams(),
-      fetchTasks(),
     ]);
         if (cancelled) return;
 
@@ -239,7 +240,7 @@ export default function KanbanPage() {
         );
         if (!cancelled) {
           setProjetoId(initialProjectId);
-          setAllTasks(tasksResult);
+          setAllTasks([]);
         }
       } catch {
         if (cancelled) return;
@@ -256,6 +257,61 @@ export default function KanbanPage() {
       cancelled = true;
     };
   }, [tryCount, userIdentity]);
+
+  // Carrega somente a primeira página de cada coluna. As páginas seguintes
+  // são buscadas quando o usuário chega ao fim da lista daquela coluna.
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadFirstPages() {
+      if (!projetoId || columns.length === 0) {
+        setAllTasks([]);
+        setColumnPages({});
+        return;
+      }
+
+      setAllTasks([]);
+      setColumnPages(Object.fromEntries(columns.map((column) => [column.id, {
+        page: 0,
+        total: 0,
+        totalPages: 0,
+        loading: true,
+      }])));
+
+      try {
+        const result = await Promise.all(columns.map((column) => fetchTasksPage({
+          projetoId,
+          columnId: column.id,
+          page: 1,
+          limit: 20,
+          search: busca,
+        })));
+        if (cancelled) return;
+
+        setAllTasks(result.flatMap((page) => page.items));
+        setColumnPages(Object.fromEntries(columns.map((column, index) => {
+          const page = result[index];
+          return [column.id, {
+            page: page?.page ?? 1,
+            total: page?.total ?? 0,
+            totalPages: page?.totalPages ?? 1,
+            loading: false,
+          }];
+        })));
+      } catch {
+        if (cancelled) return;
+        setColumnPages((prev) => Object.fromEntries(columns.map((column) => [
+          column.id,
+          { ...(prev[column.id] ?? { page: 0, total: 0, totalPages: 0 }), loading: false },
+        ])));
+      }
+    }
+
+    void loadFirstPages();
+    return () => {
+      cancelled = true;
+    };
+  }, [projetoId, columns, busca]);
 
   // Fetch columns for selected board/projeto
   useEffect(() => {
@@ -323,11 +379,51 @@ export default function KanbanPage() {
   }, [allTasks, projetoId, users]);
 
   const totalTasks = columns.reduce(
-    (acc, col) => acc + (cards[col.title]?.length || 0),
+    (acc, col) => acc + (columnPages[col.id]?.total ?? cards[col.title]?.length ?? 0),
     0
   );
   const concluidas = cards["Concluído"]?.length || 0;
   const emAndamento = cards["Em Andamento"]?.length || 0;
+
+  const loadMoreColumnTasks = useCallback(async (columnId: string) => {
+    const state = columnPages[columnId];
+    if (!projetoId || !state || state.loading || state.page >= state.totalPages) return;
+
+    const nextPage = state.page + 1;
+    setColumnPages((prev) => ({
+      ...prev,
+      [columnId]: { ...state, loading: true },
+    }));
+
+    try {
+      const result = await fetchTasksPage({
+        projetoId,
+        columnId,
+        page: nextPage,
+        limit: 20,
+        search: busca,
+      });
+      setAllTasks((prev) => {
+        const byId = new Map(prev.map((task) => [task.id, task]));
+        result.items.forEach((task) => byId.set(task.id, task));
+        return Array.from(byId.values());
+      });
+      setColumnPages((prev) => ({
+        ...prev,
+        [columnId]: {
+          page: result.page,
+          total: result.total,
+          totalPages: result.totalPages,
+          loading: false,
+        },
+      }));
+    } catch {
+      setColumnPages((prev) => ({
+        ...prev,
+        [columnId]: { ...state, loading: false },
+      }));
+    }
+  }, [busca, columnPages, projetoId]);
 
   const handleDragStart = useCallback((cardId: string) => {
     setDraggedCardId(cardId);
@@ -336,6 +432,31 @@ export default function KanbanPage() {
   const handleDragEnd = useCallback(() => {
     setDraggedCardId(null);
   }, []);
+
+  const handleCardDrop = useCallback(async (cardId: string, targetColumnId: string) => {
+    const task = allTasks.find((item) => item.id === cardId);
+    const targetColumn = columns.find((column) => column.id === targetColumnId);
+    if (!task || !targetColumn || task.columnId === targetColumnId) {
+      setDraggedCardId(null);
+      return;
+    }
+
+    const nextStatus = targetColumn.status ?? task.status;
+    setAllTasks((prev) => prev.map((item) => item.id === cardId
+      ? { ...item, columnId: targetColumnId, status: nextStatus }
+      : item));
+    setDraggedCardId(null);
+
+    try {
+      const updated = await updateTaskStatus(cardId, {
+        columnId: targetColumnId,
+        status: nextStatus,
+      });
+      setAllTasks((prev) => prev.map((item) => item.id === updated.id ? updated : item));
+    } catch {
+      startLoad();
+    }
+  }, [allTasks, columns]);
 
   // Column reordering handlers
   const handleColumnDragStart = useCallback((columnId: string) => {
@@ -694,9 +815,12 @@ export default function KanbanPage() {
                 <KanbanColumn
                   key={col.id}
                   title={col.title}
-                  count={cards[col.title]?.length || 0}
+                  count={columnPages[col.id]?.total ?? cards[col.title]?.length ?? 0}
                   color={col.color}
                   cards={cards[col.title] || []}
+                  hasMore={(columnPages[col.id]?.page ?? 0) < (columnPages[col.id]?.totalPages ?? 0)}
+                  loadingMore={columnPages[col.id]?.loading ?? false}
+                  onLoadMore={() => void loadMoreColumnTasks(col.id)}
                   highlighted={col.status === "EM_ANDAMENTO"}
                   columnId={col.id}
                   onCardClick={(card) => {
@@ -706,6 +830,7 @@ export default function KanbanPage() {
                   draggedCardId={draggedCardId}
                   onDragStart={handleDragStart}
                   onDragEnd={handleDragEnd}
+                  onCardDrop={handleCardDrop}
                   onAddColumn={() => setNovaColunaModalOpen(true)}
                   onAddTask={() => openTaskModalForColumn(col.id, col.status)}
                   onEditColumn={() => setEditarColunaTarget(col)}

@@ -25,6 +25,11 @@ export type Appointment = {
   ownerNome: string | null;
   createdAt: string;
   updatedAt: string;
+  // Check-in fields (FASE 7)
+  checkinAt: string | null;
+  checkinLat: number | null;
+  checkinLng: number | null;
+  checkinAccuracy: number | null;
 };
 
 export type AppointmentInput = {
@@ -53,6 +58,15 @@ function asTipoCompromisso(value: unknown): TipoCompromisso {
   return TIPO_COMPROMISSO_VALUES.includes(raw as TipoCompromisso)
     ? (raw as TipoCompromisso)
     : "REUNIAO";
+}
+
+function num(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim() !== "") {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return null;
 }
 
 export function normalizeAppointment(raw: unknown): Appointment {
@@ -86,6 +100,10 @@ export function normalizeAppointment(raw: unknown): Appointment {
     ownerNome: str(owner.nome) ?? str(owner.name),
     createdAt: str(a.createdAt) ?? "",
     updatedAt: str(a.updatedAt) ?? "",
+    checkinAt: str(a.checkinAt),
+    checkinLat: num(a.checkinLat),
+    checkinLng: num(a.checkinLng),
+    checkinAccuracy: num(a.checkinAccuracy),
   };
 }
 
@@ -135,6 +153,19 @@ export function updateAppointment(
   input: AppointmentUpdate
 ): Promise<Appointment> {
   return apiPatch<unknown>(`/appointments/${id}`, input).then(normalizeAppointment);
+}
+
+export interface CheckinInput {
+  latitude: number;
+  longitude: number;
+  accuracy: number;
+}
+
+export function checkinAppointment(
+  id: string,
+  input: CheckinInput
+): Promise<Appointment> {
+  return apiPatch<unknown>(`/appointments/${id}/checkin`, input).then(normalizeAppointment);
 }
 
 export function deleteAppointment(id: string): Promise<void> {

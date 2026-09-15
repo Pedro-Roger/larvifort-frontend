@@ -1,5 +1,6 @@
 import { apiGet, apiPost, apiPatch, apiDelete } from "./api";
 import { normalizeList } from "./normalizeList";
+import { buildTaskPageQuery, type TaskPageQuery } from "./kanbanPagination";
 export { normalizeList } from "./normalizeList";
 
 // Contrato espelhado no schema Prisma do lavifort-API (model Task + model
@@ -59,8 +60,17 @@ export type TaskWithDetails = Task & {
   childrenTasks: { id: string; titulo: string; status: StatusTarefa }[];
   parentTask: { id: string; titulo: string } | null;
 };
+
+export type TaskPage = {
+  items: Task[];
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+};
 export type TaskInput = {
   projetoId: string;
+  columnId?: string | null;
   titulo: string;
   descricao?: string | null;
   status?: StatusTarefa;
@@ -75,6 +85,7 @@ export type TaskInput = {
 
 export type TaskStatusUpdate = {
   status: StatusTarefa;
+  columnId?: string | null;
   progresso?: number;
 };
 
@@ -92,7 +103,7 @@ export type Projeto = {
 export type TaskColumn = {
   id: string;
   boardId: string;
-  status: StatusTarefa;
+  status?: StatusTarefa;
   title: string;
   color: string;
   order: number;
@@ -169,6 +180,7 @@ export function normalizeTask(raw: unknown): Task {
   return {
     id: str(t.id) ?? "",
     projetoId: str(t.projetoId) ?? "",
+    columnId: str(t.columnId),
     titulo: str(t.titulo) ?? str(t.title) ?? "",
     descricao: str(t.descricao) ?? str(t.description),
     status: asStatusTarefa(t.status),
@@ -239,6 +251,25 @@ export function fetchTasks(projetoId?: string): Promise<Task[]> {
   return apiGet<unknown>(`/tasks${qs ? `?${qs}` : ""}`).then((raw) =>
     normalizeList(raw, normalizeTask)
   );
+}
+
+export function fetchTasksPage(
+  params: TaskPageQuery,
+): Promise<TaskPage> {
+  return apiGet<unknown>(`/tasks${buildTaskPageQuery(params)}`).then((raw) => {
+    const envelope = typeof raw === "object" && raw !== null
+      ? raw as { data?: unknown; meta?: Partial<TaskPage> }
+      : {};
+    const items = normalizeList(raw, normalizeTask);
+    const meta = envelope.meta ?? {};
+    const page = typeof meta.page === "number" ? meta.page : params.page ?? 1;
+    const limit = typeof meta.limit === "number" ? meta.limit : params.limit ?? 20;
+    const total = typeof meta.total === "number" ? meta.total : items.length;
+    const totalPages = typeof meta.totalPages === "number"
+      ? meta.totalPages
+      : Math.ceil(total / Math.max(1, limit));
+    return { items, page, limit, total, totalPages };
+  });
 }
 
 export function createTask(input: TaskInput): Promise<Task> {

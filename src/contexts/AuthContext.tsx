@@ -59,17 +59,9 @@ function writeStoredUser(user: AuthUser | null): void {
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  // O primeiro render precisa ser igual no servidor e no navegador. A leitura
-  // do localStorage acontece depois da hidratação para evitar React #418.
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    setUser(readStoredUser());
-    setIsAuthenticated(checkToken());
-    setIsLoading(false);
-  }, []);
+  const [user, setUser] = useState<AuthUser | null>(() => readStoredUser());
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => checkToken());
+  const [isLoading] = useState(false);
 
   const logout = useCallback(() => {
     logoutService();

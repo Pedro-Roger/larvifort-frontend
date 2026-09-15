@@ -14,20 +14,25 @@ import {
   prioridadeLabel,
 } from "@/services/tasks";
 import { ApiError } from "@/services/api";
+import type { User } from "@/services/users";
 
 interface NovaTarefaModalProps {
   open: boolean;
   onClose: () => void;
   onSuccess?: (created: Task) => void;
   defaultProjetoId?: string;
+  defaultColumnId?: string;
   defaultStatus?: string;
   projetos: { id: string; name: string }[];
+  users: User[];
 }
 
 type FormState = {
   titulo: string;
   descricao: string;
   projetoId: string;
+  columnId: string;
+  assigneeId: string;
   prioridade: Prioridade;
   status: StatusTarefa;
   progresso: number;
@@ -41,8 +46,10 @@ export default function NovaTarefaModal({
   onClose,
   onSuccess,
   defaultProjetoId = "",
+  defaultColumnId = "",
   defaultStatus,
   projetos,
+  users,
 }: NovaTarefaModalProps) {
   const initialProjectId =
     defaultProjetoId || (projetos.length > 0 ? projetos[0].id : "");
@@ -51,6 +58,8 @@ export default function NovaTarefaModal({
     titulo: "",
     descricao: "",
     projetoId: initialProjectId,
+    columnId: defaultColumnId,
+    assigneeId: "",
     prioridade: "MEDIA",
     status: (defaultStatus as StatusTarefa) || "BACKLOG",
     progresso: 0,
@@ -81,6 +90,8 @@ export default function NovaTarefaModal({
       titulo: "",
       descricao: "",
       projetoId: initialProjectId,
+      columnId: defaultColumnId,
+      assigneeId: "",
       prioridade: "MEDIA",
       status: (defaultStatus as StatusTarefa) || "BACKLOG",
       progresso: 0,
@@ -126,6 +137,8 @@ export default function NovaTarefaModal({
       titulo: form.titulo.trim(),
       descricao: form.descricao.trim() || null,
       projetoId: form.projetoId || initialProjectId,
+      columnId: form.columnId || defaultColumnId || null,
+      assigneeId: form.assigneeId || null,
       prioridade: form.prioridade,
       status: form.status,
       progresso: Number(form.progresso) || 0,
@@ -240,6 +253,26 @@ export default function NovaTarefaModal({
             {fieldErrors.titulo && (
               <p className="text-[11px] text-red-500 mt-1">{fieldErrors.titulo}</p>
             )}
+          </div>
+
+          {/* Responsável */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1">
+              Responsável
+            </label>
+            <select
+              value={form.assigneeId}
+              onChange={(e) => handleChange("assigneeId", e.target.value)}
+              disabled={loading}
+              className="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-sky-500"
+            >
+              <option value="">Sem responsável</option>
+              {users.filter((user) => user.active).map((user) => (
+                <option key={user.id} value={user.id}>
+                  {user.firstName} {user.lastName}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Descrição */}

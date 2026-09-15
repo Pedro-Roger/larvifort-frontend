@@ -2,6 +2,7 @@
 
 import { useRef } from "react";
 import { ArrowRight } from "@phosphor-icons/react";
+import { CARD_DRAG_TYPE } from "@/services/kanbanDragDrop";
 
 export interface ProjectCard {
   id: string;
@@ -47,6 +48,7 @@ export default function KanbanCard({
 
   function handleDragStart(e: React.DragEvent) {
     e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData(CARD_DRAG_TYPE, card.id);
     e.dataTransfer.setData("text/plain", card.id);
     onDragStart?.(card.id);
     if (ref.current) {

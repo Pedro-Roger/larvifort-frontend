@@ -259,10 +259,20 @@ export default function EquipePage() {
                       {visibleMembers.map((m) => (
                         <div
                           key={m.id}
-                          className={`flex h-8 w-8 items-center justify-center rounded-full border-2 border-white ${userAvatarBg(m.role)} text-[11px] font-semibold ${userAvatarTextColor(m.role)}`}
-                          title={`${m.firstName} ${m.lastName}`}
+                          className="relative flex h-8 w-8 items-center justify-center rounded-full border-2 border-white"
                         >
-                          {getInitials(m.firstName, m.lastName)}
+                          <div
+                            className={`flex h-full w-full items-center justify-center rounded-full ${userAvatarBg(m.role)} text-[11px] font-semibold ${userAvatarTextColor(m.role)}`}
+                            title={`${m.firstName} ${m.lastName}`}
+                          >
+                            {getInitials(m.firstName, m.lastName)}
+                          </div>
+                          <span
+                            className={`absolute bottom-0 right-0 h-2 w-2 rounded-full ring-2 ring-white ${
+                              m.active ? "bg-emerald-500" : "bg-slate-400"
+                            }`}
+                            aria-label={m.active ? "Online" : "Offline"}
+                          />
                         </div>
                       ))}
                       {overflow > 0 && (
@@ -329,10 +339,18 @@ export default function EquipePage() {
                         {team.members.map((member) => (
                           <div key={member.id} className="flex items-center justify-between py-3">
                             <div className="flex items-center gap-3">
-                              <div
-                                className={`flex h-10 w-10 items-center justify-center rounded-full ${userAvatarBg(member.role)} ${userAvatarTextColor(member.role)} text-sm font-semibold`}
-                              >
-                                {getInitials(member.firstName, member.lastName)}
+                              <div className="relative flex h-10 w-10 items-center justify-center rounded-full">
+                                <div
+                                  className={`flex h-full w-full items-center justify-center rounded-full ${userAvatarBg(member.role)} ${userAvatarTextColor(member.role)} text-sm font-semibold`}
+                                >
+                                  {getInitials(member.firstName, member.lastName)}
+                                </div>
+                                <span
+                                  className={`absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full ring-2 ring-white ${
+                                    member.active ? "bg-emerald-500" : "bg-slate-400"
+                                  }`}
+                                  aria-label={member.active ? "Online" : "Offline"}
+                                />
                               </div>
                               <div>
                                 <p className="text-sm font-medium text-slate-800">
