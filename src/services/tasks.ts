@@ -39,6 +39,7 @@ export type Task = {
   assigneeName: string | null;
   assigneeInitials: string | null;
   parentId: string | null;
+  clienteId?: string | null;
   clienteName?: string | null;
   orderTotal?: number | null;
   createdAt: string;
@@ -85,6 +86,7 @@ export type TaskInput = {
   estimativaH?: number | null;
   assigneeId?: string | null;
   parentId?: string | null;
+  clienteId?: string | null;
 };
 
 export type TaskStatusUpdate = {
@@ -197,6 +199,7 @@ export function normalizeTask(raw: unknown): Task {
     assigneeName,
     assigneeInitials,
     parentId: str(t.parentId) || null,
+    clienteId: str(t.clienteId),
     clienteName: str(t.clienteName),
     orderTotal: typeof t.orderTotal === "number" ? t.orderTotal : null,
     createdAt: str(t.createdAt) ?? "",

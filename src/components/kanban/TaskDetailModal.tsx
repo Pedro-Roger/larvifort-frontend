@@ -8,6 +8,7 @@ import {
 import ConfirmDeleteModal from "@/components/ui/ConfirmDeleteModal";
 import { getTaskDetails, deleteTask, updateTask, uploadTaskAttachment, deleteTaskAttachment, type TaskWithDetails, type StatusTarefa, type Projeto } from "@/services/tasks";
 import { fetchSubtasks, createSubtask, updateSubtask, deleteSubtask, type Subtask } from "@/services/subtasks";
+import { fetchClients, type Cliente } from "@/services/clients";
 import type { User } from "@/services/users";
 
 interface TaskDetailModalProps {
@@ -30,6 +31,8 @@ export default function TaskDetailModal({
   const [editedStatus, setEditedStatus] = useState("");
   const [editedAssigneeId, setEditedAssigneeId] = useState<string>("");
   const [editedProjetoId, setEditedProjetoId] = useState<string>("");
+  const [editedClienteId, setEditedClienteId] = useState<string>("");
+  const [clients, setClients] = useState<Cliente[]>([]);
   const [subtasks, setSubtasks] = useState<Subtask[]>([]);
   const [newSubtaskTitle, setNewSubtaskTitle] = useState("");
   const [subtaskSaving, setSubtaskSaving] = useState(false);
@@ -67,6 +70,12 @@ export default function TaskDetailModal({
         setEditedStatus(data.status);
         setEditedAssigneeId(data.assigneeId || "");
         setEditedProjetoId(data.projetoId || "");
+        setEditedClienteId(data.clienteId || "");
+        void fetchClients({ pageSize: 100 }).then((result) => {
+          if (isMounted) setClients(result.items);
+        }).catch(() => {
+          if (isMounted) setClients([]);
+        });
       } catch (err: unknown) {
         if (!isMounted) return;
         setError(err instanceof Error ? err.message : "Erro ao carregar detalhes da tarefa.");
@@ -92,6 +101,7 @@ export default function TaskDetailModal({
         descricao: editedDesc.trim() || null,
         status: editedStatus as StatusTarefa,
         assigneeId: editedAssigneeId || null,
+        clienteId: editedClienteId || null,
         projetoId: editedProjetoId || task.projetoId,
       });
       const chosenUser = users.find(u => u.id === editedAssigneeId);
@@ -105,6 +115,7 @@ export default function TaskDetailModal({
         assigneeName: chosenUser ? `${chosenUser.firstName} ${chosenUser.lastName}` : (editedAssigneeId ? task.assigneeName : null),
         assigneeInitials: chosenUser ? `${chosenUser.firstName?.[0] || ""}${chosenUser.lastName?.[0] || ""}`.toUpperCase() : (editedAssigneeId ? task.assigneeInitials : null),
         projetoId: editedProjetoId || task.projetoId,
+        clienteId: editedClienteId || null,
       };
       onUpdate?.(merged);
       onClose();
@@ -383,6 +394,22 @@ export default function TaskDetailModal({
 
           {/* Right: Meta + Actions */}
           <div className="border-t lg:border-t-0 lg:border-l border-slate-200 bg-slate-50/40 p-5 space-y-4">
+            {/* Quadro / Setor */}
+            <div>
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5 block">Cliente</label>
+              <select
+                value={editedClienteId}
+                onChange={(e) => setEditedClienteId(e.target.value)}
+                className="w-full text-xs px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-brand-600"
+              >
+                <option value="">Sem cliente vinculado</option>
+                {clients.map((client) => (
+                  <option key={client.id} value={client.id}>{client.firstName} {client.lastName}</option>
+                ))}
+              </select>
+              <p className="text-[10px] text-slate-400 mt-1">Pedidos desta atividade devem usar este cliente.</p>
+            </div>
+
             {/* Quadro / Setor */}
             <div>
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5 block">Quadro / Setor</label>
