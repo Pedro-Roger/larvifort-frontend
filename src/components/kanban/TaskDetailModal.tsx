@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import {
   X, CircleNotch, Trash, Paperclip,
-  CheckCircle, WhatsappLogo, ArrowRight, ArrowsLeftRight
+  CheckCircle, WhatsappLogo, ArrowRight, ArrowsLeftRight, ShoppingCart, ListChecks
 } from "@phosphor-icons/react";
 import ConfirmDeleteModal from "@/components/ui/ConfirmDeleteModal";
 import { getTaskDetails, deleteTask, updateTask, uploadTaskAttachment, deleteTaskAttachment, type TaskWithDetails, type StatusTarefa, type Projeto } from "@/services/tasks";
@@ -36,6 +36,7 @@ export default function TaskDetailModal({
   const [subtasks, setSubtasks] = useState<Subtask[]>([]);
   const [newSubtaskTitle, setNewSubtaskTitle] = useState("");
   const [subtaskSaving, setSubtaskSaving] = useState(false);
+  const [activeTab, setActiveTab] = useState<"atividade" | "whatsapp" | "pedidos">("atividade");
   
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -57,6 +58,7 @@ export default function TaskDetailModal({
         ]);
         if (!isMounted) return;
         setTask(data);
+        setActiveTab("atividade");
         setSubtasks(loadedSubtasks.length > 0 ? loadedSubtasks : data.childrenTasks.map((child) => ({
           id: child.id,
           titulo: child.titulo,
@@ -272,10 +274,31 @@ export default function TaskDetailModal({
           </button>
         </div>
 
+        <div className="px-6 border-b border-slate-100 bg-white flex items-center gap-1">
+          {([
+            ["atividade", "Atividade", ListChecks],
+            ["whatsapp", "WhatsApp", WhatsappLogo],
+            ["pedidos", "Pedidos", ShoppingCart],
+          ] as const).map(([tab, label, Icon]) => (
+            <button
+              key={tab}
+              type="button"
+              onClick={() => setActiveTab(tab)}
+              className={`inline-flex items-center gap-1.5 px-3 py-3 text-xs font-semibold border-b-2 transition-colors cursor-pointer ${
+                activeTab === tab ? "border-brand-600 text-brand-700" : "border-transparent text-slate-400 hover:text-slate-600"
+              }`}
+            >
+              <Icon size={14} /> {label}
+            </button>
+          ))}
+        </div>
+
         {/* Body */}
         <div className="grid lg:grid-cols-[1fr_320px] gap-0 overflow-y-auto flex-1">
           {/* Left: Content */}
           <div className="px-6 py-5 space-y-5">
+            {activeTab === "atividade" ? (
+              <div className="space-y-5">
             {/* Description */}
             <section>
               <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Descrição e Orientações</h3>
@@ -390,6 +413,44 @@ export default function TaskDetailModal({
                 </label>
               </div>
             </section>
+              </div>
+            ) : activeTab === "whatsapp" ? (
+              <section className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-5">
+                <div className="flex items-center gap-2 text-sm font-bold text-emerald-800 mb-2">
+                  <WhatsappLogo size={20} /> Conversa com o cliente
+                </div>
+                <p className="text-xs text-emerald-700 mb-4">Abra o WhatsApp com o telefone vinculado a esta atividade.</p>
+                <button
+                  type="button"
+                  onClick={handleWhatsapp}
+                  disabled={!task.phone}
+                  className="flex items-center justify-center gap-2 w-full px-3 py-2.5 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50 text-xs font-bold cursor-pointer"
+                >
+                  <WhatsappLogo size={18} /> {task.phone ? `Abrir WhatsApp (${task.phone})` : "Nenhum WhatsApp vinculado"}
+                </button>
+              </section>
+            ) : (
+              <section className="space-y-4">
+                <div className="flex items-center gap-2 text-sm font-bold text-slate-700">
+                  <ShoppingCart size={20} className="text-amber-600" /> Pedidos desta atividade
+                </div>
+                {task.orderNumber ? (
+                  <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-4">
+                    <div className="flex items-center justify-between text-xs text-amber-800">
+                      <span className="font-semibold">Pedido #{task.orderNumber}</span>
+                      {task.orderTotal !== null && <strong>R$ {task.orderTotal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</strong>}
+                    </div>
+                    <p className="text-[11px] text-amber-700 mt-2">Este pedido permanece historicamente vinculado a esta atividade e ao cliente.</p>
+                  </div>
+                ) : (
+                  <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-5 text-center">
+                    <ShoppingCart size={28} className="mx-auto text-slate-300 mb-2" />
+                    <p className="text-xs font-semibold text-slate-600">Nenhum pedido vinculado</p>
+                    <p className="text-[11px] text-slate-400 mt-1">Defina um cliente na lateral antes de criar um pedido.</p>
+                  </div>
+                )}
+              </section>
+            )}
           </div>
 
           {/* Right: Meta + Actions */}
