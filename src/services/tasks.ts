@@ -1,6 +1,8 @@
 import { apiGet, apiPost, apiPatch, apiDelete } from "./api";
 import { normalizeList } from "./normalizeList";
 import { buildTaskPageQuery, type TaskPageQuery } from "./kanbanPagination";
+import { normalizeBoardRule, toRuleApiInput, toRuleApiPatch, type BoardRule, type BoardRuleInput } from "./ruleModel";
+export type { BoardRule, BoardRuleInput } from "./ruleModel";
 export { normalizeList } from "./normalizeList";
 
 // Contrato espelhado no schema Prisma do lavifort-API (model Task + model
@@ -348,31 +350,17 @@ export function reorderColumns(boardId: string, columnOrders: { id: string; orde
 
 // ========== Board Rules ==========
 
-export type BoardRule = {
-  id: string;
-  boardId: string;
-  type: "AUTO_TRANSITION" | "WIP_LIMIT" | "AUTO_ASSIGN" | "NOTIFICATION" | "CUSTOM";
-  name: string;
-  description: string;
-  enabled: boolean;
-  config: Record<string, unknown>;
-  createdAt: string;
-  updatedAt: string;
-};
-
-export type BoardRuleInput = Omit<BoardRule, "id" | "createdAt" | "updatedAt">;
-
 export function fetchBoardRules(boardId: string): Promise<BoardRule[]> {
   return apiGet<unknown>(`/tasks/boards/${boardId}/rules`)
-    .then((raw) => normalizeList(raw, (item) => item as BoardRule));
+    .then((raw) => normalizeList(raw, normalizeBoardRule));
 }
 
 export function createBoardRule(boardId: string, input: BoardRuleInput): Promise<BoardRule> {
-  return apiPost<unknown>(`/tasks/boards/${boardId}/rules`, input).then((raw: unknown) => raw as BoardRule);
+  return apiPost<unknown>(`/tasks/boards/${boardId}/rules`, toRuleApiInput(boardId, input)).then(normalizeBoardRule);
 }
 
 export function updateBoardRule(ruleId: string, input: Partial<BoardRuleInput>): Promise<BoardRule> {
-  return apiPatch<unknown>(`/tasks/rules/${ruleId}`, input).then((raw: unknown) => raw as BoardRule);
+  return apiPatch<unknown>(`/tasks/rules/${ruleId}`, toRuleApiPatch(input)).then(normalizeBoardRule);
 }
 
 export function deleteBoardRule(ruleId: string): Promise<void> {

@@ -318,6 +318,7 @@ export default function RegrasQuadroModal({ open, onClose, boardId }: RegrasQuad
         name: editName.trim(),
         description: editDescription.trim(),
         enabled: editEnabled,
+        type: editingRule.type,
         config: editConfig,
       });
       await loadRules();
