@@ -139,7 +139,7 @@ export default function MetricsAnalysis({
         <div>
           <h2>Visualização e Análise</h2>
           <p className={styles.muted}>
-            Escolha como deseja visualizar os dados da sua meta.
+            Escolha como deseja visualizar os dados da sua análise.
           </p>
         </div>
         <div className={styles.axes}>
@@ -512,7 +512,7 @@ export default function MetricsAnalysis({
             {target > 0 && (
               <div className={styles.goalProgress}>
                 <span>
-                  Atingimento da meta <strong>{number(progress ?? 0)}%</strong>
+                  Atingimento da referência <strong>{number(progress ?? 0)}%</strong>
                 </span>
                 <progress max={100} value={Math.min(100, progress ?? 0)} />
                 <small>

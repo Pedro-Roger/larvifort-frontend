@@ -116,7 +116,7 @@ export default function MetricsPage() {
       setSaveError(
         error instanceof Error
           ? error.message
-          : "Não foi possível salvar a meta. Tente novamente.",
+          : "Não foi possível salvar a configuração. Tente novamente.",
       );
     } finally {
       setSaving(false);
@@ -127,7 +127,7 @@ export default function MetricsPage() {
       <div className={styles.pageHeading}>
         <div>
           <h1>Métricas</h1>
-          <p>Defina metas e acompanhe a evolução do seu time.</p>
+          <p>Acompanhe indicadores e a evolução do seu time.</p>
         </div>
       </div>
       {loadError ? (
@@ -146,7 +146,7 @@ export default function MetricsPage() {
       ) : loading ? (
         <div className={styles.loading} role="status">
           <SpinnerGap size={24} className={styles.spinner} /> Carregando times e
-          metas…
+          configurações…
         </div>
       ) : (
         <>
@@ -166,7 +166,7 @@ export default function MetricsPage() {
                 Selecione o time, as pessoas e personalize a análise para
                 acompanhar os resultados.
               </p>
-              <ol className={styles.steps} aria-label="Etapas de criação">
+              <ol className={styles.steps} aria-label="Etapas de configuração">
                 {[
                   "Selecione o Time",
                   "Selecione Pessoas",
@@ -190,7 +190,7 @@ export default function MetricsPage() {
                     <>
                       <h3>Selecione o Time</h3>
                       <p className={styles.muted}>
-                        Escolha o time que será responsável pela meta.
+                        Escolha o time que será analisado.
                       </p>
                       {teams.length ? (
                         <div className={styles.teamGrid}>
@@ -400,7 +400,7 @@ export default function MetricsPage() {
                           </p>
                         )}
                         <p className={styles.note}>
-                          A meta vale para todo o intervalo. O período escolhido
+                          A referência vale para todo o intervalo. O período escolhido
                           à direita define como os resultados são agrupados.
                         </p>
                       </div>
@@ -425,7 +425,7 @@ export default function MetricsPage() {
                     onClick={reset}
                     disabled={saving}
                   >
-                    {savedId ? "Nova meta" : "Cancelar"}
+                    {savedId ? "Nova configuração" : "Cancelar"}
                   </button>
                   {step < 3 ? (
                     <button
@@ -470,9 +470,9 @@ export default function MetricsPage() {
               />
               <div className={styles.configuration}>
                 <section className={styles.configCard}>
-                  <h3>Tipos de Meta</h3>
+                  <h3>Tipos de Métrica</h3>
                   <p className={styles.muted}>
-                    Escolha o tipo de meta que deseja definir.
+                    Escolha o indicador que deseja acompanhar.
                   </p>
                   <div className={styles.typeList}>
                     {METRIC_TYPES.map((item, index) => (
