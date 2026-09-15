@@ -1015,6 +1015,9 @@ export default function KanbanPage() {
          open={regrasQuadroModalOpen}
          onClose={() => setRegrasQuadroModalOpen(false)}
          boardId={projetoId}
+         columns={columns}
+         users={users}
+         projetos={projetos}
          onSuccess={() => {
            // Rules are managed internally by the modal
          }}

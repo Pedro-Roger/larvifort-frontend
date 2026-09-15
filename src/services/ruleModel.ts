@@ -53,6 +53,7 @@ const asString = (value: unknown, fallback = ""): string =>
 
 export function toRuleApiInput(boardId: string, input: BoardRuleInput) {
   const config = input.config;
+  const projectId = asString(config.projectId) || boardId;
   const columnId = asString(config.columnId) || undefined;
   const assigneeIds = Array.isArray(config.assigneeIds) ? config.assigneeIds : [];
   const firstAssignee = typeof assigneeIds[0] === "string" ? assigneeIds[0] : undefined;
@@ -62,12 +63,13 @@ export function toRuleApiInput(boardId: string, input: BoardRuleInput) {
     description: input.description || undefined,
     scope: columnId ? "COLUMN" : "ROLE",
     scopeId: columnId || "USER",
-    projectId: boardId,
+    projectId,
     columnId: columnId || undefined,
     action: input.type === "NOTIFICATION" ? "TRIGGER_AUTOMATION" :
       input.type === "ALLOW_MOVE" || input.type === "DENY_MOVE" ? input.type : "SET_FIELD",
     conditions: Object.fromEntries(Object.entries({
       columnId,
+      projectId: asString(config.projectId) || undefined,
       role: asString(config.role) || undefined,
       userId: asString(config.userId) || undefined,
       teamId: asString(config.teamId) || undefined,

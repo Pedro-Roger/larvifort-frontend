@@ -2,13 +2,17 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { X, CircleNotch, WarningCircle, Plus, Trash, DotsThree, Gear, Users, Bell, FileText } from "@phosphor-icons/react";
-import { fetchBoardRules, createBoardRule, updateBoardRule, deleteBoardRule, reorderBoardRules, type BoardRule, type BoardRuleInput } from "@/services/tasks";
+import { fetchBoardRules, createBoardRule, updateBoardRule, deleteBoardRule, reorderBoardRules, type BoardRule, type BoardRuleInput, type Projeto, type TaskColumn } from "@/services/tasks";
+import type { User } from "@/services/users";
 
 interface RegrasQuadroModalProps {
   open: boolean;
   onClose: () => void;
   boardId: string;
   onSuccess?: () => void;
+  columns?: TaskColumn[];
+  users?: User[];
+  projetos?: Projeto[];
 }
 
 const RULE_TYPE_CONFIG = {
@@ -144,6 +148,100 @@ function RuleItem({
   );
 }
 
+function RuleConfigFields({
+  type,
+  config,
+  setConfig,
+  boardId,
+  columns,
+  users,
+  projetos,
+}: {
+  type: RuleType;
+  config: Record<string, unknown>;
+  setConfig: (value: Record<string, unknown>) => void;
+  boardId: string;
+  columns: TaskColumn[];
+  users: User[];
+  projetos: Projeto[];
+}) {
+  const update = (key: string, value: string | number) => setConfig({ ...config, [key]: value });
+  const selectClass = "w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-sky-500";
+  const labelClass = "block text-xs font-semibold text-slate-700 mb-1";
+  const columnOptions = columns.map((column) => <option key={column.id} value={column.id}>{column.title}</option>);
+  const projectValue = String(config.projectId ?? boardId);
+  const userValue = String(config.userId ?? "");
+
+  return (
+    <div className="space-y-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <label>
+          <span className={labelClass}>Projeto alvo</span>
+          <select value={projectValue} onChange={(e) => update("projectId", e.target.value)} className={selectClass}>
+            {projetos.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}
+          </select>
+        </label>
+        <label>
+          <span className={labelClass}>Usuário alvo</span>
+          <select value={userValue} onChange={(e) => update("userId", e.target.value)} className={selectClass}>
+            <option value="">Todos os usuários</option>
+            {users.map((user) => <option key={user.id} value={user.id}>{user.firstName} {user.lastName}</option>)}
+          </select>
+        </label>
+      </div>
+
+      {(type === "VIEW_SCOPE" || type === "ALLOW_MOVE" || type === "DENY_MOVE" || type.startsWith("HIDE_")) && (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <label>
+            <span className={labelClass}>Perfil</span>
+            <select value={String(config.role ?? "USER")} onChange={(e) => update("role", e.target.value)} className={selectClass}>
+              <option value="USER">Usuário comum</option><option value="ADMIN">Administrador</option>
+            </select>
+          </label>
+          {type !== "VIEW_SCOPE" && <label>
+            <span className={labelClass}>Responsável</span>
+            <select value={String(config.assigneeId ?? "")} onChange={(e) => update("assigneeId", e.target.value)} className={selectClass}>
+              <option value="">Qualquer responsável</option>
+              {users.map((user) => <option key={user.id} value={user.id}>{user.firstName} {user.lastName}</option>)}
+            </select>
+          </label>}
+          {type === "VIEW_SCOPE" && <label>
+            <span className={labelClass}>Visão dos cards</span>
+            <select value={String(config.mode ?? "OWN")} onChange={(e) => update("mode", e.target.value)} className={selectClass}>
+              <option value="OWN">Somente os próprios</option><option value="ALL">Todos os cards</option>
+            </select>
+          </label>}
+          {type.startsWith("HIDE_") && type !== "HIDE_CLIENT" && type !== "HIDE_VALUE" && <label>
+            <span className={labelClass}>Status</span>
+            <select value={String(config.status ?? "")} onChange={(e) => update("status", e.target.value)} className={selectClass}>
+              <option value="">Qualquer status</option><option value="BACKLOG">Backlog</option><option value="EM_ANDAMENTO">Em andamento</option><option value="EM_REVISAO">Em revisão</option><option value="CONCLUIDO">Concluído</option>
+            </select>
+          </label>}
+        </div>
+      )}
+
+      {(type === "ALLOW_MOVE" || type === "DENY_MOVE") && <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <label><span className={labelClass}>Coluna de origem</span><select value={String(config.fromColumnId ?? "")} onChange={(e) => update("fromColumnId", e.target.value)} className={selectClass}><option value="">Qualquer coluna</option>{columnOptions}</select></label>
+        <label><span className={labelClass}>Coluna de destino</span><select value={String(config.toColumnId ?? "")} onChange={(e) => update("toColumnId", e.target.value)} className={selectClass}><option value="">Qualquer coluna</option>{columnOptions}</select></label>
+      </div>}
+
+      {type === "AUTO_TRANSITION" && <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <label><span className={labelClass}>Coluna de origem</span><select value={String(config.triggerColumnId ?? "")} onChange={(e) => update("triggerColumnId", e.target.value)} className={selectClass}><option value="">Selecione a origem</option>{columnOptions}</select></label>
+        <label><span className={labelClass}>Coluna alvo</span><select value={String(config.targetColumnId ?? "")} onChange={(e) => update("targetColumnId", e.target.value)} className={selectClass}><option value="">Selecione o destino</option>{columnOptions}</select></label>
+      </div>}
+
+      {type === "WIP_LIMIT" && <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <label><span className={labelClass}>Coluna alvo</span><select value={String(config.columnId ?? "")} onChange={(e) => update("columnId", e.target.value)} className={selectClass}><option value="">Selecione a coluna</option>{columnOptions}</select></label>
+        <label><span className={labelClass}>Máximo de cards</span><input type="number" min={1} value={Number(config.maxTasks ?? 5)} onChange={(e) => update("maxTasks", Number(e.target.value))} className={selectClass} /></label>
+      </div>}
+
+      {type === "HIDE_STALE" && <label><span className={labelClass}>Dias sem atualização</span><input type="number" min={0} value={Number(config.minDays ?? 3)} onChange={(e) => update("minDays", Number(e.target.value))} className={selectClass} /></label>}
+
+      {type === "CUSTOM" && <textarea value={JSON.stringify(config, null, 2)} onChange={(e) => { try { setConfig(JSON.parse(e.target.value) as Record<string, unknown>); } catch { /* aguarda JSON válido */ } }} className="w-full px-3 py-2 text-xs font-mono bg-white border border-slate-200 rounded-lg" rows={4} aria-label="Configuração personalizada" />}
+    </div>
+  );
+}
+
 function EditForm({
   rule,
   editName,
@@ -157,6 +255,10 @@ function EditForm({
   handleEdit,
   onCancel,
   loading,
+  boardId,
+  columns,
+  users,
+  projetos,
 }: {
   rule: BoardRule;
   editName: string;
@@ -170,6 +272,10 @@ function EditForm({
   handleEdit: (e: React.FormEvent) => void;
   onCancel: () => void;
   loading: boolean;
+  boardId: string;
+  columns: TaskColumn[];
+  users: User[];
+  projetos: Projeto[];
 }) {
   const typeConfig = RULE_TYPE_CONFIG[rule.type];
   const Icon = typeConfig.icon;
@@ -201,15 +307,7 @@ function EditForm({
         rows={2}
         placeholder="Descrição opcional"
       />
-      <textarea
-        value={JSON.stringify(editConfig, null, 2)}
-        onChange={(e) => {
-          try { setEditConfig(JSON.parse(e.target.value) as Record<string, unknown>); } catch { /* mantém o texto até virar JSON válido */ }
-        }}
-        className="w-full px-3 py-2 text-xs font-mono bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-sky-500"
-        rows={4}
-        aria-label="Configuração da regra"
-      />
+      <RuleConfigFields type={rule.type} config={editConfig} setConfig={setEditConfig} boardId={boardId} columns={columns} users={users} projetos={projetos} />
       <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
         <button
           type="button"
@@ -230,7 +328,7 @@ function EditForm({
   );
 }
 
-export default function RegrasQuadroModal({ open, onClose, boardId }: RegrasQuadroModalProps) {
+export default function RegrasQuadroModal({ open, onClose, boardId, columns = [], users = [], projetos = [] }: RegrasQuadroModalProps) {
   const [rules, setRules] = useState<BoardRule[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -503,6 +601,10 @@ export default function RegrasQuadroModal({ open, onClose, boardId }: RegrasQuad
                       handleEdit={handleEdit}
                       onCancel={() => setEditingRule(null)}
                       loading={loading}
+                      boardId={boardId}
+                      columns={columns}
+                      users={users}
+                      projetos={projetos}
                     />
                   ) : (
                     <RuleItem
@@ -583,16 +685,7 @@ export default function RegrasQuadroModal({ open, onClose, boardId }: RegrasQuad
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-2">Configuração</label>
-                  <textarea
-                    value={JSON.stringify(newRuleConfig, null, 2)}
-                    onChange={(e) => {
-                      try { setNewRuleConfig(JSON.parse(e.target.value) as Record<string, unknown>); } catch { /* aguarda JSON válido */ }
-                    }}
-                    className="w-full bg-white border border-slate-200 rounded-lg p-3 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-sky-500"
-                    rows={4}
-                    aria-label="Configuração da nova regra"
-                  />
-                  <p className="text-[10px] text-slate-400 mt-1">Você pode ajustar os campos da configuração antes de salvar.</p>
+                  <RuleConfigFields type={newRuleType} config={newRuleConfig} setConfig={setNewRuleConfig} boardId={boardId} columns={columns} users={users} projetos={projetos} />
                 </div>
 
                 <div className="flex items-center justify-between pt-3 border-t border-sky-100">

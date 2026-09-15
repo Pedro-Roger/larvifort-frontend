@@ -69,6 +69,20 @@ test("envia regra de movimentação como ALLOW_MOVE ou DENY_MOVE", () => {
   assert.deepEqual(apiRule.conditions, { role: "USER", toColumnId: "done" });
 });
 
+test("envia projeto e usuário alvo como condições selecionáveis", () => {
+  const apiRule = toRuleApiInput("board-1", {
+    type: "HIDE_CARD",
+    name: "Regra por usuário",
+    description: "",
+    enabled: true,
+    config: { projectId: "board-2", userId: "user-2" },
+    boardId: "board-1",
+  });
+
+  assert.equal(apiRule.projectId, "board-2");
+  assert.deepEqual(apiRule.conditions, { userId: "user-2", projectId: "board-2" });
+});
+
 test("avalia ocultação de card, cliente, valor e cards parados", () => {
   const task = {
     assigneeId: "user-1",
