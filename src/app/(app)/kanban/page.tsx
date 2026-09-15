@@ -49,6 +49,7 @@ import {
 } from "@/services/tasks";
 import { taskBelongsToColumn } from "@/services/kanbanBoard";
 import { evaluateBoardVisibility } from "@/services/ruleModel";
+import { formatMonthLabel } from "@/services/formatMonthLabel";
 
 export default function KanbanPage() {
   const { user } = useAuth();
@@ -91,6 +92,7 @@ export default function KanbanPage() {
     boardId: projetoId,
     enabled: !!projetoId,
   });
+  const currentMonthLabel = useMemo(() => formatMonthLabel(new Date()), []);
   const [onlineUserIds, setOnlineUserIds] = useState<string[]>([]);
 
   // WebSocket event handlers
@@ -809,13 +811,13 @@ export default function KanbanPage() {
                 type="text"
               />
             </div>
-            <button
-              type="button"
-              className="h-8 px-3 rounded-lg bg-white text-xs text-slate-600 flex items-center gap-2 border border-slate-200 hover:bg-slate-50 transition-colors cursor-pointer"
+            <div
+              className="h-8 px-3 rounded-lg bg-slate-50 text-xs text-slate-600 flex items-center gap-2 border border-slate-200"
+              aria-label={`Período atual: ${currentMonthLabel}`}
             >
               <CalendarBlank size={13} className="text-sky-600" />
-              <span className="font-medium">Outubro / 2024</span>
-            </button>
+              <span className="font-medium">{currentMonthLabel}</span>
+            </div>
           </div>
         </div>
       </header>
