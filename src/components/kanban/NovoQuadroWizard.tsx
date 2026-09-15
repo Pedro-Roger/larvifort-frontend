@@ -48,8 +48,9 @@ export default function NovoQuadroWizard({
   defaultTeamId?: string | null;
 }) {
   const [step, setStep] = useState<1 | 2 | 3>(1);
-  const [boardDraft, setBoardDraft] = useState<{ name: string; teamId: string; responsibleId: string; columns: { id: string; title: string; color: string; order: number }[] }>({
+  const [boardDraft, setBoardDraft] = useState<{ name: string; taskPrefix: string; teamId: string; responsibleId: string; columns: { id: string; title: string; color: string; order: number }[] }>({
     name: "",
+    taskPrefix: "TK",
     teamId: defaultTeamId ?? equipes[0]?.id ?? "",
     responsibleId: "",
     columns: [
@@ -65,7 +66,7 @@ export default function NovoQuadroWizard({
 
   const handleClose = () => {
     if (loading) return;
-    setBoardDraft({ name: "", teamId: defaultTeamId ?? equipes[0]?.id ?? "", responsibleId: "", columns: [] });
+    setBoardDraft({ name: "", taskPrefix: "TK", teamId: defaultTeamId ?? equipes[0]?.id ?? "", responsibleId: "", columns: [] });
     setStep(1);
     setErrorMessage(null);
     onClose();
@@ -135,6 +136,7 @@ export default function NovoQuadroWizard({
       // 1. Criar o projeto/quadro
       const created = await createProjeto({
         name: boardDraft.name.trim(),
+        taskPrefix: boardDraft.taskPrefix.trim().toUpperCase(),
         teamId: boardDraft.teamId,
         responsibleId: boardDraft.responsibleId || null,
       });
@@ -274,6 +276,21 @@ export default function NovoQuadroWizard({
                     disabled={loading}
                     className="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-sky-500"
                   />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Sigla das tarefas <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={boardDraft.taskPrefix}
+                    maxLength={10}
+                    onChange={(e) => setBoardDraft((prev) => ({ ...prev, taskPrefix: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "") }))}
+                    placeholder="Ex: UPS"
+                    disabled={loading}
+                    className="w-full px-3 py-2 text-xs uppercase bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-sky-500"
+                  />
+                  <p className="mt-1 text-[11px] text-slate-400">A primeira tarefa será {boardDraft.taskPrefix || "TK"}-00.</p>
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">

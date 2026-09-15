@@ -28,6 +28,8 @@ export type Task = {
   projetoId: string;
   columnId?: string | null;
   titulo: string;
+  referenceNumber?: number | null;
+  referenceCode?: string | null;
   descricao: string | null;
   status: StatusTarefa;
   prioridade: Prioridade;
@@ -98,6 +100,8 @@ export type TaskStatusUpdate = {
 export type Projeto = {
   id: string;
   name: string;
+  taskPrefix?: string | null;
+  taskSequence?: number;
   teamId?: string | null;
   responsibleId?: string | null;
   teamName?: string | null;
@@ -188,6 +192,8 @@ export function normalizeTask(raw: unknown): Task {
     projetoId: str(t.projetoId) ?? "",
     columnId: str(t.columnId),
     titulo: str(t.titulo) ?? str(t.title) ?? "",
+    referenceNumber: typeof t.referenceNumber === "number" ? t.referenceNumber : null,
+    referenceCode: str(t.referenceCode),
     descricao: str(t.descricao) ?? str(t.description),
     status: asStatusTarefa(t.status),
     prioridade: asPrioridade(t.prioridade) ?? asPrioridade(t.priority),
@@ -215,6 +221,8 @@ export function normalizeProjeto(raw: unknown): Projeto {
   return {
     id: str(p.id) ?? "",
     name: str(p.name) ?? "",
+    taskPrefix: str(p.taskPrefix) ?? "TK",
+    taskSequence: num(p.taskSequence, -1),
     teamId: str(p.teamId),
     responsibleId: str(p.responsibleId),
     teamName: str(p.teamName) ?? str(team.name),
@@ -470,6 +478,7 @@ export function createProjeto(input: {
   name: string;
   teamId?: string;
   responsibleId?: string | null;
+  taskPrefix?: string;
 }): Promise<Projeto> {
   return apiPost<unknown>("/tasks/projects", input).then(normalizeProjeto);
 }
@@ -574,7 +583,7 @@ export function mapTaskToCard(task: Task, options: { hideClient?: boolean; hideV
 } {
   return {
     id: task.id,
-    title: task.titulo,
+    title: task.referenceCode ? `${task.referenceCode} · ${task.titulo}` : task.titulo,
     client: options.hideClient ? "" : (task.clienteName ?? ""),
     progress: task.progresso,
     tags: task.tags,

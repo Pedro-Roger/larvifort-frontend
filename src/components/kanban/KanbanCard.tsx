@@ -15,6 +15,7 @@ export interface ProjectCard {
   priority?: "alta" | "media" | "baixa";
   value?: number | null;
   parentId?: string | null;
+  referenceCode?: string | null;
 }
 
 const avatarColors: Record<string, string> = {
@@ -119,7 +120,7 @@ export default function KanbanCard({
       </h4>
       {("parentId" in (card as unknown as Record<string, unknown>) && (card as unknown as Record<string, unknown>).parentId) ? (
         <div className="text-[10px] text-amber-600 font-medium mt-0.5 flex items-center gap-1">
-          <ArrowRight size={10} /> Subtarefa de #TK-{String((card as unknown as Record<string, unknown>).parentId).slice(-4)}
+          <ArrowRight size={10} /> Subtarefa de #{String((card as unknown as Record<string, unknown>).parentId).slice(-4)}
         </div>
       ) : null}
 

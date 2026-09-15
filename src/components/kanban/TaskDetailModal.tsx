@@ -254,7 +254,7 @@ export default function TaskDetailModal({
         <div className="px-6 py-4 border-b border-slate-100 flex items-start justify-between bg-slate-50/50 gap-4">
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 text-[11px] font-semibold text-slate-400 mb-1">
-              <span>Tarefa #{task.id.slice(-4) || "---"}</span>
+              <span>Tarefa #{task.referenceCode || task.id.slice(-4) || "---"}</span>
               {task.clienteName && <span>• {task.clienteName}</span>}
             </div>
             <input
