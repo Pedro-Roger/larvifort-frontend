@@ -36,7 +36,7 @@ const mainMenu = [
 ];
 
 const registros = [
-  { label: "Métricas", href: "#", icon: ChartBar },
+  { label: "Métricas", href: "/metricas", icon: ChartBar },
   { label: "Empresas", href: "/empresas", icon: Buildings },
   { label: "Clientes & Contatos", href: "/clientes", icon: AddressBook },
   { label: "Equipe", href: "/equipe", icon: UsersThree },

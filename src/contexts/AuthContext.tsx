@@ -59,9 +59,9 @@ function writeStoredUser(user: AuthUser | null): void {
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(() => readStoredUser());
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => checkToken());
-  const [isLoading] = useState(false);
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const logout = useCallback(() => {
     logoutService();
@@ -80,6 +80,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUnauthorizedHandler(null);
     };
   }, [logout]);
+
+  useEffect(() => {
+    queueMicrotask(() => {
+      setUser(readStoredUser());
+      setIsAuthenticated(checkToken());
+      setIsLoading(false);
+    });
+  }, []);
 
   const login = useCallback(
     async (email: string, password: string) => {
