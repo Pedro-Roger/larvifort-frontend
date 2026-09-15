@@ -47,6 +47,8 @@ export type SalesGeral = {
   vendasMes: number;
   metaValor: number;
   metaVolume: number;
+  visitas: number;
+  clientesRetornando: number;
 };
 
 export type SalesPorPessoa = {
@@ -169,6 +171,8 @@ function normalizeStats(raw: unknown): DashboardStats {
       vendasMes: num(source.vendasMes),
       metaValor: num(source.metaValor),
       metaVolume: num(source.metaVolume),
+      visitas: num(source.visitas),
+      clientesRetornando: num(source.clientesRetornando),
     },
     salesPorPessoa: asArray<SalesPorPessoa>(source.salesPorPessoa),
     totalTasks: num(source.totalTasks),
