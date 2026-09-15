@@ -15,7 +15,7 @@ interface AvatarContextValue {
 const AvatarContext = createContext<AvatarContextValue>({ size: "md" });
 
 const avatarSizes = cva(
-  "relative inline-flex shrink-0 items-center justify-center rounded-full font-semibold text-slate-700 select-none overflow-hidden",
+  "relative inline-flex shrink-0 items-center justify-center rounded-full font-semibold text-slate-700 select-none",
   {
     variants: {
       size: {
@@ -104,7 +104,7 @@ export function AvatarImage({
       alt={alt}
       data-slot="avatar-image"
       onError={() => setHasError(true)}
-      className={cn("h-full w-full object-cover", className)}
+      className={cn("h-full w-full rounded-full object-cover", className)}
       {...props}
     />
   );
@@ -132,7 +132,7 @@ export function AvatarFallback({
 }
 
 const badgeSizes = cva(
-  "absolute bottom-0 right-0 rounded-full ring-2 ring-white",
+  "absolute -bottom-0.5 -right-0.5 rounded-full ring-2 ring-white",
   {
     variants: {
       size: {
