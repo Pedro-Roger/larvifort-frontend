@@ -87,16 +87,34 @@ export default function KanbanPage() {
 
   const startLoad = () => setTryCount((c) => c + 1);
 
-  const { on } = useWebSocket({
+  const { on, emit, connected } = useWebSocket({
     boardId: projetoId,
     enabled: !!projetoId,
   });
+  const [onlineUserIds, setOnlineUserIds] = useState<string[]>([]);
 
   // WebSocket event handlers
   useEffect(() => {
     if (!projetoId) return;
 
     const unsubs: (() => void)[] = [];
+
+    const readPresenceIds = (data: unknown): string[] => {
+      if (!data || typeof data !== "object") return [];
+      const ids = (data as { userIds?: unknown }).userIds;
+      return Array.isArray(ids) ? ids.filter((id): id is string => typeof id === "string") : [];
+    };
+
+    unsubs.push(on("presence:sync", (data: unknown) => setOnlineUserIds(readPresenceIds(data))));
+    unsubs.push(on("presence:joined", (data: unknown) => {
+      const userId = data && typeof data === "object" ? (data as { userId?: unknown }).userId : null;
+      if (typeof userId === "string") setOnlineUserIds((prev) => prev.includes(userId) ? prev : [...prev, userId]);
+    }));
+    unsubs.push(on("presence:left", (data: unknown) => {
+      const userId = data && typeof data === "object" ? (data as { userId?: unknown }).userId : null;
+      if (typeof userId === "string") setOnlineUserIds((prev) => prev.filter((id) => id !== userId));
+    }));
+    emit("presence:sync", { boardId: projetoId });
 
     unsubs.push(
       on("task:created", (data: unknown) => {
@@ -172,7 +190,7 @@ export default function KanbanPage() {
     return () => {
       unsubs.forEach((u) => u());
     };
-  }, [projetoId, on]);
+  }, [projetoId, on, emit]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -385,18 +403,9 @@ export default function KanbanPage() {
   const projetoAtual = projetos.find((p) => p.id === projetoId);
 
   const sectorMembers = useMemo(() => {
-    const assigneeIds = new Set(
-      allTasks
-        .filter((t) => !projetoId || t.projetoId === projetoId)
-        .map((t) => t.assigneeId)
-        .filter(Boolean)
-    );
-    if (assigneeIds.size > 0) {
-      const filtered = users.filter((u) => assigneeIds.has(u.id));
-      if (filtered.length > 0) return filtered;
-    }
-    return users;
-  }, [allTasks, projetoId, users]);
+    const teamMembers = users.filter((u) => !projetoAtual?.teamId || u.teamId === projetoAtual.teamId);
+    return teamMembers.length > 0 ? teamMembers : users;
+  }, [projetoAtual?.teamId, users]);
 
   const totalTasks = columns.reduce(
     (acc, col) => acc + (columnPages[col.id]?.total ?? cards[col.title]?.length ?? 0),
@@ -694,20 +703,27 @@ export default function KanbanPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <AvatarGroup aria-label="Participantes do setor">
-              {sectorMembers.slice(0, 4).map((u) => (
+          <div className="flex flex-col items-stretch xl:items-end gap-3">
+            <div className="flex items-center justify-end gap-2 text-[11px] text-slate-500">
+              <span className={`h-2 w-2 rounded-full ${connected ? "bg-emerald-500" : "bg-slate-300"}`} />
+              {onlineUserIds.length} online
+            </div>
+            <div className="flex items-center justify-end gap-3">
+            <AvatarGroup className="space-x-1 [&>[data-slot=avatar]]:ml-0" aria-label="Participantes do setor">
+              {sectorMembers.slice(0, 6).map((u) => (
                 <Avatar key={u.id} size="sm" title={`${u.firstName} ${u.lastName}`}>
                   <AvatarFallback className="bg-brand-600 text-white text-[10px] font-bold">
                     {(u.firstName?.[0] || "").toUpperCase()}{(u.lastName?.[0] || "").toUpperCase()}
                   </AvatarFallback>
-                  <AvatarBadge status={u.active ? "online" : "offline"} size="sm" ping={u.active} live />
+                  <AvatarBadge status={onlineUserIds.includes(u.id) ? "online" : "offline"} size="sm" ping={onlineUserIds.includes(u.id)} live />
                 </Avatar>
               ))}
-              {sectorMembers.length > 4 && (
-                <AvatarGroupCount size="sm">+{sectorMembers.length - 4}</AvatarGroupCount>
+              {sectorMembers.length > 6 && (
+                <AvatarGroupCount size="sm">+{sectorMembers.length - 6}</AvatarGroupCount>
               )}
             </AvatarGroup>
+            </div>
+            <div className="flex flex-wrap items-center justify-end gap-2">
              <button
                 type="button"
                 onClick={() => setRegrasQuadroModalOpen(true)}
@@ -743,6 +759,7 @@ export default function KanbanPage() {
                 <Plus size={14} />
                 Nova Tarefa
               </button>
+            </div>
           </div>
         </div>
 
