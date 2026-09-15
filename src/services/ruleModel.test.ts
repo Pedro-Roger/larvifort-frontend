@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { toRuleApiInput, normalizeBoardRule } from "./ruleModel.ts";
+import { evaluateBoardVisibility } from "./ruleModel.ts";
 
 test("converte regra da modal para o contrato aceito pela API", () => {
   assert.deepEqual(toRuleApiInput("board-1", {
@@ -44,7 +45,7 @@ test("normaliza regra persistida para a forma consumida pela modal", () => {
   }), {
     id: "rule-1",
     boardId: "board-1",
-    type: "CUSTOM",
+    type: "HIDE_VALUE",
     name: "Esconder valor",
     description: "",
     enabled: false,
@@ -52,4 +53,28 @@ test("normaliza regra persistida para a forma consumida pela modal", () => {
     createdAt: "2026-09-15T00:00:00.000Z",
     updatedAt: "2026-09-15T00:00:00.000Z",
   });
+});
+
+test("avalia ocultação de card, cliente, valor e cards parados", () => {
+  const task = {
+    assigneeId: "user-1",
+    status: "EM_ANDAMENTO",
+    updatedAt: "2026-09-10T00:00:00.000Z",
+  };
+  const rules = [
+    { type: "HIDE_CLIENT", enabled: true, config: { role: "USER" } },
+    { type: "HIDE_VALUE", enabled: true, config: { role: "USER" } },
+    { type: "HIDE_STALE", enabled: true, config: { minDays: 3, role: "USER" } },
+  ] as never[];
+
+  assert.deepEqual(evaluateBoardVisibility(task, rules, "USER", new Date("2026-09-15T00:00:00.000Z")), {
+    hidden: true,
+    hideClient: true,
+    hideValue: true,
+  });
+  assert.equal(evaluateBoardVisibility(task, [{ type: "HIDE_CARD", enabled: true, config: { status: "EM_ANDAMENTO" } }] as never[], "ADMIN", new Date("2026-09-15T00:00:00.000Z")).hidden, true);
+  assert.deepEqual(evaluateBoardVisibility(task, [
+    { type: "HIDE_CLIENT", enabled: true, config: { combination: "ANY" } },
+    { type: "HIDE_VALUE", enabled: true, config: { combination: "ANY" } },
+  ] as never[], "ADMIN"), { hidden: false, hideClient: true, hideValue: false });
 });

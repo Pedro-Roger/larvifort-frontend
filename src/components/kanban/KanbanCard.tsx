@@ -13,6 +13,8 @@ export interface ProjectCard {
   assignee: { initials: string; name: string; color: string };
   dueDate: string;
   priority?: "alta" | "media" | "baixa";
+  value?: number | null;
+  parentId?: string | null;
 }
 
 const avatarColors: Record<string, string> = {
@@ -123,6 +125,11 @@ export default function KanbanCard({
 
       {/* Client */}
       <p className="text-[11px] text-slate-400 mt-0.5">{card.client}</p>
+      {card.value !== null && card.value !== undefined && (
+        <p className="text-[11px] font-semibold text-emerald-700 mt-1">
+          R$ {card.value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+        </p>
+      )}
 
       {/* Progress bar */}
       <div className="mt-3">

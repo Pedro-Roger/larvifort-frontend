@@ -39,6 +39,7 @@ import {
   fetchTasksPage,
   fetchProjetos,
   fetchColumns,
+  fetchBoardRules,
   reorderColumns,
   updateTaskStatus,
   mapTaskToCard,
@@ -47,6 +48,7 @@ import {
   type TaskColumn,
 } from "@/services/tasks";
 import { taskBelongsToColumn } from "@/services/kanbanBoard";
+import { evaluateBoardVisibility } from "@/services/ruleModel";
 
 export default function KanbanPage() {
   const { user } = useAuth();
@@ -75,6 +77,7 @@ export default function KanbanPage() {
   const [equipes, setEquipes] = useState<Team[]>([]);
 
   const [columns, setColumns] = useState<TaskColumn[]>([]);
+  const [boardRules, setBoardRules] = useState<import("@/services/ruleModel").BoardRule[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [tryCount, setTryCount] = useState(0);
@@ -258,6 +261,18 @@ export default function KanbanPage() {
     };
   }, [tryCount, userIdentity]);
 
+  useEffect(() => {
+    if (!projetoId) {
+      setBoardRules([]);
+      return;
+    }
+    let cancelled = false;
+    fetchBoardRules(projetoId)
+      .then((rules) => { if (!cancelled) setBoardRules(rules); })
+      .catch(() => { if (!cancelled) setBoardRules([]); });
+    return () => { cancelled = true; };
+  }, [projetoId]);
+
   // Carrega somente a primeira página de cada coluna. As páginas seguintes
   // são buscadas quando o usuário chega ao fim da lista daquela coluna.
   useEffect(() => {
@@ -342,6 +357,7 @@ export default function KanbanPage() {
 
   const cards = useMemo(() => {
     const term = busca.trim().toLowerCase();
+    const userRole = user?.role === "ADMIN" ? "ADMIN" : "USER";
     const filtered = allTasks.filter((t) => {
       const matchProject = !projetoId || t.projetoId === projetoId;
       const matchSearch =
@@ -349,7 +365,8 @@ export default function KanbanPage() {
         t.titulo.toLowerCase().includes(term) ||
         (t.descricao && t.descricao.toLowerCase().includes(term)) ||
         t.tags.some((tag) => tag.toLowerCase().includes(term));
-      return matchProject && matchSearch;
+      const visibility = evaluateBoardVisibility(t, boardRules, userRole);
+      return matchProject && matchSearch && !visibility.hidden;
     });
 
     const data: Record<string, ProjectCard[]> = {};
@@ -357,10 +374,13 @@ export default function KanbanPage() {
       const colStatus = col.status;
       data[col.title] = filtered
         .filter((t) => taskBelongsToColumn(t, { id: col.id, status: colStatus }))
-        .map(mapTaskToCard);
+        .map((task) => {
+          const visibility = evaluateBoardVisibility(task, boardRules, userRole);
+          return mapTaskToCard(task, visibility);
+        });
     }
     return data;
-  }, [projetoId, allTasks, busca, columns]);
+  }, [projetoId, allTasks, busca, columns, boardRules, user?.role]);
 
   const projetoAtual = projetos.find((p) => p.id === projetoId);
 

@@ -17,6 +17,10 @@ const RULE_TYPE_CONFIG = {
   AUTO_ASSIGN: { label: "Atribuição Automática", icon: Users, color: "bg-emerald-500", description: "Atribuir responsáveis automaticamente baseado em regras" },
   NOTIFICATION: { label: "Notificação", icon: Bell, color: "bg-sky-500", description: "Enviar notificações em eventos específicos" },
   CUSTOM: { label: "Regra Personalizada", icon: Gear, color: "bg-slate-500", description: "Regra customizada para necessidades específicas" },
+  HIDE_CARD: { label: "Ocultar Card", icon: FileText, color: "bg-red-500", description: "Ocultar cards conforme perfil, responsável ou status" },
+  HIDE_CLIENT: { label: "Ocultar Cliente", icon: Users, color: "bg-orange-500", description: "Esconder o cliente no card para perfis selecionados" },
+  HIDE_VALUE: { label: "Ocultar Valor", icon: FileText, color: "bg-amber-600", description: "Esconder o valor do pedido para perfis selecionados" },
+  HIDE_STALE: { label: "Card Parado", icon: WarningCircle, color: "bg-fuchsia-500", description: "Ocultar cards sem atualização após determinado número de dias" },
 } as const;
 
 type RuleType = keyof typeof RULE_TYPE_CONFIG;
@@ -27,6 +31,10 @@ const DEFAULT_CONFIGS: Record<RuleType, Record<string, unknown>> = {
   AUTO_ASSIGN: { columnId: "", assigneeIds: [], strategy: "ROUND_ROBIN" },
   NOTIFICATION: { event: "TASK_MOVED", recipients: [], template: "" },
   CUSTOM: { script: "" },
+  HIDE_CARD: { role: "USER", assigneeId: "", status: "" },
+  HIDE_CLIENT: { role: "USER" },
+  HIDE_VALUE: { role: "USER" },
+  HIDE_STALE: { role: "USER", minDays: 3 },
 };
 
 function RuleItem({
@@ -136,6 +144,8 @@ function EditForm({
   setEditName,
   editDescription,
   setEditDescription,
+  editConfig,
+  setEditConfig,
   editEnabled,
   setEditEnabled,
   handleEdit,
@@ -147,6 +157,8 @@ function EditForm({
   setEditName: (v: string) => void;
   editDescription: string;
   setEditDescription: (v: string) => void;
+  editConfig: Record<string, unknown>;
+  setEditConfig: (v: Record<string, unknown>) => void;
   editEnabled: boolean;
   setEditEnabled: (v: boolean) => void;
   handleEdit: (e: React.FormEvent) => void;
@@ -182,6 +194,15 @@ function EditForm({
         className="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-sky-500"
         rows={2}
         placeholder="Descrição opcional"
+      />
+      <textarea
+        value={JSON.stringify(editConfig, null, 2)}
+        onChange={(e) => {
+          try { setEditConfig(JSON.parse(e.target.value) as Record<string, unknown>); } catch { /* mantém o texto até virar JSON válido */ }
+        }}
+        className="w-full px-3 py-2 text-xs font-mono bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-sky-500"
+        rows={4}
+        aria-label="Configuração da regra"
       />
       <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
         <button
@@ -469,6 +490,8 @@ export default function RegrasQuadroModal({ open, onClose, boardId }: RegrasQuad
                       setEditName={setEditName}
                       editDescription={editDescription}
                       setEditDescription={setEditDescription}
+                      editConfig={editConfig}
+                      setEditConfig={setEditConfig}
                       editEnabled={editEnabled}
                       setEditEnabled={setEditEnabled}
                       handleEdit={handleEdit}
@@ -554,10 +577,16 @@ export default function RegrasQuadroModal({ open, onClose, boardId }: RegrasQuad
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-2">Configuração</label>
-                  <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 text-xs font-mono max-h-32 overflow-auto">
-                    {JSON.stringify(newRuleConfig, null, 2)}
-                  </div>
-                  <p className="text-[10px] text-slate-400 mt-1">A configuração padrão varia por tipo de regra. Edite após criar se necessário.</p>
+                  <textarea
+                    value={JSON.stringify(newRuleConfig, null, 2)}
+                    onChange={(e) => {
+                      try { setNewRuleConfig(JSON.parse(e.target.value) as Record<string, unknown>); } catch { /* aguarda JSON válido */ }
+                    }}
+                    className="w-full bg-white border border-slate-200 rounded-lg p-3 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-sky-500"
+                    rows={4}
+                    aria-label="Configuração da nova regra"
+                  />
+                  <p className="text-[10px] text-slate-400 mt-1">Você pode ajustar os campos da configuração antes de salvar.</p>
                 </div>
 
                 <div className="flex items-center justify-between pt-3 border-t border-sky-100">

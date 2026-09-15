@@ -39,6 +39,8 @@ export type Task = {
   assigneeName: string | null;
   assigneeInitials: string | null;
   parentId: string | null;
+  clienteName?: string | null;
+  orderTotal?: number | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -195,6 +197,8 @@ export function normalizeTask(raw: unknown): Task {
     assigneeName,
     assigneeInitials,
     parentId: str(t.parentId) || null,
+    clienteName: str(t.clienteName),
+    orderTotal: typeof t.orderTotal === "number" ? t.orderTotal : null,
     createdAt: str(t.createdAt) ?? "",
     updatedAt: str(t.updatedAt) ?? "",
   };
@@ -553,7 +557,7 @@ export const STATUS_TAREFA_COLORS: Record<StatusTarefa, string> = {
   CONCLUIDO: "emerald",
 };
 
-export function mapTaskToCard(task: Task): {
+export function mapTaskToCard(task: Task, options: { hideClient?: boolean; hideValue?: boolean } = {}): {
   id: string;
   title: string;
   client: string;
@@ -562,11 +566,13 @@ export function mapTaskToCard(task: Task): {
   assignee: { initials: string; name: string; color: string };
   dueDate: string;
   priority: "alta" | "media" | "baixa";
+  value?: number | null;
+  parentId?: string | null;
 } {
   return {
     id: task.id,
     title: task.titulo,
-    client: "",
+    client: options.hideClient ? "" : (task.clienteName ?? ""),
     progress: task.progresso,
     tags: task.tags,
     assignee:
@@ -575,5 +581,7 @@ export function mapTaskToCard(task: Task): {
         : { initials: "??", name: "Não atribuído", color: "slate" },
     dueDate: task.prazo || "",
     priority: task.prioridade.toLowerCase() as "alta" | "media" | "baixa",
+    value: options.hideValue ? null : task.orderTotal,
+    parentId: task.parentId,
   };
 }

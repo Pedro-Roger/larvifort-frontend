@@ -3,7 +3,11 @@ export type BoardRuleType =
   | "WIP_LIMIT"
   | "AUTO_ASSIGN"
   | "NOTIFICATION"
-  | "CUSTOM";
+  | "CUSTOM"
+  | "HIDE_CARD"
+  | "HIDE_CLIENT"
+  | "HIDE_VALUE"
+  | "HIDE_STALE";
 
 export type BoardRule = {
   id: string;
@@ -96,7 +100,8 @@ export function normalizeBoardRule(raw: unknown): BoardRule {
   const config = asObject(parameters.config);
   const action = asString(value.action);
   const storedType = asString(parameters.ruleType);
-  const type: BoardRuleType = ["AUTO_TRANSITION", "WIP_LIMIT", "AUTO_ASSIGN", "NOTIFICATION", "CUSTOM"].includes(storedType)
+  const supportedTypes = ["AUTO_TRANSITION", "WIP_LIMIT", "AUTO_ASSIGN", "NOTIFICATION", "CUSTOM", "HIDE_CARD", "HIDE_CLIENT", "HIDE_VALUE", "HIDE_STALE"];
+  const type: BoardRuleType = supportedTypes.includes(storedType)
     ? storedType as BoardRuleType
     : action === "TRIGGER_AUTOMATION" ? "NOTIFICATION" : "CUSTOM";
 
@@ -111,4 +116,45 @@ export function normalizeBoardRule(raw: unknown): BoardRule {
     createdAt: asString(value.createdAt),
     updatedAt: asString(value.updatedAt),
   };
+}
+
+type VisibilityTask = {
+  assigneeId: string | null;
+  status: string;
+  updatedAt: string;
+};
+
+export function evaluateBoardVisibility(
+  task: VisibilityTask,
+  rules: BoardRule[],
+  userRole: "ADMIN" | "USER",
+  now = new Date(),
+): { hidden: boolean; hideClient: boolean; hideValue: boolean } {
+  const result = { hidden: false, hideClient: false, hideValue: false };
+  const daysStopped = Math.max(0, Math.floor((now.getTime() - new Date(task.updatedAt).getTime()) / 86_400_000));
+
+  const matchingRules = rules.filter((rule) => {
+    if (!rule.enabled) return false;
+    const config = rule.config;
+    if (config.role && config.role !== userRole) return false;
+    if (config.assigneeId && config.assigneeId !== task.assigneeId) return false;
+    if (config.status && config.status !== task.status) return false;
+    return true;
+  });
+  const combination = matchingRules.find((rule) => rule.config.combination)?.config.combination;
+  const applicableRules = combination === "ANY" ? matchingRules.slice(0, 1) : matchingRules;
+
+  for (const rule of applicableRules) {
+    const config = rule.config;
+
+    if (rule.type === "HIDE_CARD") result.hidden = true;
+    if (rule.type === "HIDE_CLIENT") result.hideClient = true;
+    if (rule.type === "HIDE_VALUE") result.hideValue = true;
+    if (rule.type === "HIDE_STALE") {
+      const minDays = typeof config.minDays === "number" ? config.minDays : Number(config.minDays);
+      if (Number.isFinite(minDays) && daysStopped >= Math.max(0, minDays)) result.hidden = true;
+    }
+  }
+
+  return result;
 }
