@@ -209,7 +209,7 @@ export default function NovoContatoModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-[2px]">
-      <div className="bg-white rounded-2xl shadow-2xl border border-slate-200/80 w-full max-w-xl overflow-hidden flex flex-col max-h-[92vh]">
+      <div className="bg-white rounded-2xl shadow-2xl border border-slate-200/80 w-full max-w-2xl overflow-hidden flex flex-col max-h-[92vh] min-h-0">
         {/* Modal Header */}
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
           <h3 className="text-base font-bold text-slate-800">Criar Novo Contato</h3>
@@ -225,7 +225,7 @@ export default function NovoContatoModal({
 
         {/* Modal Body */}
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
-          <div className="px-6 py-4 overflow-y-auto space-y-4 flex-1">
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 py-5 space-y-5">
             {errorMessage && (
               <div
                 role="alert"
@@ -250,8 +250,8 @@ export default function NovoContatoModal({
             </div>
 
             {/* Form Grid */}
-            <div className="grid grid-cols-2 gap-3.5">
-                            <div className="col-span-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-4">
+              <div className="sm:col-span-2">
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Nome / Razão Social <span className="text-red-500">*</span>
                 </label>
@@ -289,11 +289,6 @@ export default function NovoContatoModal({
                   Telefone
                 </label>
                 <div className="flex">
-                  <div className="relative">
-                  <div className="relative">
-                  <div className="relative">
-                  <div className="relative">
-                  <div className="relative">
                   <select
                     value={form.phoneCountry}
                     onChange={(e) => handleChange("phoneCountry", e.target.value)}
@@ -341,7 +336,8 @@ export default function NovoContatoModal({
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Status do Lead
                 </label>
-                <select
+                <div className="relative">
+                  <select
                   value={form.statusLead}
                   onChange={(e) =>
                     handleChange("statusLead", e.target.value as ClienteStatus)
@@ -352,7 +348,7 @@ export default function NovoContatoModal({
                   <option value="CLIENTE_ATIVO">Cliente Ativo</option>
                   <option value="EM_NEGOCIACAO">Em Negociação</option>
                   <option value="SEM_CONTATO">Sem Contato</option>
-                </select>
+                  </select>
                   <CaretDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                 </div>
               </div>
@@ -360,7 +356,8 @@ export default function NovoContatoModal({
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Origem / Canal
                 </label>
-                <select
+                <div className="relative">
+                  <select
                   value={form.origem}
                   onChange={(e) => handleChange("origem", e.target.value)}
                   className="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg text-slate-600 focus:ring-1 focus:ring-brand-600 focus:border-brand-600 appearance-none pr-8 bg-white"
@@ -370,7 +367,7 @@ export default function NovoContatoModal({
                   <option value="Indicação Comercial">Indicação Comercial</option>
                   <option value="Feira / Evento">Feira / Evento</option>
                   <option value="Prospecção Ativa">Prospecção Ativa</option>
-                </select>
+                  </select>
                   <CaretDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                 </div>
               </div>
@@ -378,7 +375,8 @@ export default function NovoContatoModal({
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
                   País
                 </label>
-                <select
+                <div className="relative">
+                  <select
                   value={form.pais}
                   onChange={(e) => handleChange("pais", e.target.value)}
                   className="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg text-slate-600 focus:ring-1 focus:ring-brand-600 focus:border-brand-600 appearance-none pr-8 bg-white"
@@ -386,7 +384,7 @@ export default function NovoContatoModal({
                   <option value="Brasil">Brasil</option>
                   <option value="Portugal">Portugal</option>
                   <option value="Estados Unidos">Estados Unidos</option>
-                </select>
+                  </select>
                   <CaretDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                 </div>
               </div>
@@ -437,7 +435,7 @@ export default function NovoContatoModal({
               <h4 className="text-xs font-bold text-slate-800 mb-3 uppercase tracking-wide">
                 Dados da Piscicultura / Camarão
               </h4>
-              <div className="grid grid-cols-2 gap-3.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-4">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
                     Lâmina d&apos;Água (m²)
@@ -490,16 +488,17 @@ export default function NovoContatoModal({
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
                     Tem Berçário?
                   </label>
-                  <select
+                  <div className="relative">
+                    <select
                     value={form.temBercario}
                     onChange={(e) => handleChange("temBercario", e.target.value)}
                     className="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg text-slate-600 focus:ring-1 focus:ring-brand-600 focus:border-brand-600 appearance-none pr-8 bg-white"
                   >
                     <option value="sim">Sim</option>
                     <option value="nao">Não</option>
-                  </select>
-                  <CaretDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                </div>
+                    </select>
+                    <CaretDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                  </div>
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
@@ -529,7 +528,8 @@ export default function NovoContatoModal({
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
                     Usa Alimentador Automático?
                   </label>
-                  <select
+                  <div className="relative">
+                    <select
                     value={form.alimentadorAutomatico}
                     onChange={(e) =>
                       handleChange("alimentadorAutomatico", e.target.value)
@@ -538,9 +538,9 @@ export default function NovoContatoModal({
                   >
                     <option value="sim">Sim</option>
                     <option value="nao">Não</option>
-                  </select>
-                  <CaretDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                </div>
+                    </select>
+                    <CaretDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                  </div>
                 </div>
               </div>
             </div>
