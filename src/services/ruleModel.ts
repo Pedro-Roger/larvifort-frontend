@@ -7,7 +7,10 @@ export type BoardRuleType =
   | "HIDE_CARD"
   | "HIDE_CLIENT"
   | "HIDE_VALUE"
-  | "HIDE_STALE";
+  | "HIDE_STALE"
+  | "VIEW_SCOPE"
+  | "ALLOW_MOVE"
+  | "DENY_MOVE";
 
 export type BoardRule = {
   id: string;
@@ -61,8 +64,18 @@ export function toRuleApiInput(boardId: string, input: BoardRuleInput) {
     scopeId: columnId || "USER",
     projectId: boardId,
     columnId: columnId || undefined,
-    action: input.type === "NOTIFICATION" ? "TRIGGER_AUTOMATION" : "SET_FIELD",
-    conditions: columnId ? { columnId } : {},
+    action: input.type === "NOTIFICATION" ? "TRIGGER_AUTOMATION" :
+      input.type === "ALLOW_MOVE" || input.type === "DENY_MOVE" ? input.type : "SET_FIELD",
+    conditions: Object.fromEntries(Object.entries({
+      columnId,
+      role: asString(config.role) || undefined,
+      userId: asString(config.userId) || undefined,
+      teamId: asString(config.teamId) || undefined,
+      assigneeId: asString(config.assigneeId) || undefined,
+      status: asString(config.status) || undefined,
+      fromColumnId: asString(config.fromColumnId) || undefined,
+      toColumnId: asString(config.toColumnId) || undefined,
+    }).filter(([, value]) => value !== undefined)),
     parameters: {
       ruleType: input.type,
       config,
@@ -85,6 +98,19 @@ export function toRuleApiPatch(input: Partial<BoardRuleInput>) {
   if (input.name !== undefined) patch.name = input.name;
   if (input.description !== undefined) patch.description = input.description || undefined;
   if (input.enabled !== undefined) patch.active = input.enabled;
+  if (input.type === "ALLOW_MOVE" || input.type === "DENY_MOVE") {
+    patch.action = input.type;
+    const config = input.config ?? {};
+    patch.conditions = Object.fromEntries(Object.entries({
+      role: asString(config.role) || undefined,
+      userId: asString(config.userId) || undefined,
+      teamId: asString(config.teamId) || undefined,
+      assigneeId: asString(config.assigneeId) || undefined,
+      status: asString(config.status) || undefined,
+      fromColumnId: asString(config.fromColumnId) || undefined,
+      toColumnId: asString(config.toColumnId) || undefined,
+    }).filter(([, value]) => value !== undefined));
+  }
   if (input.config !== undefined) {
     patch.parameters = {
       ruleType: input.type ?? "CUSTOM",
@@ -100,7 +126,7 @@ export function normalizeBoardRule(raw: unknown): BoardRule {
   const config = asObject(parameters.config);
   const action = asString(value.action);
   const storedType = asString(parameters.ruleType);
-  const supportedTypes = ["AUTO_TRANSITION", "WIP_LIMIT", "AUTO_ASSIGN", "NOTIFICATION", "CUSTOM", "HIDE_CARD", "HIDE_CLIENT", "HIDE_VALUE", "HIDE_STALE"];
+  const supportedTypes = ["AUTO_TRANSITION", "WIP_LIMIT", "AUTO_ASSIGN", "NOTIFICATION", "CUSTOM", "HIDE_CARD", "HIDE_CLIENT", "HIDE_VALUE", "HIDE_STALE", "VIEW_SCOPE", "ALLOW_MOVE", "DENY_MOVE"];
   const type: BoardRuleType = supportedTypes.includes(storedType)
     ? storedType as BoardRuleType
     : action === "TRIGGER_AUTOMATION" ? "NOTIFICATION" : "CUSTOM";

@@ -21,6 +21,9 @@ const RULE_TYPE_CONFIG = {
   HIDE_CLIENT: { label: "Ocultar Cliente", icon: Users, color: "bg-orange-500", description: "Esconder o cliente no card para perfis selecionados" },
   HIDE_VALUE: { label: "Ocultar Valor", icon: FileText, color: "bg-amber-600", description: "Esconder o valor do pedido para perfis selecionados" },
   HIDE_STALE: { label: "Card Parado", icon: WarningCircle, color: "bg-fuchsia-500", description: "Ocultar cards sem atualização após determinado número de dias" },
+  VIEW_SCOPE: { label: "Visibilidade", icon: Users, color: "bg-indigo-500", description: "Definir se usuário comum vê só seus cards ou todos" },
+  ALLOW_MOVE: { label: "Permitir Movimentação", icon: Gear, color: "bg-emerald-600", description: "Permitir movimentação conforme perfil e colunas" },
+  DENY_MOVE: { label: "Bloquear Movimentação", icon: WarningCircle, color: "bg-red-600", description: "Bloquear movimentação conforme perfil e colunas" },
 } as const;
 
 type RuleType = keyof typeof RULE_TYPE_CONFIG;
@@ -35,6 +38,9 @@ const DEFAULT_CONFIGS: Record<RuleType, Record<string, unknown>> = {
   HIDE_CLIENT: { role: "USER" },
   HIDE_VALUE: { role: "USER" },
   HIDE_STALE: { role: "USER", minDays: 3 },
+  VIEW_SCOPE: { role: "USER", mode: "OWN" },
+  ALLOW_MOVE: { role: "USER", fromColumnId: "", toColumnId: "" },
+  DENY_MOVE: { role: "USER", fromColumnId: "", toColumnId: "" },
 };
 
 function RuleItem({

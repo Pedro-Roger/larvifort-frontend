@@ -55,6 +55,20 @@ test("normaliza regra persistida para a forma consumida pela modal", () => {
   });
 });
 
+test("envia regra de movimentação como ALLOW_MOVE ou DENY_MOVE", () => {
+  const apiRule = toRuleApiInput("board-1", {
+    type: "DENY_MOVE",
+    name: "Usuário não pode concluir",
+    description: "",
+    enabled: true,
+    config: { role: "USER", toColumnId: "done" },
+    boardId: "board-1",
+  });
+
+  assert.equal(apiRule.action, "DENY_MOVE");
+  assert.deepEqual(apiRule.conditions, { role: "USER", toColumnId: "done" });
+});
+
 test("avalia ocultação de card, cliente, valor e cards parados", () => {
   const task = {
     assigneeId: "user-1",
