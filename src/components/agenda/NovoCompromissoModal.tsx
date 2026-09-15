@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { X, CircleNotch, WarningCircle, Handshake, MapPin } from "@phosphor-icons/react";
 import {
   createAppointment,
@@ -11,6 +11,9 @@ import {
   tipoCompromissoLabel,
 } from "@/services/appointments";
 import { ApiError } from "@/services/api";
+import { fetchColumns, fetchProjetos, type Projeto, type TaskColumn } from "@/services/tasks";
+import { fetchUsers, type User } from "@/services/users";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface NovoCompromissoModalProps {
   open: boolean;
@@ -19,6 +22,8 @@ interface NovoCompromissoModalProps {
   defaultDate?: string; // YYYY-MM-DD
   clientes: { id: string; nome: string }[];
   empresas: { id: string; nome: string }[];
+  projetos: Projeto[];
+  usuarios: User[];
 }
 
 type FormState = {
@@ -30,6 +35,9 @@ type FormState = {
   horario: string;
   endereco: string;
   observacoes: string;
+  projectId: string;
+  columnId: string;
+  assigneeId: string;
 };
 
 export default function NovoCompromissoModal({
@@ -39,7 +47,12 @@ export default function NovoCompromissoModal({
   defaultDate = "",
   clientes,
   empresas,
+  projetos,
+  usuarios,
 }: NovoCompromissoModalProps) {
+  const { user } = useAuth();
+  const currentUserId = user?.id ? String(user.id) : "";
+  const defaultProjectId = projetos[0]?.id ?? "";
   const [form, setForm] = useState<FormState>({
     tipo: "REUNIAO",
     titulo: "",
@@ -49,7 +62,27 @@ export default function NovoCompromissoModal({
     horario: "",
     endereco: "",
     observacoes: "",
+    projectId: defaultProjectId,
+    columnId: "",
+    assigneeId: currentUserId,
   });
+  const [columns, setColumns] = useState<TaskColumn[]>([]);
+  const [loadingColumns, setLoadingColumns] = useState(false);
+
+  useEffect(() => {
+    if (!open || !form.projectId) return;
+    let cancelled = false;
+    setLoadingColumns(true);
+    fetchColumns(form.projectId)
+      .then((items) => {
+        if (cancelled) return;
+        setColumns(items);
+        setForm((prev) => ({ ...prev, columnId: prev.columnId && items.some((c) => c.id === prev.columnId) ? prev.columnId : items[0]?.id ?? "" }));
+      })
+      .catch(() => { if (!cancelled) setColumns([]); })
+      .finally(() => { if (!cancelled) setLoadingColumns(false); });
+    return () => { cancelled = true; };
+  }, [open, form.projectId]);
 
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -79,6 +112,9 @@ export default function NovoCompromissoModal({
       horario: "",
       endereco: "",
       observacoes: "",
+      projectId: defaultProjectId,
+      columnId: "",
+      assigneeId: currentUserId,
     });
     setErrorMessage(null);
     setFieldErrors({});
@@ -116,6 +152,10 @@ export default function NovoCompromissoModal({
       observacoes: form.observacoes.trim() || null,
       clienteId: form.clienteId || null,
       empresaId: form.empresaId || null,
+      ownerId: currentUserId || null,
+      projectId: form.projectId,
+      columnId: form.columnId || null,
+      assigneeId: form.assigneeId || currentUserId || null,
     };
 
     try {
@@ -291,6 +331,30 @@ export default function NovoCompromissoModal({
                 <p className="text-[11px] text-red-500 mt-1">{fieldErrors.horario}</p>
               )}
             </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <label className="block text-xs font-semibold text-slate-700">
+              Responsável
+              <select value={form.assigneeId} onChange={(e) => handleChange("assigneeId", e.target.value)} disabled={loading} className="mt-1 w-full px-3 py-2 text-xs font-normal bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-sky-500">
+                <option value="">Selecione o responsável...</option>
+                {usuarios.map((u) => <option key={u.id} value={u.id}>{u.firstName} {u.lastName}</option>)}
+              </select>
+            </label>
+            <label className="block text-xs font-semibold text-slate-700">
+              Projeto do quadro
+              <select value={form.projectId} onChange={(e) => { handleChange("projectId", e.target.value); handleChange("columnId", ""); }} disabled={loading} className="mt-1 w-full px-3 py-2 text-xs font-normal bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-sky-500">
+                <option value="">Selecione o projeto...</option>
+                {projetos.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+              </select>
+            </label>
+            <label className="block text-xs font-semibold text-slate-700 sm:col-span-2">
+              Coluna inicial no quadro
+              <select value={form.columnId} onChange={(e) => handleChange("columnId", e.target.value)} disabled={loading || loadingColumns || !form.projectId} className="mt-1 w-full px-3 py-2 text-xs font-normal bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-sky-500">
+                <option value="">Primeira coluna do projeto</option>
+                {columns.map((c) => <option key={c.id} value={c.id}>{c.title}</option>)}
+              </select>
+            </label>
           </div>
 
           {/* Endereço */}

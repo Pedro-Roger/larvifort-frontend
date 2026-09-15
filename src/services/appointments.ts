@@ -22,6 +22,9 @@ export type Appointment = {
   empresaId: string | null;
   empresaNome: string | null;
   ownerId: string | null;
+  projectId: string | null;
+  columnId: string | null;
+  assigneeId: string | null;
   ownerNome: string | null;
   createdAt: string;
   updatedAt: string;
@@ -42,6 +45,9 @@ export type AppointmentInput = {
   clienteId?: string | null;
   empresaId?: string | null;
   ownerId?: string | null;
+  projectId: string;
+  columnId?: string | null;
+  assigneeId?: string | null;
 };
 
 export type AppointmentUpdate = Partial<AppointmentInput>;
@@ -97,6 +103,9 @@ export function normalizeAppointment(raw: unknown): Appointment {
     empresaId: str(a.empresaId),
     empresaNome: str(empresa.nome) ?? str(empresa.name),
     ownerId: str(a.ownerId),
+    projectId: str(a.projectId),
+    columnId: str(a.columnId),
+    assigneeId: str(a.assigneeId),
     ownerNome: str(owner.nome) ?? str(owner.name),
     createdAt: str(a.createdAt) ?? "",
     updatedAt: str(a.updatedAt) ?? "",

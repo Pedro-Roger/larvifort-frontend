@@ -30,6 +30,8 @@ import {
 } from "@/services/appointments";
 import { fetchClients } from "@/services/clients";
 import { fetchEmpresas } from "@/services/companies";
+import { fetchProjetos, type Projeto } from "@/services/tasks";
+import { fetchUsers, type User as AppUser } from "@/services/users";
 
 const diasSemana = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 const meses = [
@@ -54,15 +56,19 @@ export default function AgendaPage() {
 
   const [clientes, setClientes] = useState<{ id: string; nome: string }[]>([]);
   const [empresas, setEmpresas] = useState<{ id: string; nome: string }[]>([]);
+  const [projetos, setProjetos] = useState<Projeto[]>([]);
+  const [usuarios, setUsuarios] = useState<AppUser[]>([]);
 
   // Load clients and companies for modal dropdowns
   useEffect(() => {
     let cancelled = false;
     async function load() {
       try {
-        const [clientsRes, companiesRes] = await Promise.all([
+        const [clientsRes, companiesRes, projectsRes, usersRes] = await Promise.all([
           fetchClients({ pageSize: 200 }).catch(() => ({ items: [], total: 0, page: 1, pageSize: 200 })),
           fetchEmpresas({ pageSize: 200 }).catch(() => ({ items: [], total: 0, page: 1, pageSize: 200 })),
+          fetchProjetos().catch(() => []),
+          fetchUsers({ active: true }).catch(() => []),
         ]);
         if (cancelled) return;
         setClientes(
@@ -77,6 +83,8 @@ export default function AgendaPage() {
             nome: e.name,
           }))
         );
+        setProjetos(projectsRes);
+        setUsuarios(usersRes);
       } catch {
         // Dropdowns will be empty; user can still create appointments without client/company
       }
@@ -562,6 +570,8 @@ export default function AgendaPage() {
           : undefined}
         clientes={clientes}
         empresas={empresas}
+        projetos={projetos}
+        usuarios={usuarios}
         onSuccess={(newAppointment) => {
           setAllAppointments((prev) => [newAppointment, ...prev]);
         }}
