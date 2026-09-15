@@ -7,6 +7,7 @@ import {
 } from "@phosphor-icons/react";
 import ConfirmDeleteModal from "@/components/ui/ConfirmDeleteModal";
 import { getTaskDetails, deleteTask, updateTask, uploadTaskAttachment, deleteTaskAttachment, type TaskWithDetails, type StatusTarefa, type Projeto } from "@/services/tasks";
+import { fetchSubtasks, createSubtask, updateSubtask, deleteSubtask, type Subtask } from "@/services/subtasks";
 import type { User } from "@/services/users";
 
 interface TaskDetailModalProps {
@@ -29,6 +30,9 @@ export default function TaskDetailModal({
   const [editedStatus, setEditedStatus] = useState("");
   const [editedAssigneeId, setEditedAssigneeId] = useState<string>("");
   const [editedProjetoId, setEditedProjetoId] = useState<string>("");
+  const [subtasks, setSubtasks] = useState<Subtask[]>([]);
+  const [newSubtaskTitle, setNewSubtaskTitle] = useState("");
+  const [subtaskSaving, setSubtaskSaving] = useState(false);
   
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -44,9 +48,20 @@ export default function TaskDetailModal({
       setError(null);
       setTask(null);
       try {
-        const data = await getTaskDetails(taskId);
+        const [data, loadedSubtasks] = await Promise.all([
+          getTaskDetails(taskId),
+          fetchSubtasks(taskId),
+        ]);
         if (!isMounted) return;
         setTask(data);
+        setSubtasks(loadedSubtasks.length > 0 ? loadedSubtasks : data.childrenTasks.map((child) => ({
+          id: child.id,
+          titulo: child.titulo,
+          status: child.status,
+          progresso: child.status === "CONCLUIDO" ? 100 : 0,
+          parentId: data.id,
+          assigneeId: null,
+        })));
         setEditedTitle(data.titulo);
         setEditedDesc(data.descricao || "");
         setEditedStatus(data.status);
@@ -149,6 +164,61 @@ export default function TaskDetailModal({
     window.open(`https://wa.me/55${cleanPhone}?text=${text}`, "_blank");
   };
 
+  const refreshTaskAfterSubtaskChange = async () => {
+    const [updatedTask, updatedSubtasks] = await Promise.all([
+      getTaskDetails(taskId),
+      fetchSubtasks(taskId),
+    ]);
+    setTask(updatedTask);
+    setSubtasks(updatedSubtasks);
+    onUpdate?.(updatedTask);
+  };
+
+  const handleCreateSubtask = async () => {
+    const titulo = newSubtaskTitle.trim();
+    if (!titulo) return;
+    setSubtaskSaving(true);
+    setError(null);
+    try {
+      await createSubtask(taskId, { titulo, assigneeId: task?.assigneeId ?? null });
+      setNewSubtaskTitle("");
+      await refreshTaskAfterSubtaskChange();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Erro ao criar subtarefa.");
+    } finally {
+      setSubtaskSaving(false);
+    }
+  };
+
+  const handleToggleSubtask = async (subtask: Subtask) => {
+    setSubtaskSaving(true);
+    setError(null);
+    try {
+      await updateSubtask(taskId, subtask.id, {
+        status: subtask.status === "CONCLUIDO" ? "BACKLOG" : "CONCLUIDO",
+        progresso: subtask.status === "CONCLUIDO" ? 0 : 100,
+      });
+      await refreshTaskAfterSubtaskChange();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Erro ao atualizar subtarefa.");
+    } finally {
+      setSubtaskSaving(false);
+    }
+  };
+
+  const handleDeleteSubtask = async (subtaskId: string) => {
+    setSubtaskSaving(true);
+    setError(null);
+    try {
+      await deleteSubtask(taskId, subtaskId);
+      await refreshTaskAfterSubtaskChange();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Erro ao excluir subtarefa.");
+    } finally {
+      setSubtaskSaving(false);
+    }
+  };
+
   if (!task && loading) return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-[2px]">
       <div className="bg-white rounded-2xl p-8 shadow-2xl"><CircleNotch size={32} className="animate-spin text-sky-600" /></div>
@@ -237,19 +307,52 @@ export default function TaskDetailModal({
               </section>
             )}
             
-            {task.childrenTasks.length > 0 && (
-              <section>
-                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Subtarefas ({task.childrenTasks.length})</h3>
-                <div className="rounded-xl border border-slate-200 bg-white p-3 space-y-1.5">
-                  {task.childrenTasks.map(child => (
-                    <div key={child.id} className="flex items-center gap-2 text-xs text-slate-600">
-                      {child.status === 'CONCLUIDO' ? <CheckCircle size={12} className="text-emerald-500" /> : <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />}
-                      <span>{child.titulo}</span>
-                    </div>
-                  ))}
+            <section>
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Atividades e subtarefas ({subtasks.length})</h3>
+              </div>
+              <div className="rounded-xl border border-slate-200 bg-white p-3 space-y-2.5">
+                <div className="flex gap-2">
+                  <input
+                    value={newSubtaskTitle}
+                    onChange={(e) => setNewSubtaskTitle(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") void handleCreateSubtask(); }}
+                    disabled={subtaskSaving}
+                    placeholder="Adicionar uma subtarefa..."
+                    className="min-w-0 flex-1 text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-brand-600"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => void handleCreateSubtask()}
+                    disabled={subtaskSaving || !newSubtaskTitle.trim()}
+                    className="px-3 py-2 rounded-lg bg-brand-600 text-white text-xs font-semibold hover:bg-brand-700 disabled:opacity-50 cursor-pointer"
+                  >Adicionar</button>
                 </div>
-              </section>
-            )}
+                {subtasks.length === 0 ? (
+                  <p className="text-xs text-slate-400 py-1">Nenhuma subtarefa adicionada.</p>
+                ) : subtasks.map((subtask) => (
+                  <div key={subtask.id} className="flex items-center gap-2 text-xs text-slate-600 group">
+                    <button
+                      type="button"
+                      onClick={() => void handleToggleSubtask(subtask)}
+                      disabled={subtaskSaving}
+                      aria-label={subtask.status === "CONCLUIDO" ? "Reabrir subtarefa" : "Concluir subtarefa"}
+                      className="shrink-0 cursor-pointer disabled:opacity-50"
+                    >
+                      {subtask.status === "CONCLUIDO" ? <CheckCircle size={16} weight="fill" className="text-emerald-500" /> : <span className="block w-4 h-4 rounded-full border-2 border-slate-300 hover:border-brand-500" />}
+                    </button>
+                    <span className={subtask.status === "CONCLUIDO" ? "line-through text-slate-400 flex-1" : "flex-1"}>{subtask.titulo}</span>
+                    <button
+                      type="button"
+                      onClick={() => void handleDeleteSubtask(subtask.id)}
+                      disabled={subtaskSaving}
+                      aria-label="Excluir subtarefa"
+                      className="p-1 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 cursor-pointer disabled:opacity-50"
+                    ><Trash size={12} /></button>
+                  </div>
+                ))}
+              </div>
+            </section>
 
             {/* Attachments */}
             <section>
