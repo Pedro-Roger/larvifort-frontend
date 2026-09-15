@@ -49,10 +49,10 @@ async function completeForm() {
   expect(screen.getByRole("button", { name: /Próximo/ })).toBeDisabled();
   fireEvent.click(screen.getByLabelText("Ana Silva"));
   fireEvent.click(screen.getByRole("button", { name: /Próximo/ }));
-  fireEvent.change(screen.getByLabelText("Nome da meta"), {
+  fireEvent.change(screen.getByLabelText("Nome da configuração"), {
     target: { value: "Vendas setembro" },
   });
-  fireEvent.change(screen.getByLabelText(/Valor da meta/), {
+  fireEvent.change(screen.getByLabelText(/Valor de referência/), {
     target: { value: "25000" },
   });
 }
@@ -65,8 +65,8 @@ it("valida etapas e só confirma depois de salvar na API", async () => {
       createdAt: new Date().toISOString(),
     }));
   await completeForm();
-  fireEvent.click(screen.getByRole("button", { name: "Criar meta" }));
-  await screen.findByText("Meta criada com sucesso.");
+  fireEvent.click(screen.getByRole("button", { name: "Salvar configuração" }));
+  await screen.findByText("Configuração salva com sucesso.");
   expect(createMetricGoal).toHaveBeenCalledWith(
     expect.objectContaining({
       name: "Vendas setembro",
@@ -81,11 +81,11 @@ it("mantém os campos e permite tentar novamente após falha", async () => {
     .mocked(createMetricGoal)
     .mockRejectedValue(new Error("Não foi possível salvar"));
   await completeForm();
-  fireEvent.click(screen.getByRole("button", { name: "Criar meta" }));
+  fireEvent.click(screen.getByRole("button", { name: "Salvar configuração" }));
   await screen.findByText("Não foi possível salvar");
-  expect(screen.getByLabelText("Nome da meta")).toHaveValue("Vendas setembro");
+  expect(screen.getByLabelText("Nome da configuração")).toHaveValue("Vendas setembro");
   expect(
-    screen.queryByText("Meta criada com sucesso."),
+    screen.queryByText("Configuração salva com sucesso."),
   ).not.toBeInTheDocument();
 });
 it("permite recuperar falha no carregamento", async () => {

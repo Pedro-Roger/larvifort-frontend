@@ -111,7 +111,7 @@ export default function MetricsPage() {
     try {
       const goal = await createMetricGoal({ ...form, name: form.name.trim() });
       setSavedId(goal.id);
-      setSuccess("Meta criada com sucesso.");
+      setSuccess("Configuração salva com sucesso.");
     } catch (error) {
       setSaveError(
         error instanceof Error
@@ -151,7 +151,7 @@ export default function MetricsPage() {
       ) : (
         <>
           <div className={styles.workspace}>
-            <section className={styles.wizard} aria-label="Criar meta">
+            <section className={styles.wizard} aria-label="Configuração de métricas">
               <div className={styles.topline}>
                 <button
                   onClick={() => (step > 1 ? setStep(step - 1) : reset())}
@@ -161,16 +161,16 @@ export default function MetricsPage() {
                 </button>
                 <span>Etapa {step} de 3</span>
               </div>
-              <h2>Vamos criar sua meta?</h2>
+              <h2>Configure sua análise</h2>
               <p className={styles.intro}>
-                Selecione o time, as pessoas e personalize sua meta para
+                Selecione o time, as pessoas e personalize a análise para
                 acompanhar os resultados.
               </p>
               <ol className={styles.steps} aria-label="Etapas de criação">
                 {[
                   "Selecione o Time",
                   "Selecione Pessoas",
-                  "Personalize a meta",
+                  "Personalize a análise",
                 ].map((label, index) => (
                   <li
                     key={label}
@@ -241,7 +241,7 @@ export default function MetricsPage() {
                           <strong>{team?.name ?? "Escolha um time"}</strong>
                           <p>
                             {team
-                              ? `${team.members.length} pessoas ativas para participar da meta e acompanhar os resultados.`
+                              ? `${team.members.length} pessoas ativas para participar da análise e acompanhar os resultados.`
                               : "Os times cadastrados aparecem acima. Selecione um para começar."}
                           </p>
                           {team && !team.members.length && (
@@ -257,7 +257,7 @@ export default function MetricsPage() {
                     <>
                       <h3>Selecione as Pessoas</h3>
                       <p className={styles.muted}>
-                        Quem vai participar da meta do time {team?.name}?
+                        Quem vai participar da análise do time {team?.name}?
                       </p>
                       <div className={styles.peopleTop}>
                         <span>{form.userIds.length} selecionadas</span>
@@ -318,14 +318,14 @@ export default function MetricsPage() {
                   )}
                   {step === 3 && (
                     <>
-                      <h3>Personalize a meta</h3>
+                      <h3>Personalize a análise</h3>
                       <p className={styles.muted}>
                         {team?.name} · {form.userIds.length} pessoas
                         selecionadas
                       </p>
                       <div className={styles.inputs}>
                         <label>
-                          Nome da meta
+                          Nome da configuração
                           <input
                             required
                             maxLength={120}
@@ -337,7 +337,7 @@ export default function MetricsPage() {
                           />
                         </label>
                         <label>
-                          Tipo de meta
+                          Tipo de métrica
                           <select
                             value={form.type}
                             onChange={(event) =>
@@ -355,7 +355,7 @@ export default function MetricsPage() {
                           </select>
                         </label>
                         <label>
-                          Valor da meta{" "}
+                          Valor de referência{" "}
                           {form.type === "SALES" ? "(R$)" : "(quantidade)"}
                           <input
                             required
@@ -451,8 +451,8 @@ export default function MetricsPage() {
                       {saving
                         ? "Salvando…"
                         : savedId
-                          ? "Meta salva"
-                          : "Criar meta"}
+                          ? "Configuração salva"
+                          : "Salvar configuração"}
                       <Check size={16} />
                     </button>
                   )}
