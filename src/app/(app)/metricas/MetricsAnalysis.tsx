@@ -20,13 +20,16 @@ import {
   Table,
   SquaresFour,
   ArrowClockwise,
+  Plus,
 } from "@phosphor-icons/react";
 import {
   fetchMetricAnalysis,
+  METRIC_PERIODS,
   METRIC_TYPES,
   type MetricAnalysis,
   type MetricGoalInput,
 } from "@/services/metrics";
+import { addDashboardWidget } from "@/services/dashboardWidgets";
 import styles from "./metrics.module.css";
 const COLORS = ["#0866ff", "#78b3ff", "#40c4aa", "#ff9035"];
 const number = (value: number) =>
@@ -35,10 +38,12 @@ export default function MetricsAnalysis({
   filter,
   enabled,
   target,
+  teamName = "Time",
 }: {
   filter: MetricGoalInput;
   enabled: boolean;
   target: number;
+  teamName?: string;
 }) {
   const [mode, setMode] = useState("charts");
   const [axis, setAxis] = useState<"value" | "quantity">("value");
@@ -49,6 +54,7 @@ export default function MetricsAnalysis({
     error: string;
   }>({ key: "", data: null, error: "" });
   const [retry, setRetry] = useState(0);
+  const [dashboardMessage, setDashboardMessage] = useState("");
   const { teamId, userIds, type, period, startDate, endDate } = filter;
   const memberKey = [...userIds].sort().join(",");
   const requestKey = JSON.stringify([
@@ -109,6 +115,8 @@ export default function MetricsAnalysis({
   const title =
     METRIC_TYPES.find((item) => item.id === type)?.label ?? "Resultados";
   const currency = type === "SALES" && axis === "value";
+  const selectedPeriodLabel =
+    METRIC_PERIODS.find((item) => item.id === period)?.label ?? period;
   const format = (value: number) =>
     currency
       ? value.toLocaleString("pt-BR", {
@@ -133,6 +141,27 @@ export default function MetricsAnalysis({
     data.series.every((item) => item.value === 0 && item.quantity === 0) &&
     data.summary.clients === 0 &&
     data.summary.visits === 0;
+
+  const addToDashboard = () => {
+    if (!data || !validFilter) return;
+    addDashboardWidget({
+      title: `${title} · ${teamName}`,
+      teamId,
+      teamName,
+      userIds,
+      type,
+      typeLabel: title,
+      period,
+      periodLabel: selectedPeriodLabel,
+      startDate,
+      endDate,
+      target,
+      mode: mode as "charts" | "table" | "cards",
+      axis,
+      group,
+    });
+    setDashboardMessage("Adicionado ao Dashboard.");
+  };
   return (
     <>
       <div className={styles.analysisHeader}>
@@ -171,6 +200,17 @@ export default function MetricsAnalysis({
             </select>
           </label>
         </div>
+      </div>
+      <div className={styles.dashboardActions}>
+        <button
+          type="button"
+          className={styles.primary}
+          disabled={!data || !validFilter || loading || Boolean(error)}
+          onClick={addToDashboard}
+        >
+          <Plus size={16} /> Adicionar ao Dashboard
+        </button>
+        {dashboardMessage && <span>{dashboardMessage}</span>}
       </div>
       <div className={styles.modes} aria-label="Modo de visualização">
         {[

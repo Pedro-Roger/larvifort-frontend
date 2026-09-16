@@ -432,6 +432,26 @@
   font-size: 12px;
 }
 
+
+.dashboardActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin: 14px 0;
+}
+
+.dashboardActions span {
+  color: #15803d;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.dashboardActions .primary {
+  min-height: 38px;
+  padding: 9px 13px;
+}
+
 .modes {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1199,7 +1219,27 @@
     width: calc(50% - 5px);
   }
 
-  .modes {
+  
+.dashboardActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin: 14px 0;
+}
+
+.dashboardActions span {
+  color: #15803d;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.dashboardActions .primary {
+  min-height: 38px;
+  padding: 9px 13px;
+}
+
+.modes {
     gap: 7px;
   }
 

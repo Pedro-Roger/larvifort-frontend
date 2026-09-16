@@ -467,6 +467,7 @@ export default function MetricsPage() {
                 filter={form}
                 enabled={Boolean(team)}
                 target={form.target}
+                teamName={team?.name}
               />
               <div className={styles.configuration}>
                 <section className={styles.configCard}>

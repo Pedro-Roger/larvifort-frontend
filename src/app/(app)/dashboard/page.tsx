@@ -3,31 +3,29 @@ import Link from "next/link";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  ArrowUpRight,
   CaretDown,
-  CheckCircle,
-  ClipboardText,
   Clock,
-  CurrencyDollar,
   Funnel,
-  Handshake,
   Kanban,
   List,
   Plus,
+  Trash,
   Target,
-  TrendUp,
-  Users,
   UsersThree,
   Warning,
 } from "@phosphor-icons/react";
 import {
   fetchDashboardStats,
   type DashboardStats,
-  type TeamMember,
-  type SalesPorPessoa,
 } from "@/services/dashboard";
 import { fetchTasks, type StatusTarefa, type Task } from "@/services/tasks";
 import { summarizeActivities } from "@/services/dashboardMetrics";
+import {
+  DASHBOARD_WIDGETS_EVENT,
+  loadDashboardWidgets,
+  removeDashboardWidget,
+  type DashboardMetricWidget,
+} from "@/services/dashboardWidgets";
 import { DropdownMenu } from "@/components/ui/DropdownMenu";
 
 const statusConfig: Record<
@@ -103,116 +101,82 @@ function ErrorState({ onRetry }: { onRetry: () => void }) {
   );
 }
 
-function SummaryCard({
-  icon: Icon,
-  label,
-  value,
-  helper,
-  tone,
+function PersonalizedWidgetCard({
+  widget,
+  onRemove,
 }: {
-  icon: typeof ClipboardText;
-  label: string;
-  value: number | string;
-  helper: string;
-  tone: string;
+  widget: DashboardMetricWidget;
+  onRemove: (id: string) => void;
 }) {
+  const modeLabel =
+    widget.mode === "charts"
+      ? "Gráficos"
+      : widget.mode === "table"
+        ? "Tabela"
+        : "Cards";
+  const axisLabel = widget.axis === "value" ? "Valor" : "Quantidade";
+  const groupLabel = widget.group === "period" ? "Período" : "Perfil";
   return (
     <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
-      <div className="flex items-start justify-between">
-        <div
-          className={`flex h-10 w-10 items-center justify-center rounded-full ${tone}`}
-        >
-          <Icon size={20} className="text-brand-600" />
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-xs font-bold uppercase tracking-[0.16em] text-brand-600">
+            {modeLabel}
+          </p>
+          <h3 className="mt-2 truncate text-base font-bold text-slate-950">
+            {widget.typeLabel}
+          </h3>
+          <p className="mt-1 text-sm text-slate-500">{widget.teamName}</p>
         </div>
-        <ArrowUpRight size={18} className="text-slate-300" />
+        <button
+          type="button"
+          onClick={() => onRemove(widget.id)}
+          className="rounded-lg p-2 text-slate-400 transition hover:bg-red-50 hover:text-red-600"
+          aria-label={`Remover ${widget.title}`}
+        >
+          <Trash size={17} />
+        </button>
       </div>
-      <p className="mt-5 text-3xl font-bold tracking-tight text-slate-900">
-        {value}
+      <div className="mt-5 grid grid-cols-2 gap-2 text-xs">
+        <span className="rounded-lg bg-slate-50 px-3 py-2 font-semibold text-slate-600">
+          {widget.periodLabel}
+        </span>
+        <span className="rounded-lg bg-slate-50 px-3 py-2 font-semibold text-slate-600">
+          {axisLabel}
+        </span>
+        <span className="rounded-lg bg-slate-50 px-3 py-2 font-semibold text-slate-600">
+          {groupLabel}
+        </span>
+        <span className="rounded-lg bg-slate-50 px-3 py-2 font-semibold text-slate-600">
+          {widget.userIds.length || "Todas"} pessoas
+        </span>
+      </div>
+      <p className="mt-4 text-xs text-slate-500">
+        {widget.startDate} até {widget.endDate}
       </p>
-      <p className="mt-1 text-sm font-semibold text-slate-700">{label}</p>
-      <p className="mt-1 text-xs text-slate-500">{helper}</p>
     </article>
   );
 }
 
-function TeamCard({
-  member,
-  tasks,
-  salesInfo,
-}: {
-  member: TeamMember;
-  tasks: Task[];
-  salesInfo?: SalesPorPessoa;
-}) {
-  const memberTasks = tasks.filter((task) => task.assigneeName === member.name);
-  const summary = summarizeActivities(memberTasks);
+function EmptyPersonalDashboard() {
   return (
-    <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-sky-50 text-sm font-bold text-sky-600">
-            {member.initials}
-          </div>
-          <div>
-            <h3 className="font-bold text-slate-900">{member.name}</h3>
-            <p className="mt-0.5 text-xs text-slate-500">
-              Responsável por atividades
-            </p>
-          </div>
-        </div>
-        <span className="rounded-full bg-sky-50 px-2.5 py-1 text-xs font-bold text-sky-700">
-          {summary.completionRate}%
-        </span>
+    <section className="mt-8 rounded-3xl border border-dashed border-slate-300 bg-white p-8 text-center shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
+      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-50 text-brand-600">
+        <Target size={24} />
       </div>
-      <div className="mt-5 h-2 overflow-hidden rounded-full bg-slate-100">
-        <div
-          className="h-full rounded-full bg-brand-600 transition-all"
-          style={{ width: `${summary.completionRate}%` }}
-        />
-      </div>
-      <div className="mt-5 grid grid-cols-3 divide-x divide-slate-100 border-b border-slate-100 pb-4">
-        <div className="pr-3">
-          <p className="text-2xl font-bold text-slate-900">{summary.total}</p>
-          <p className="text-xs text-slate-500">Atividades</p>
-        </div>
-        <div className="px-3">
-          <p className="text-2xl font-bold text-slate-900">
-            {summary.inProgress}
-          </p>
-          <p className="text-xs text-slate-500">Em andamento</p>
-        </div>
-        <div className="pl-3">
-          <p className="text-2xl font-bold text-slate-900">
-            {summary.completed}
-          </p>
-          <p className="text-xs text-slate-500">Concluídas</p>
-        </div>
-      </div>
-      {salesInfo && (
-        <div className="mt-4 flex items-center justify-between text-sm">
-          <div>
-            <p className="font-semibold text-slate-800">Vendas: {salesInfo.vendas}</p>
-            <p className="text-xs text-slate-500">Meta Individual</p>
-          </div>
-          <div className="text-right">
-            <p className="font-semibold text-slate-800">{salesInfo.metaVolume} vols</p>
-            <p className="text-xs text-slate-500">Volume</p>
-          </div>
-        </div>
-      )}
-      <div className="mt-4 flex items-center justify-between pt-4 text-xs">
-        <span className="text-slate-500">
-          {summary.pending} pendentes ou em revisão
-        </span>
-        <span className="font-semibold text-slate-700">
-          {memberTasks.reduce(
-            (total, task) => total + (task.estimativaH ?? 0),
-            0,
-          )}
-          h estimadas
-        </span>
-      </div>
-    </article>
+      <h2 className="mt-4 text-xl font-bold text-slate-950">
+        Seu Dashboard está limpo
+      </h2>
+      <p className="mx-auto mt-2 max-w-xl text-sm text-slate-500">
+        Vá em Métricas, escolha o indicador, período, visualização e adicione ao Dashboard.
+      </p>
+      <Link
+        href="/metricas"
+        className="mt-5 inline-flex items-center justify-center rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-brand-600/20 transition hover:bg-brand-700"
+      >
+        Configurar em Métricas
+      </Link>
+    </section>
   );
 }
 
@@ -262,6 +226,9 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [tryCount, setTryCount] = useState(0);
+  const [dashboardWidgets, setDashboardWidgets] = useState<DashboardMetricWidget[]>(() =>
+    loadDashboardWidgets(),
+  );
 
   // Filter state
   const [periodFilter, setPeriodFilter] = useState<"month" | "quarter" | "year" | "all">("month");
@@ -270,6 +237,20 @@ export default function DashboardPage() {
   const [teamSort, setTeamSort] = useState<"progress" | "activities" | "pending">("progress");
   const [showInactiveMembers, setShowInactiveMembers] = useState(false);
 
+
+  useEffect(() => {
+    const refresh = () => setDashboardWidgets(loadDashboardWidgets());
+    window.addEventListener(DASHBOARD_WIDGETS_EVENT, refresh);
+    window.addEventListener("storage", refresh);
+    return () => {
+      window.removeEventListener(DASHBOARD_WIDGETS_EVENT, refresh);
+      window.removeEventListener("storage", refresh);
+    };
+  }, []);
+
+  const removePersonalWidget = useCallback((id: string) => {
+    setDashboardWidgets(removeDashboardWidget(id));
+  }, []);
   const retry = useCallback(() => {
     setLoading(true);
     setError(false);
@@ -473,93 +454,53 @@ export default function DashboardPage() {
           </button>
         </div>
       </header>
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <SummaryCard
-          icon={ClipboardText}
-          label="Total de atividades"
-          value={summary.total}
-          helper="Atividades carregadas"
-          tone="bg-sky-50"
-        />
-        <SummaryCard
-          icon={Clock}
-          label="Em andamento"
-          value={summary.inProgress}
-          helper="Precisam de acompanhamento"
-          tone="bg-violet-50"
-        />
-        <SummaryCard
-          icon={CheckCircle}
-          label="Concluídas"
-          value={summary.completed}
-          helper={`${summary.completionRate}% de conclusão`}
-          tone="bg-emerald-50"
-        />
-        <SummaryCard
-          icon={TrendUp}
-          label="Pendentes"
-          value={summary.pending}
-          helper="Aguardando ação ou revisão"
-          tone="bg-amber-50"
-        />
-      </section>
+      {dashboardWidgets.length ? (
+        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {dashboardWidgets.map((widget) => (
+            <PersonalizedWidgetCard
+              key={widget.id}
+              widget={widget}
+              onRemove={removePersonalWidget}
+            />
+          ))}
+          <Link
+            href="/metricas"
+            className="flex min-h-[190px] items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white p-5 text-sm font-semibold text-brand-600 transition hover:border-brand-300 hover:bg-brand-50"
+          >
+            <Plus size={18} />
+            <span className="ml-2">Adicionar outro bloco</span>
+          </Link>
+        </section>
+      ) : (
+        <EmptyPersonalDashboard />
+      )}
 
-      <section className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <SummaryCard
-          icon={Users}
-          label="Clientes Atendidos"
-          value={stats?.salesGeral?.clientesAtivos || 0}
-          helper="Neste período"
-          tone="bg-blue-50"
-        />
-        <SummaryCard
-          icon={Handshake}
-          label="Visitas Realizadas"
-          value={stats?.salesGeral?.visitas || 0}
-          helper="Total de visitas"
-          tone="bg-indigo-50"
-        />
-        <SummaryCard
-          icon={CurrencyDollar}
-          label="Vendas (Mês)"
-          value={stats?.salesGeral?.vendasMes || 0}
-          helper={`Meta de time: ${stats?.salesGeral?.metaVolume || 0}`}
-          tone="bg-green-50"
-        />
-        <SummaryCard
-          icon={Target}
-          label="Clientes Retornando"
-          value={stats?.salesGeral?.clientesRetornando || 0}
-          helper="Retenção no período"
-          tone="bg-pink-50"
-        />
-      </section>
-
+      {dashboardWidgets.length > 0 && (
       <section className="mt-8">
-        <div className="rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] shadow-lg text-slate-100 overflow-hidden">
-          <div className="grid grid-cols-2 gap-3 border-b border-[#2a2a2a] p-4 sm:grid-cols-4 sm:p-5">
+        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-900 shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
+          <div className="grid grid-cols-2 gap-3 border-b border-slate-100 p-4 sm:grid-cols-4 sm:p-5">
             {[
               { label: "Equipe", value: teamMembers.length, detail: "membros" },
               { label: "Atividades", value: summary.total, detail: "atribuídas" },
               { label: "Concluídas", value: summary.completed, detail: `${summary.completionRate}% do total` },
               { label: "Pendentes / revisão", value: summary.pending, detail: "requerem atenção" },
             ].map((metric) => (
-              <article key={metric.label} className="rounded-xl border border-[#3a3a3a] bg-[#222] px-3 py-3 sm:px-4">
-                <p className="text-xs text-slate-400">{metric.label}</p>
-                <p className="mt-1 text-2xl font-semibold tracking-tight text-white">{metric.value}</p>
-                <p className="text-xs text-slate-400">{metric.detail}</p>
+              <article key={metric.label} className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 sm:px-4">
+                <p className="text-xs text-slate-500">{metric.label}</p>
+                <p className="mt-1 text-2xl font-semibold tracking-tight text-slate-900">{metric.value}</p>
+                <p className="text-xs text-slate-500">{metric.detail}</p>
               </article>
             ))}
           </div>
-          <div className="p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#2a2a2a] gap-4">
+          <div className="flex flex-col justify-between gap-4 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:p-6">
             <div>
-              <h2 className="text-xl font-bold text-white tracking-tight">Desempenho por responsável</h2>
-              <p className="text-sm text-slate-400 mt-1">Carga de trabalho e progresso da equipe</p>
+              <h2 className="text-xl font-bold tracking-tight text-slate-900">Desempenho por responsável</h2>
+              <p className="mt-1 text-sm text-slate-500">Carga de trabalho e progresso da equipe</p>
             </div>
             <DropdownMenu
               align="right"
               width="sm"
-              trigger={<button type="button" className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[#3a3a3a] hover:bg-[#2a2a2a] text-sm text-slate-200 transition-colors">
+              trigger={<button type="button" className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-600 transition-colors hover:bg-slate-50">
                 {teamSort === "progress" ? "Maior progresso" : teamSort === "activities" ? "Mais atividades" : "Mais pendentes"}<CaretDown size={14} />
               </button>}
               items={[
@@ -573,7 +514,7 @@ export default function DashboardPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse min-w-[800px]">
               <thead>
-                <tr className="border-b border-[#2a2a2a] text-sm text-slate-400">
+                <tr className="border-b border-slate-100 text-sm text-slate-500">
                   <th className="px-6 py-4 font-medium">Responsável</th>
                   <th className="px-6 py-4 font-medium">Progresso</th>
                   <th className="px-6 py-4 font-medium text-center">Atividades</th>
@@ -582,31 +523,31 @@ export default function DashboardPage() {
                   <th className="px-6 py-4 font-medium text-center">Concluídas</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#2a2a2a]">
+              <tbody className="divide-y divide-slate-100">
                 {displayedMemberRows.map(({ member, summary: sum }) => {
                    return (
-                      <tr key={member.name} className="hover:bg-[#222] transition-colors">
+                      <tr key={member.name} className="transition-colors hover:bg-slate-50">
                         <td className="px-6 py-5">
                           <div className="flex items-center gap-4">
-                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#1e2532] font-bold text-slate-300 border border-[#2a364a]">
+                            <div className="flex h-12 w-12 items-center justify-center rounded-full border border-sky-100 bg-sky-50 font-bold text-sky-600">
                               {member.initials}
                             </div>
-                            <span className="font-bold text-white text-base">{member.name}</span>
+                            <span className="text-base font-bold text-slate-900">{member.name}</span>
                           </div>
                         </td>
                         <td className="px-6 py-5 w-1/4">
                           <div className="flex items-center justify-between text-xs mb-2">
-                            <span className="text-slate-400">Progresso</span>
-                            <span className="font-bold text-white">{sum.completionRate}%</span>
+                            <span className="text-slate-500">Progresso</span>
+                            <span className="font-bold text-slate-700">{sum.completionRate}%</span>
                           </div>
-                          <div className="h-2.5 w-full rounded-full bg-[#2a2a2a]">
-                            <div className="h-full rounded-full bg-blue-600" style={{ width: `${sum.completionRate}%` }} />
+                          <div className="h-2.5 w-full rounded-full bg-slate-100">
+                            <div className="h-full rounded-full bg-brand-600" style={{ width: `${sum.completionRate}%` }} />
                           </div>
                         </td>
-                        <td className="px-6 py-5 text-center text-xl font-bold text-white">{sum.total}</td>
-                        <td className="px-6 py-5 text-center text-xl font-bold text-white">{sum.inProgress}</td>
-                        <td className="px-6 py-5 text-center text-xl font-bold text-white">{sum.pending}</td>
-                        <td className="px-6 py-5 text-center text-xl font-bold text-white">{sum.completed}</td>
+                        <td className="px-6 py-5 text-center text-xl font-bold text-slate-900">{sum.total}</td>
+                        <td className="px-6 py-5 text-center text-xl font-bold text-slate-900">{sum.inProgress}</td>
+                        <td className="px-6 py-5 text-center text-xl font-bold text-slate-900">{sum.pending}</td>
+                        <td className="px-6 py-5 text-center text-xl font-bold text-slate-900">{sum.completed}</td>
                       </tr>
                    );
                 })}
@@ -614,14 +555,16 @@ export default function DashboardPage() {
             </table>
           </div>
 
-          {!showInactiveMembers && memberRows.length > activeMemberRows.length && <button type="button" onClick={() => setShowInactiveMembers(true)} className="w-full p-5 border-t border-[#2a2a2a] text-left text-sm font-semibold text-slate-300 hover:text-white hover:bg-[#222] transition-colors">
+          {!showInactiveMembers && memberRows.length > activeMemberRows.length && <button type="button" onClick={() => setShowInactiveMembers(true)} className="w-full border-t border-slate-100 p-5 text-left text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900">
             Mostrar {memberRows.length - activeMemberRows.length} {memberRows.length - activeMemberRows.length === 1 ? "membro" : "membros"} sem atividades
           </button>}
-          {showInactiveMembers && activeMemberRows.length < memberRows.length && <button type="button" onClick={() => setShowInactiveMembers(false)} className="w-full p-5 border-t border-[#2a2a2a] text-left text-sm font-semibold text-slate-300 hover:text-white hover:bg-[#222] transition-colors">
+          {showInactiveMembers && activeMemberRows.length < memberRows.length && <button type="button" onClick={() => setShowInactiveMembers(false)} className="w-full border-t border-slate-100 p-5 text-left text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900">
             Ocultar membros sem atividades
           </button>}
         </div>
       </section>
+      )}
+      {dashboardWidgets.length > 0 && (
       <section className="mt-8 grid gap-5 xl:grid-cols-[1.35fr_0.65fr]">
         <div className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
           <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
@@ -684,6 +627,7 @@ export default function DashboardPage() {
           </div>
         </div>
       </section>
+      )}
     </div>
   );
 }
