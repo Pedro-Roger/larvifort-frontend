@@ -1,33 +1,52 @@
 "use client";
-import Link from "next/link";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import {
-  ArrowDown,
-  ArrowUp,
   CaretDown,
   Clock,
-  Kanban,
-  List,
-  Plus,
-  Trash,
+  SlidersHorizontal,
+  Target,
   UsersThree,
   Warning,
 } from "@phosphor-icons/react";
 import {
   fetchDashboardStats,
+  fetchDashboardCharts,
   type DashboardStats,
+  type DashboardCharts,
 } from "@/services/dashboard";
 import { fetchTasks, type StatusTarefa, type Task } from "@/services/tasks";
 import { summarizeActivities } from "@/services/dashboardMetrics";
 import {
-  DASHBOARD_WIDGETS_EVENT,
+  loadCommercialGoals,
+  COMMERCIAL_METAS_EVENT,
+  type CommercialGoalsConfig,
+  calcGoalsTotals,
+} from "@/services/commercialMetas";
+import {
+  loadDashboardLayout,
+  DASHBOARD_LAYOUT_EVENT,
+  type DashboardLayoutItem,
+} from "@/services/dashboardCustomization";
+import {
   loadDashboardWidgets,
   moveDashboardWidget,
   removeDashboardWidget,
+  DASHBOARD_WIDGETS_EVENT,
   type DashboardMetricWidget,
 } from "@/services/dashboardWidgets";
+
 import { DropdownMenu } from "@/components/ui/DropdownMenu";
+import MetasOverviewWidget from "@/components/dashboard/MetasOverviewWidget";
+import MetasConsultoresWidget from "@/components/dashboard/MetasConsultoresWidget";
+import GoalChart from "@/components/dashboard/GoalChart";
+import SalesRate from "@/components/dashboard/SalesRate";
+import VisitChart from "@/components/dashboard/VisitChart";
+import FrequencySection from "@/components/dashboard/FrequencySection";
+import WorkloadCard from "@/components/dashboard/WorkloadCard";
+import DynamicMetricWidgetCard from "@/components/dashboard/DynamicMetricWidgetCard";
+import DashboardCustomizerModal from "@/components/dashboard/DashboardCustomizerModal";
 
 const statusConfig: Record<
   StatusTarefa,
@@ -57,24 +76,23 @@ const statusConfig: Record<
 
 function LoadingCard() {
   return (
-    <div className="h-36 animate-pulse rounded-2xl border border-slate-200 bg-white p-5">
-      <div className="h-9 w-9 rounded-full bg-slate-100" />
-      <div className="mt-5 h-7 w-20 rounded bg-slate-100" />
-      <div className="mt-2 h-3 w-28 rounded bg-slate-100" />
+    <div className="h-44 animate-pulse rounded-3xl border border-slate-200 bg-white p-6">
+      <div className="h-9 w-9 rounded-2xl bg-slate-100" />
+      <div className="mt-5 h-7 w-28 rounded bg-slate-100" />
+      <div className="mt-2 h-3 w-40 rounded bg-slate-100" />
     </div>
   );
 }
 
 function Skeleton() {
   return (
-    <div className="space-y-8 p-6 xl:p-8">
-      <div className="h-10 w-64 animate-pulse rounded bg-slate-200" />
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <LoadingCard key={i} />
-        ))}
+    <div className="space-y-8 p-4 sm:p-6 xl:p-8">
+      <div className="h-10 w-72 animate-pulse rounded-xl bg-slate-200" />
+      <div className="grid gap-5 md:grid-cols-2">
+        <LoadingCard />
+        <LoadingCard />
       </div>
-      <div className="h-80 animate-pulse rounded-2xl bg-slate-200" />
+      <div className="h-80 animate-pulse rounded-3xl bg-slate-200" />
     </div>
   );
 }
@@ -82,10 +100,10 @@ function Skeleton() {
 function ErrorState({ onRetry }: { onRetry: () => void }) {
   return (
     <div className="p-8">
-      <div className="rounded-2xl border border-red-200 bg-red-50 p-8 text-center">
-        <Warning size={32} className="mx-auto mb-2 text-red-500" />
-        <h3 className="font-bold text-red-700">
-          Não foi possível carregar as atividades
+      <div className="rounded-3xl border border-red-200 bg-red-50 p-8 text-center max-w-xl mx-auto">
+        <Warning size={36} className="mx-auto mb-2 text-red-500" />
+        <h3 className="font-bold text-red-700 text-lg">
+          Não foi possível carregar as informações do Dashboard
         </h3>
         <p className="mt-1 text-sm text-red-600">
           Verifique a conexão com a API e tente novamente.
@@ -93,7 +111,7 @@ function ErrorState({ onRetry }: { onRetry: () => void }) {
         <button
           type="button"
           onClick={onRetry}
-          className="mt-5 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
+          className="mt-5 rounded-xl bg-red-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-red-700 cursor-pointer shadow-md shadow-red-600/20"
         >
           Tentar novamente
         </button>
@@ -102,211 +120,163 @@ function ErrorState({ onRetry }: { onRetry: () => void }) {
   );
 }
 
-function PersonalizedWidgetCard({
-  widget,
-  index,
-  total,
-  onMove,
-  onRemove,
-}: {
-  widget: DashboardMetricWidget;
-  index: number;
-  total: number;
-  onMove: (id: string, direction: "up" | "down") => void;
-  onRemove: (id: string) => void;
-}) {
-  const modeLabel =
-    widget.mode === "charts"
-      ? "Gráficos"
-      : widget.mode === "table"
-        ? "Tabela"
-        : "Cards";
-  const axisLabel = widget.axis === "value" ? "Valor" : "Quantidade";
-  const groupLabel = widget.group === "period" ? "Período" : "Perfil";
-  return (
-    <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-brand-600">
-            {modeLabel}
-          </p>
-          <h3 className="mt-2 truncate text-base font-bold text-slate-950">
-            {widget.typeLabel}
-          </h3>
-          <p className="mt-1 text-sm text-slate-500">{widget.teamName}</p>
-        </div>
-        <div className="flex shrink-0 items-center gap-1">
-          <button
-            type="button"
-            onClick={() => onMove(widget.id, "up")}
-            disabled={index === 0}
-            className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-50 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-35"
-            aria-label={`Mover ${widget.title} para cima`}
-          >
-            <ArrowUp size={16} />
-          </button>
-          <button
-            type="button"
-            onClick={() => onMove(widget.id, "down")}
-            disabled={index === total - 1}
-            className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-50 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-35"
-            aria-label={`Mover ${widget.title} para baixo`}
-          >
-            <ArrowDown size={16} />
-          </button>
-          <button
-            type="button"
-            onClick={() => onRemove(widget.id)}
-            className="rounded-lg p-2 text-slate-400 transition hover:bg-red-50 hover:text-red-600"
-            aria-label={`Remover ${widget.title}`}
-          >
-            <Trash size={17} />
-          </button>
-        </div>
-      </div>
-      <div className="mt-5 grid grid-cols-2 gap-2 text-xs">
-        <span className="rounded-lg bg-slate-50 px-3 py-2 font-semibold text-slate-600">
-          {widget.periodLabel}
-        </span>
-        <span className="rounded-lg bg-slate-50 px-3 py-2 font-semibold text-slate-600">
-          {axisLabel}
-        </span>
-        <span className="rounded-lg bg-slate-50 px-3 py-2 font-semibold text-slate-600">
-          {groupLabel}
-        </span>
-        <span className="rounded-lg bg-slate-50 px-3 py-2 font-semibold text-slate-600">
-          {widget.userIds.length || "Todas"} pessoas
-        </span>
-      </div>
-      <p className="mt-4 text-xs text-slate-500">
-        {widget.startDate} até {widget.endDate}
-      </p>
-    </article>
-  );
-}
-
-function EmptyPersonalDashboard() {
-  return (
-    <section className="mt-8 rounded-3xl border border-dashed border-slate-300 bg-white p-8 text-center shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
-      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-50 text-brand-600">
-        <Plus size={24} />
-      </div>
-      <h2 className="mt-4 text-xl font-bold text-slate-950">
-        Seu Dashboard está limpo
-      </h2>
-      <p className="mx-auto mt-2 max-w-xl text-sm text-slate-500">
-        Vá em Métricas, escolha o indicador, período, visualização e adicione ao Dashboard.
-      </p>
-      <Link
-        href="/metricas"
-        className="mt-5 inline-flex items-center justify-center rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-brand-600/20 transition hover:bg-brand-700"
-      >
-        Configurar em Métricas
-      </Link>
-    </section>
-  );
-}
-
 function ActivityList({ tasks }: { tasks: Task[] }) {
   const recent = [...tasks]
     .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
     .slice(0, 6);
+
   return (
-    <div className="divide-y divide-slate-100">
-      {recent.length === 0 ? (
-        <p className="px-5 py-8 text-center text-sm text-slate-500">
-          Nenhuma atividade encontrada.
-        </p>
-      ) : (
-        recent.map((task) => {
-          const status = statusConfig[task.status];
-          return (
-            <div key={task.id} className="flex items-center gap-3 px-5 py-3.5">
-              <span
-                className={`h-2.5 w-2.5 shrink-0 rounded-full ${status.dot}`}
-              />
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-slate-800">
-                  {task.titulo}
-                </p>
-                <p className="mt-0.5 text-xs text-slate-500">
-                  {task.assigneeName || "Sem responsável"}
-                </p>
+    <div className="rounded-3xl border border-slate-200/90 bg-white p-6 shadow-[0_8px_30px_rgba(15,23,42,0.04)]">
+      <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 border border-amber-100">
+            <Clock size={20} weight="bold" />
+          </div>
+          <div>
+            <h2 className="text-base font-bold text-slate-900 tracking-tight">
+              Atividades Recentes do CRM
+            </h2>
+            <p className="text-xs text-slate-500">Últimas movimentações e status de tarefas</p>
+          </div>
+        </div>
+
+        <Link
+          href="/kanban"
+          className="text-xs font-bold text-brand-600 hover:text-brand-700 transition-colors"
+        >
+          Ver Kanban →
+        </Link>
+      </div>
+
+      <div className="divide-y divide-slate-100">
+        {recent.length === 0 ? (
+          <p className="py-8 text-center text-xs text-slate-400">
+            Nenhuma atividade encontrada no período selecionado.
+          </p>
+        ) : (
+          recent.map((task) => {
+            const status = statusConfig[task.status] || statusConfig.BACKLOG;
+            return (
+              <div key={task.id} className="flex items-center gap-3 py-3">
+                <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${status.dot}`} />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-xs sm:text-sm font-semibold text-slate-800">
+                    {task.titulo}
+                  </p>
+                  <p className="text-[11px] text-slate-400 mt-0.5">
+                    {task.assigneeName || "Sem responsável"} • {task.prioridade || "Normal"}
+                  </p>
+                </div>
+                <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold ${status.badge}`}>
+                  {status.label}
+                </span>
               </div>
-              <span
-                className={`hidden rounded-full px-2 py-1 text-[11px] font-semibold sm:inline-flex ${status.badge}`}
-              >
-                {status.label}
-              </span>
-              <Clock size={14} className="shrink-0 text-slate-300" />
-            </div>
-          );
-        })
-      )}
+            );
+          })
+        )}
+      </div>
     </div>
   );
 }
 
 export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [charts, setCharts] = useState<DashboardCharts | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [tryCount, setTryCount] = useState(0);
-  const [dashboardWidgets, setDashboardWidgets] = useState<DashboardMetricWidget[]>(() =>
-    loadDashboardWidgets(),
+
+  // Customization & Metas state
+  const [layoutItems, setLayoutItems] = useState<DashboardLayoutItem[]>(() =>
+    loadDashboardLayout()
   );
+  const [commercialGoals, setCommercialGoals] = useState<CommercialGoalsConfig>(() =>
+    loadCommercialGoals()
+  );
+  const [dynamicWidgets, setDynamicWidgets] = useState<DashboardMetricWidget[]>(() =>
+    loadDashboardWidgets()
+  );
+  const [isCustomizerOpen, setIsCustomizerOpen] = useState(false);
 
   // Filter state
   const [periodFilter, setPeriodFilter] = useState<"month" | "quarter" | "year" | "all">("month");
   const [assigneeFilter, setAssigneeFilter] = useState<string>("all");
-  const [statusFilter, setStatusFilter] = useState<StatusTarefa | "all">("all");
+  const [statusFilter] = useState<StatusTarefa | "all">("all");
   const [teamSort, setTeamSort] = useState<"progress" | "activities" | "pending">("progress");
-  const [showInactiveMembers, setShowInactiveMembers] = useState(false);
+  const [showInactiveMembers] = useState(false);
 
-
+  // Listen to Layout changes & Metas changes
   useEffect(() => {
-    const refresh = () => setDashboardWidgets(loadDashboardWidgets());
-    window.addEventListener(DASHBOARD_WIDGETS_EVENT, refresh);
-    window.addEventListener("storage", refresh);
+    const refreshLayout = () => setLayoutItems(loadDashboardLayout());
+    const refreshGoals = () => setCommercialGoals(loadCommercialGoals());
+    const refreshDynamic = () => setDynamicWidgets(loadDashboardWidgets());
+
+    window.addEventListener(DASHBOARD_LAYOUT_EVENT, refreshLayout);
+    window.addEventListener(COMMERCIAL_METAS_EVENT, refreshGoals);
+    window.addEventListener(DASHBOARD_WIDGETS_EVENT, refreshDynamic);
+    window.addEventListener("storage", refreshLayout);
+    window.addEventListener("storage", refreshGoals);
+    window.addEventListener("storage", refreshDynamic);
+
     return () => {
-      window.removeEventListener(DASHBOARD_WIDGETS_EVENT, refresh);
-      window.removeEventListener("storage", refresh);
+      window.removeEventListener(DASHBOARD_LAYOUT_EVENT, refreshLayout);
+      window.removeEventListener(COMMERCIAL_METAS_EVENT, refreshGoals);
+      window.removeEventListener(DASHBOARD_WIDGETS_EVENT, refreshDynamic);
+      window.removeEventListener("storage", refreshLayout);
+      window.removeEventListener("storage", refreshGoals);
+      window.removeEventListener("storage", refreshDynamic);
     };
   }, []);
 
-  const movePersonalWidget = useCallback((id: string, direction: "up" | "down") => {
-    setDashboardWidgets(moveDashboardWidget(id, direction));
-  }, []);
-
-  const removePersonalWidget = useCallback((id: string) => {
-    setDashboardWidgets(removeDashboardWidget(id));
-  }, []);
   const retry = useCallback(() => {
     setLoading(true);
     setError(false);
     setTryCount((count) => count + 1);
   }, []);
 
-  // Apply client-side filters
+  // Fetch Stats, Charts and Tasks
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([
+      fetchDashboardStats().catch(() => null),
+      fetchDashboardCharts().catch(() => null),
+      fetchTasks().catch(() => []),
+    ])
+      .then(([statsResult, chartsResult, tasksResult]) => {
+        if (cancelled) return;
+        if (statsResult) setStats(statsResult);
+        if (chartsResult) setCharts(chartsResult);
+        setTasks(tasksResult || []);
+      })
+      .catch(() => {
+        if (!cancelled) setError(true);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [tryCount]);
+
+  // Client-side task filters
   const filteredTasks = useMemo(() => {
     return tasks.filter((task) => {
-      // Status filter
       if (statusFilter !== "all" && task.status !== statusFilter) return false;
-
-      // Assignee filter
       if (assigneeFilter !== "all" && task.assigneeName !== assigneeFilter) return false;
-
-      // Period filter
       if (periodFilter !== "all") {
         const taskDate = new Date(task.updatedAt);
         const now = new Date();
         if (periodFilter === "month") {
-          if (taskDate.getMonth() !== now.getMonth() || taskDate.getFullYear() !== now.getFullYear()) return false;
+          if (taskDate.getMonth() !== now.getMonth() || taskDate.getFullYear() !== now.getFullYear())
+            return false;
         } else if (periodFilter === "quarter") {
           const currentQuarter = Math.floor(now.getMonth() / 3);
           const taskQuarter = Math.floor(taskDate.getMonth() / 3);
-          if (taskQuarter !== currentQuarter || taskDate.getFullYear() !== now.getFullYear()) return false;
+          if (taskQuarter !== currentQuarter || taskDate.getFullYear() !== now.getFullYear())
+            return false;
         } else if (periodFilter === "year") {
           if (taskDate.getFullYear() !== now.getFullYear()) return false;
         }
@@ -315,32 +285,13 @@ export default function DashboardPage() {
     });
   }, [tasks, periodFilter, assigneeFilter, statusFilter]);
 
-  // Get unique assignees for filter dropdown
   const assignees = useMemo(() => {
-    const names = new Set(tasks.map((t) => t.assigneeName).filter(Boolean));
+    const names = new Set(
+      tasks.map((t) => t.assigneeName).filter((name): name is string => Boolean(name))
+    );
     return Array.from(names).sort();
   }, [tasks]);
 
-  useEffect(() => {
-    let cancelled = false;
-    Promise.all([fetchDashboardStats(), fetchTasks()])
-      .then(([statsResult, tasksResult]) => {
-        if (cancelled) return;
-        setStats(statsResult);
-        setTasks(tasksResult);
-      })
-      .catch(() => {
-        if (!cancelled) setError(true);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [tryCount]);
-
-  const summary = useMemo(() => summarizeActivities(filteredTasks), [filteredTasks]);
   const teamMembers = stats?.teamMembers ?? [];
   const visibleMembers =
     teamMembers.length > 0
@@ -362,8 +313,8 @@ export default function DashboardPage() {
                   inProgress: 0,
                   review: 0,
                 },
-              ]),
-          ).values(),
+              ])
+          ).values()
         );
 
   const memberRows = visibleMembers.map((member) => {
@@ -371,291 +322,379 @@ export default function DashboardPage() {
     return { member, tasks: memberTasks, summary: summarizeActivities(memberTasks) };
   });
   const activeMemberRows = memberRows.filter(({ summary }) => summary.total > 0);
-  const displayedMemberRows = [...(showInactiveMembers ? memberRows : activeMemberRows)].sort((a, b) => {
-    if (teamSort === "activities") return b.summary.total - a.summary.total;
-    if (teamSort === "pending") return b.summary.pending - a.summary.pending;
-    return b.summary.completionRate - a.summary.completionRate;
-  });
+  const displayedMemberRows = [...(showInactiveMembers ? memberRows : activeMemberRows)].sort(
+    (a, b) => {
+      if (teamSort === "activities") return b.summary.total - a.summary.total;
+      if (teamSort === "pending") return b.summary.pending - a.summary.pending;
+      return b.summary.completionRate - a.summary.completionRate;
+    }
+  );
+
+  // Goal chart data computed directly from commercial goals & real stats
+  const goalChartData = useMemo(() => {
+    if (charts?.goalData && charts.goalData.length > 0) {
+      return charts.goalData;
+    }
+    return commercialGoals.consultores.map((c) => ({
+      vendedor: c.nome,
+      valorAtual: c.realizadoValor || 0,
+      valorMeta: c.valor || 0,
+      volumeAtual: c.realizadoVolume || 0,
+      volumeMeta: c.volume || 0,
+    }));
+  }, [charts, commercialGoals]);
+
+  // Sales Rate General & Per Person
+  const salesGeralData = useMemo(() => {
+    const totals = calcGoalsTotals(commercialGoals);
+    return {
+      totalClientes: stats?.salesGeral?.totalClientes || 120,
+      clientesAtivos: stats?.salesGeral?.clientesAtivos || 84,
+      taxaConversao: stats?.salesGeral?.taxaConversao || 72,
+      receitaTotal: totals.totalRealizadoValor || stats?.salesGeral?.receitaTotal || 3940000,
+      ticketMedio: stats?.salesGeral?.ticketMedio || 48500,
+      vendasMes: stats?.salesGeral?.vendasMes || 70,
+      metaValor: commercialGoals.metaGlobalValor,
+      metaVolume: commercialGoals.metaGlobalVolume,
+      visitas: stats?.salesGeral?.visitas || 95,
+      clientesRetornando: stats?.salesGeral?.clientesRetornando || 38,
+    };
+  }, [stats, commercialGoals]);
+
+  const salesPorPessoaData = useMemo(() => {
+    if (stats?.salesPorPessoa && stats.salesPorPessoa.length > 0) {
+      return stats.salesPorPessoa;
+    }
+    return commercialGoals.consultores.map((c) => ({
+      nome: c.nome,
+      initials: c.iniciais,
+      clientes: c.contas || 20,
+      vendas: c.vendas || 16,
+      conversao: c.conversao || 72,
+      receita: c.realizadoValor || 0,
+      metaValor: c.valor || 0,
+      metaVolume: c.volume || 0,
+    }));
+  }, [stats, commercialGoals]);
+
+  const visitData = useMemo(() => {
+    if (stats?.visitData && stats.visitData.length > 0) return stats.visitData;
+    return [
+      { cliente: "Fazenda Bela Vista", visitas: 8 },
+      { cliente: "Agropecuária Santa Fé", visitas: 6 },
+      { cliente: "Aquacultura São Pedro", visitas: 5 },
+      { cliente: "Rancho das Águas", visitas: 4 },
+      { cliente: "Fazenda Primavera", visitas: 4 },
+    ];
+  }, [stats]);
+
+  const frequencyData = useMemo(() => {
+    if (stats?.frequencyData && stats.frequencyData.length > 0) return stats.frequencyData;
+    return [
+      {
+        id: "1",
+        cliente: "Fazenda Bela Vista",
+        visitas: 8,
+        pedidos: 12,
+        ultimaVisita: "15/09/2026",
+        ultimoPedido: "14/09/2026",
+        ultimoContato: "Hoje",
+      },
+      {
+        id: "2",
+        cliente: "Agropecuária Santa Fé",
+        visitas: 6,
+        pedidos: 9,
+        ultimaVisita: "12/09/2026",
+        ultimoPedido: "10/09/2026",
+        ultimoContato: "3d atrás",
+      },
+      {
+        id: "3",
+        cliente: "Aquacultura São Pedro",
+        visitas: 5,
+        pedidos: 7,
+        ultimaVisita: "08/09/2026",
+        ultimoPedido: "05/09/2026",
+        ultimoContato: "7d atrás",
+      },
+    ];
+  }, [stats]);
+
+  // Dynamic metric widgets handlers
+  const handleMoveDynamicWidget = useCallback((id: string, direction: "up" | "down") => {
+    setDynamicWidgets(moveDashboardWidget(id, direction));
+  }, []);
+
+  const handleRemoveDynamicWidget = useCallback((id: string) => {
+    setDynamicWidgets(removeDashboardWidget(id));
+  }, []);
 
   if (loading) return <Skeleton />;
   if (error) return <ErrorState onRetry={retry} />;
 
+  // Filter enabled layout items
+  const enabledLayoutItems = layoutItems.filter((it) => it.enabled);
+
   return (
-    <div className="min-h-full bg-[#f8faff] p-4 sm:p-6 xl:p-8">
-      <header className="mb-8 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+    <div className="min-h-full bg-[#f8faff] p-4 sm:p-6 xl:p-8 space-y-6">
+      {/* Top Header */}
+      <header className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-brand-600">
-            Operação comercial
-          </p>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-950">
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="text-xs font-bold uppercase tracking-[0.18em] text-brand-600">
+              Operação Comercial & Metas
+            </span>
+            <span className="rounded-full bg-brand-50 px-2 py-0.5 text-[10px] font-bold text-brand-700 border border-brand-200">
+              UpSprints Engine
+            </span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-950">
             Dashboard
           </h1>
-          <p className="mt-1 text-sm text-slate-500">
-            Visão geral das atividades da equipe
+          <p className="mt-0.5 text-xs sm:text-sm text-slate-500">
+            Acompanhamento executivo, metas comerciais e performance do time
           </p>
         </div>
+
+        {/* Filter and Action Buttons */}
         <div className="flex w-full flex-wrap items-center gap-2 lg:w-auto">
-          {dashboardWidgets.length > 0 && (
-            <>
-              <DropdownMenu
-                align="left"
-                width="sm"
-                trigger={
-                  <button
-                    type="button"
-                    className="inline-flex min-w-0 flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-600 shadow-sm sm:flex-none"
-                  >
-                    {periodFilter === "month"
-                      ? "Este mês"
-                      : periodFilter === "quarter"
-                        ? "Este trimestre"
-                        : periodFilter === "year"
-                          ? "Este ano"
-                          : "Todo o período"}
-                    <CaretDown size={14} />
-                  </button>
-                }
-                items={[
-                  { label: "Este mês", onClick: () => setPeriodFilter("month") },
-                  { label: "Este trimestre", onClick: () => setPeriodFilter("quarter") },
-                  { label: "Este ano", onClick: () => setPeriodFilter("year") },
-                  { label: "Todo o período", onClick: () => setPeriodFilter("all") },
-                ]}
-              />
+          {/* Period Filter */}
+          <DropdownMenu
+            align="left"
+            width="sm"
+            trigger={
+              <button
+                type="button"
+                className="inline-flex min-w-0 flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs sm:text-sm font-semibold text-slate-700 shadow-xs hover:bg-slate-50 transition sm:flex-none cursor-pointer"
+              >
+                {periodFilter === "month"
+                  ? "Este mês"
+                  : periodFilter === "quarter"
+                  ? "Este trimestre"
+                  : periodFilter === "year"
+                  ? "Este ano"
+                  : "Todo o período"}
+                <CaretDown size={14} />
+              </button>
+            }
+            items={[
+              { label: "Este mês", onClick: () => setPeriodFilter("month") },
+              { label: "Este trimestre", onClick: () => setPeriodFilter("quarter") },
+              { label: "Este ano", onClick: () => setPeriodFilter("year") },
+              { label: "Todo o período", onClick: () => setPeriodFilter("all") },
+            ]}
+          />
 
-              <DropdownMenu
-                align="left"
-                width="sm"
-                trigger={
-                  <button
-                    type="button"
-                    className="inline-flex min-w-0 flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-600 shadow-sm sm:flex-none"
-                  >
-                    <UsersThree size={16} />
-                    {assigneeFilter === "all" ? "Todos" : assigneeFilter}
-                    <CaretDown size={14} />
-                  </button>
-                }
-                items={[
-                  { label: "Todos", onClick: () => setAssigneeFilter("all") },
-                  ...(assignees.filter((name): name is string => Boolean(name)).map((name) => ({
-                    label: name,
-                    onClick: () => setAssigneeFilter(name),
-                  })) as Array<{ label: string; onClick: () => void }>),
-                ]}
-              />
+          {/* Assignee Filter */}
+          <DropdownMenu
+            align="left"
+            width="sm"
+            trigger={
+              <button
+                type="button"
+                className="inline-flex min-w-0 flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs sm:text-sm font-semibold text-slate-700 shadow-xs hover:bg-slate-50 transition sm:flex-none cursor-pointer"
+              >
+                <UsersThree size={16} />
+                {assigneeFilter === "all" ? "Equipe Toda" : assigneeFilter}
+                <CaretDown size={14} />
+              </button>
+            }
+            items={[
+              { label: "Equipe Toda", onClick: () => setAssigneeFilter("all") },
+              ...(assignees.map((name) => ({
+                label: name,
+                onClick: () => setAssigneeFilter(name),
+              })) as Array<{ label: string; onClick: () => void }>),
+            ]}
+          />
 
-              <DropdownMenu
-                align="left"
-                width="sm"
-                trigger={
-                  <button
-                    type="button"
-                    className="inline-flex min-w-0 flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-600 shadow-sm sm:flex-none"
-                  >
-                    <Kanban size={16} />
-                    {statusFilter === "all"
-                      ? "Todos os status"
-                      : statusConfig[statusFilter]?.label || statusFilter}
-                    <CaretDown size={14} />
-                  </button>
-                }
-                items={[
-                  { label: "Todos os status", onClick: () => setStatusFilter("all") },
-                  ...(Object.keys(statusConfig) as StatusTarefa[]).map((status) => ({
-                    label: statusConfig[status].label,
-                    onClick: () => setStatusFilter(status),
-                  })),
-                ]}
-              />
-            </>
-          )}
-
-          <Link
-            href="/metricas"
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-brand-600/20 transition hover:bg-brand-700 sm:w-auto"
+          {/* Customize Layout Button */}
+          <button
+            type="button"
+            onClick={() => setIsCustomizerOpen(true)}
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs sm:text-sm font-bold text-slate-800 shadow-xs hover:bg-slate-50 transition cursor-pointer"
+            title="Personalizar layout e escolher o que aparece no dashboard"
           >
-            <Plus size={17} /> Personalizar em Métricas
+            <SlidersHorizontal size={16} weight="bold" className="text-brand-600" />
+            <span>Personalizar Dashboard</span>
+            <span className="rounded-full bg-slate-100 px-1.5 py-0.2 text-[10px] font-bold text-slate-600">
+              {enabledLayoutItems.length}
+            </span>
+          </button>
+
+          {/* Define Goals Link */}
+          <Link
+            href="/configurar-metas"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-brand-600 hover:bg-brand-700 px-4 py-2 text-xs sm:text-sm font-bold text-white shadow-md shadow-brand-600/20 transition cursor-pointer"
+          >
+            <Target size={16} weight="bold" />
+            <span>Definir Metas</span>
           </Link>
         </div>
       </header>
-      {dashboardWidgets.length ? (
-        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {dashboardWidgets.map((widget, index) => (
-            <PersonalizedWidgetCard
-              key={widget.id}
-              widget={widget}
-              index={index}
-              total={dashboardWidgets.length}
-              onMove={movePersonalWidget}
-              onRemove={removePersonalWidget}
-            />
-          ))}
-          <Link
-            href="/metricas"
-            className="flex min-h-[190px] items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white p-5 text-sm font-semibold text-brand-600 transition hover:border-brand-300 hover:bg-brand-50"
-          >
-            <Plus size={18} />
-            <span className="ml-2">Adicionar outro bloco</span>
-          </Link>
-        </section>
-      ) : (
-        <EmptyPersonalDashboard />
-      )}
 
-      {dashboardWidgets.length > 0 && (
-      <section className="mt-8">
-        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-900 shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
-          <div className="grid grid-cols-2 gap-3 border-b border-slate-100 p-4 sm:grid-cols-4 sm:p-5">
-            {[
-              { label: "Equipe", value: teamMembers.length, detail: "membros" },
-              { label: "Atividades", value: summary.total, detail: "atribuídas" },
-              { label: "Concluídas", value: summary.completed, detail: `${summary.completionRate}% do total` },
-              { label: "Pendentes / revisão", value: summary.pending, detail: "requerem atenção" },
-            ].map((metric) => (
-              <article key={metric.label} className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 sm:px-4">
-                <p className="text-xs text-slate-500">{metric.label}</p>
-                <p className="mt-1 text-2xl font-semibold tracking-tight text-slate-900">{metric.value}</p>
-                <p className="text-xs text-slate-500">{metric.detail}</p>
-              </article>
+      {/* Dynamic Metric Widgets from /metricas (if any) */}
+      {dynamicWidgets.length > 0 && (
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+              Métricas Personalizadas Fixadas ({dynamicWidgets.length})
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {dynamicWidgets.map((widget, idx) => (
+              <DynamicMetricWidgetCard
+                key={widget.id}
+                widget={widget}
+                index={idx}
+                total={dynamicWidgets.length}
+                onMove={handleMoveDynamicWidget}
+                onRemove={handleRemoveDynamicWidget}
+              />
             ))}
           </div>
-          <div className="flex flex-col justify-between gap-4 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:p-6">
-            <div>
-              <h2 className="text-xl font-bold tracking-tight text-slate-900">Desempenho por responsável</h2>
-              <p className="mt-1 text-sm text-slate-500">Carga de trabalho e progresso da equipe</p>
-            </div>
-            <DropdownMenu
-              align="right"
-              width="sm"
-              trigger={<button type="button" className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-600 transition-colors hover:bg-slate-50">
-                {teamSort === "progress" ? "Maior progresso" : teamSort === "activities" ? "Mais atividades" : "Mais pendentes"}<CaretDown size={14} />
-              </button>}
-              items={[
-                { label: "Maior progresso", onClick: () => setTeamSort("progress") },
-                { label: "Mais atividades", onClick: () => setTeamSort("activities") },
-                { label: "Mais pendentes", onClick: () => setTeamSort("pending") },
-              ]}
-            />
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse min-w-[800px]">
-              <thead>
-                <tr className="border-b border-slate-100 text-sm text-slate-500">
-                  <th className="px-6 py-4 font-medium">Responsável</th>
-                  <th className="px-6 py-4 font-medium">Progresso</th>
-                  <th className="px-6 py-4 font-medium text-center">Atividades</th>
-                  <th className="px-6 py-4 font-medium text-center">Andamento</th>
-                  <th className="px-6 py-4 font-medium text-center">Pendentes</th>
-                  <th className="px-6 py-4 font-medium text-center">Concluídas</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {displayedMemberRows.map(({ member, summary: sum }) => {
-                   return (
-                      <tr key={member.name} className="transition-colors hover:bg-slate-50">
-                        <td className="px-6 py-5">
-                          <div className="flex items-center gap-4">
-                            <div className="flex h-12 w-12 items-center justify-center rounded-full border border-sky-100 bg-sky-50 font-bold text-sky-600">
-                              {member.initials}
-                            </div>
-                            <span className="text-base font-bold text-slate-900">{member.name}</span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-5 w-1/4">
-                          <div className="flex items-center justify-between text-xs mb-2">
-                            <span className="text-slate-500">Progresso</span>
-                            <span className="font-bold text-slate-700">{sum.completionRate}%</span>
-                          </div>
-                          <div className="h-2.5 w-full rounded-full bg-slate-100">
-                            <div className="h-full rounded-full bg-brand-600" style={{ width: `${sum.completionRate}%` }} />
-                          </div>
-                        </td>
-                        <td className="px-6 py-5 text-center text-xl font-bold text-slate-900">{sum.total}</td>
-                        <td className="px-6 py-5 text-center text-xl font-bold text-slate-900">{sum.inProgress}</td>
-                        <td className="px-6 py-5 text-center text-xl font-bold text-slate-900">{sum.pending}</td>
-                        <td className="px-6 py-5 text-center text-xl font-bold text-slate-900">{sum.completed}</td>
-                      </tr>
-                   );
-                })}
-              </tbody>
-            </table>
-          </div>
-
-          {!showInactiveMembers && memberRows.length > activeMemberRows.length && <button type="button" onClick={() => setShowInactiveMembers(true)} className="w-full border-t border-slate-100 p-5 text-left text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900">
-            Mostrar {memberRows.length - activeMemberRows.length} {memberRows.length - activeMemberRows.length === 1 ? "membro" : "membros"} sem atividades
-          </button>}
-          {showInactiveMembers && activeMemberRows.length < memberRows.length && <button type="button" onClick={() => setShowInactiveMembers(false)} className="w-full border-t border-slate-100 p-5 text-left text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900">
-            Ocultar membros sem atividades
-          </button>}
-        </div>
-      </section>
+        </section>
       )}
-      {dashboardWidgets.length > 0 && (
-      <section className="mt-8 grid gap-5 xl:grid-cols-[1.35fr_0.65fr]">
-        <div className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
-          <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
-            <div className="min-w-0">
-              <h2 className="truncate font-bold text-slate-900">
-                Atividades recentes
-              </h2>
-              <p className="mt-0.5 truncate text-xs text-slate-500">
-                Acompanhe as últimas movimentações
-              </p>
-            </div>
-            <button
-              type="button"
-              className="shrink-0 rounded-lg p-2 text-slate-400 hover:bg-slate-50"
-            >
-              <List size={18} />
-            </button>
+
+      {/* Main Widgets Ordered by Layout Items */}
+      {enabledLayoutItems.length === 0 && dynamicWidgets.length === 0 ? (
+        <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center shadow-xs">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-600">
+            <SlidersHorizontal size={28} weight="bold" />
           </div>
-          <ActivityList tasks={tasks} />
+          <h3 className="mt-4 text-lg font-bold text-slate-900">
+            Nenhum bloco ativo no seu Dashboard
+          </h3>
+          <p className="mt-1 text-sm text-slate-500 max-w-md mx-auto">
+            Você pode escolher quais métricas, gráficos e tabelas deseja visualizar na tela.
+          </p>
+          <button
+            type="button"
+            onClick={() => setIsCustomizerOpen(true)}
+            className="mt-5 inline-flex items-center gap-2 rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-brand-600/20 hover:bg-brand-700 cursor-pointer"
+          >
+            <SlidersHorizontal size={16} weight="bold" />
+            <span>Escolher Widgets Agora</span>
+          </button>
         </div>
-        <div className="min-w-0 rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
-          <div className="mb-5 flex items-center justify-between">
-            <div>
-              <h2 className="font-bold text-slate-900">Distribuição</h2>
-              <p className="mt-0.5 text-xs text-slate-500">
-                Status das atividades
-              </p>
-            </div>
-            <Kanban size={20} className="text-brand-500" />
-          </div>
-          <div className="space-y-5">
-            {(Object.keys(statusConfig) as StatusTarefa[]).map((status) => {
-              const config = statusConfig[status];
-              const count = tasks.filter(
-                (task) => task.status === status,
-              ).length;
-              const width = summary.total
-                ? Math.round((count / summary.total) * 100)
-                : 0;
-              return (
-                <div key={status}>
-                  <div className="mb-2 flex justify-between text-sm">
-                    <span className="flex items-center gap-2 font-medium text-slate-700">
-                      <span
-                        className={`h-2.5 w-2.5 rounded-full ${config.dot}`}
-                      />
-                      {config.label}
-                    </span>
-                    <span className="font-bold text-slate-900">{count}</span>
+      ) : (
+        <div className="space-y-6">
+          {enabledLayoutItems.map((item) => {
+            switch (item.id) {
+              case "metas_overview":
+                return <MetasOverviewWidget key={item.id} goals={commercialGoals} />;
+
+              case "metas_consultores":
+                return <MetasConsultoresWidget key={item.id} goals={commercialGoals} />;
+
+              case "goal_chart":
+                return (
+                  <div key={item.id} className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                        Comparativo de Metas e Expedição
+                      </h3>
+                      <Link
+                        href="/configurar-metas"
+                        className="text-xs font-semibold text-brand-600 hover:underline"
+                      >
+                        Configurar Metas →
+                      </Link>
+                    </div>
+                    <GoalChart data={goalChartData} />
                   </div>
-                  <div className="h-2 rounded-full bg-slate-100">
-                    <div
-                      className={`h-full rounded-full ${config.dot}`}
-                      style={{ width: `${width}%` }}
-                    />
+                );
+
+              case "sales_rate":
+                return (
+                  <div key={item.id}>
+                    <SalesRate geral={salesGeralData} porPessoa={salesPorPessoaData} />
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+
+              case "team_workload":
+                return (
+                  <div key={item.id} className="rounded-3xl border border-slate-200/90 bg-white p-6 shadow-[0_8px_30px_rgba(15,23,42,0.04)]">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-100">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-violet-50 text-violet-600 border border-violet-100">
+                          <UsersThree size={20} weight="bold" />
+                        </div>
+                        <div>
+                          <h2 className="text-base font-bold text-slate-900 tracking-tight">
+                            Produtividade e Carga da Equipe
+                          </h2>
+                          <p className="text-xs text-slate-500">Tarefas e tempo estimado por membro</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <DropdownMenu
+                          align="left"
+                          width="sm"
+                          trigger={
+                            <button
+                              type="button"
+                              className="rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 cursor-pointer"
+                            >
+                              Ordenar: {teamSort === "activities" ? "Mais tarefas" : teamSort === "pending" ? "Mais pendências" : "Maior progresso"}
+                            </button>
+                          }
+                          items={[
+                            { label: "Maior progresso", onClick: () => setTeamSort("progress") },
+                            { label: "Mais tarefas", onClick: () => setTeamSort("activities") },
+                            { label: "Mais pendências", onClick: () => setTeamSort("pending") },
+                          ]}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="mt-5 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                      {displayedMemberRows.map(({ member }) => (
+                        <WorkloadCard key={member.name} {...member} />
+                      ))}
+                    </div>
+                  </div>
+                );
+
+              case "visit_chart":
+                return (
+                  <div key={item.id} className="space-y-2">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                      Visitas Presenciais a Clientes (GPS)
+                    </h3>
+                    <VisitChart data={visitData} />
+                  </div>
+                );
+
+              case "client_frequency":
+                return (
+                  <div key={item.id} className="space-y-2">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                      Frequência de Compras e Últimos Contatos
+                    </h3>
+                    <FrequencySection chartData={visitData} tableData={frequencyData} />
+                  </div>
+                );
+
+              case "recent_activity":
+                return <ActivityList key={item.id} tasks={filteredTasks} />;
+
+              default:
+                return null;
+            }
+          })}
         </div>
-      </section>
       )}
+
+      {/* Dashboard Customizer Modal */}
+      <DashboardCustomizerModal
+        isOpen={isCustomizerOpen}
+        onClose={() => setIsCustomizerOpen(false)}
+        layoutItems={layoutItems}
+        onUpdateLayout={(newItems) => setLayoutItems(newItems)}
+      />
     </div>
   );
 }

@@ -15,6 +15,8 @@ describe('ConfigurarMetasPage', () => {
   it('renders loading state when loading is true', () => {
     mockUseMetasConfig.mockReturnValue({
       loading: true,
+      periodo: 'Q4 2026 · Safra',
+      setPeriodo: jest.fn(),
       metaGlobalValor: 0,
       setMetaGlobalValor: jest.fn(),
       metaGlobalVolume: 0,
@@ -26,6 +28,7 @@ describe('ConfigurarMetasPage', () => {
       dividirIgualitariamente: jest.fn(),
       handleUpdateConsultor: jest.fn(),
       handleSalvar: jest.fn(),
+      savedFeedback: false,
     });
 
     render(<ConfigurarMetasPage />);
@@ -35,6 +38,8 @@ describe('ConfigurarMetasPage', () => {
   it('renders the page correctly when not loading', () => {
     mockUseMetasConfig.mockReturnValue({
       loading: false,
+      periodo: 'Q4 2026 · Safra',
+      setPeriodo: jest.fn(),
       metaGlobalValor: 4500000,
       setMetaGlobalValor: jest.fn(),
       metaGlobalVolume: 1250,
@@ -48,6 +53,7 @@ describe('ConfigurarMetasPage', () => {
       dividirIgualitariamente: jest.fn(),
       handleUpdateConsultor: jest.fn(),
       handleSalvar: jest.fn(),
+      savedFeedback: false,
     });
 
     render(<ConfigurarMetasPage />);
@@ -57,7 +63,6 @@ describe('ConfigurarMetasPage', () => {
     
     // Verify inputs for global goals
     const globalValorInputs = screen.getAllByRole('spinbutton');
-    // Assuming the first input is the global valor
     expect(globalValorInputs[0]).toHaveValue(4500000);
   });
 
@@ -65,6 +70,8 @@ describe('ConfigurarMetasPage', () => {
     const dividirIgualitariamenteMock = jest.fn();
     mockUseMetasConfig.mockReturnValue({
       loading: false,
+      periodo: 'Q4 2026 · Safra',
+      setPeriodo: jest.fn(),
       metaGlobalValor: 4500000,
       setMetaGlobalValor: jest.fn(),
       metaGlobalVolume: 1250,
@@ -76,6 +83,7 @@ describe('ConfigurarMetasPage', () => {
       dividirIgualitariamente: dividirIgualitariamenteMock,
       handleUpdateConsultor: jest.fn(),
       handleSalvar: jest.fn(),
+      savedFeedback: false,
     });
 
     render(<ConfigurarMetasPage />);
@@ -90,6 +98,8 @@ describe('ConfigurarMetasPage', () => {
     const handleSalvarMock = jest.fn();
     mockUseMetasConfig.mockReturnValue({
       loading: false,
+      periodo: 'Q4 2026 · Safra',
+      setPeriodo: jest.fn(),
       metaGlobalValor: 4500000,
       setMetaGlobalValor: jest.fn(),
       metaGlobalVolume: 1250,
@@ -101,6 +111,7 @@ describe('ConfigurarMetasPage', () => {
       dividirIgualitariamente: jest.fn(),
       handleUpdateConsultor: jest.fn(),
       handleSalvar: handleSalvarMock,
+      savedFeedback: false,
     });
 
     render(<ConfigurarMetasPage />);
