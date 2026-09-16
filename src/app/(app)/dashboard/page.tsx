@@ -3,6 +3,8 @@ import Link from "next/link";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
+  ArrowDown,
+  ArrowUp,
   CaretDown,
   Clock,
   Kanban,
@@ -21,6 +23,7 @@ import { summarizeActivities } from "@/services/dashboardMetrics";
 import {
   DASHBOARD_WIDGETS_EVENT,
   loadDashboardWidgets,
+  moveDashboardWidget,
   removeDashboardWidget,
   type DashboardMetricWidget,
 } from "@/services/dashboardWidgets";
@@ -101,9 +104,15 @@ function ErrorState({ onRetry }: { onRetry: () => void }) {
 
 function PersonalizedWidgetCard({
   widget,
+  index,
+  total,
+  onMove,
   onRemove,
 }: {
   widget: DashboardMetricWidget;
+  index: number;
+  total: number;
+  onMove: (id: string, direction: "up" | "down") => void;
   onRemove: (id: string) => void;
 }) {
   const modeLabel =
@@ -126,14 +135,34 @@ function PersonalizedWidgetCard({
           </h3>
           <p className="mt-1 text-sm text-slate-500">{widget.teamName}</p>
         </div>
-        <button
-          type="button"
-          onClick={() => onRemove(widget.id)}
-          className="rounded-lg p-2 text-slate-400 transition hover:bg-red-50 hover:text-red-600"
-          aria-label={`Remover ${widget.title}`}
-        >
-          <Trash size={17} />
-        </button>
+        <div className="flex shrink-0 items-center gap-1">
+          <button
+            type="button"
+            onClick={() => onMove(widget.id, "up")}
+            disabled={index === 0}
+            className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-50 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-35"
+            aria-label={`Mover ${widget.title} para cima`}
+          >
+            <ArrowUp size={16} />
+          </button>
+          <button
+            type="button"
+            onClick={() => onMove(widget.id, "down")}
+            disabled={index === total - 1}
+            className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-50 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-35"
+            aria-label={`Mover ${widget.title} para baixo`}
+          >
+            <ArrowDown size={16} />
+          </button>
+          <button
+            type="button"
+            onClick={() => onRemove(widget.id)}
+            className="rounded-lg p-2 text-slate-400 transition hover:bg-red-50 hover:text-red-600"
+            aria-label={`Remover ${widget.title}`}
+          >
+            <Trash size={17} />
+          </button>
+        </div>
       </div>
       <div className="mt-5 grid grid-cols-2 gap-2 text-xs">
         <span className="rounded-lg bg-slate-50 px-3 py-2 font-semibold text-slate-600">
@@ -244,6 +273,10 @@ export default function DashboardPage() {
       window.removeEventListener(DASHBOARD_WIDGETS_EVENT, refresh);
       window.removeEventListener("storage", refresh);
     };
+  }, []);
+
+  const movePersonalWidget = useCallback((id: string, direction: "up" | "down") => {
+    setDashboardWidgets(moveDashboardWidget(id, direction));
   }, []);
 
   const removePersonalWidget = useCallback((id: string) => {
@@ -448,10 +481,13 @@ export default function DashboardPage() {
       </header>
       {dashboardWidgets.length ? (
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {dashboardWidgets.map((widget) => (
+          {dashboardWidgets.map((widget, index) => (
             <PersonalizedWidgetCard
               key={widget.id}
               widget={widget}
+              index={index}
+              total={dashboardWidgets.length}
+              onMove={movePersonalWidget}
               onRemove={removePersonalWidget}
             />
           ))}

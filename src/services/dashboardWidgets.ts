@@ -87,6 +87,25 @@ export function addDashboardWidget(
   return widgets;
 }
 
+export function moveDashboardWidget(
+  id: string,
+  direction: "up" | "down",
+): DashboardMetricWidget[] {
+  if (typeof window === "undefined") return [];
+  const widgets = loadDashboardWidgets();
+  const index = widgets.findIndex((item) => item.id === id);
+  if (index === -1) return widgets;
+
+  const targetIndex = direction === "up" ? index - 1 : index + 1;
+  if (targetIndex < 0 || targetIndex >= widgets.length) return widgets;
+
+  const reordered = [...widgets];
+  const [widget] = reordered.splice(index, 1);
+  reordered.splice(targetIndex, 0, widget);
+  saveDashboardWidgets(reordered);
+  return reordered;
+}
+
 export function removeDashboardWidget(id: string): DashboardMetricWidget[] {
   if (typeof window === "undefined") return [];
   const widgets = loadDashboardWidgets().filter((item) => item.id !== id);

@@ -46,6 +46,7 @@ it("alterna tabela e indicadores com valores reais e atingimento", async () => {
   await screen.findByText("50%");
   fireEvent.click(screen.getByRole("button", { name: /Tabela/ }));
   expect(screen.getByRole("table")).toHaveTextContent("2026-09-01");
+  fireEvent.click(screen.getByRole("button", { name: /Gráficos/ }));
   fireEvent.click(screen.getByRole("button", { name: /Cards/ }));
   expect(screen.getByText(/R\$\s*100,00/)).toBeInTheDocument();
   expect(screen.queryByRole("table")).not.toBeInTheDocument();

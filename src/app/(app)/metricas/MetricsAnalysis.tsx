@@ -29,7 +29,10 @@ import {
   type MetricAnalysis,
   type MetricGoalInput,
 } from "@/services/metrics";
-import { addDashboardWidget } from "@/services/dashboardWidgets";
+import {
+  addDashboardWidget,
+  type DashboardWidgetMode,
+} from "@/services/dashboardWidgets";
 import styles from "./metrics.module.css";
 const COLORS = ["#0866ff", "#78b3ff", "#40c4aa", "#ff9035"];
 const number = (value: number) =>
@@ -45,7 +48,7 @@ export default function MetricsAnalysis({
   target: number;
   teamName?: string;
 }) {
-  const [mode, setMode] = useState("charts");
+  const [selectedModes, setSelectedModes] = useState<DashboardWidgetMode[]>(["charts"]);
   const [axis, setAxis] = useState<"value" | "quantity">("value");
   const [group, setGroup] = useState<"period" | "people">("period");
   const [response, setResponse] = useState<{
@@ -141,26 +144,49 @@ export default function MetricsAnalysis({
     data.series.every((item) => item.value === 0 && item.quantity === 0) &&
     data.summary.clients === 0 &&
     data.summary.visits === 0;
+  const previewMode = selectedModes[0] ?? "charts";
+
+  const toggleMode = (mode: DashboardWidgetMode) => {
+    setDashboardMessage("");
+    setSelectedModes((current) => {
+      if (current.includes(mode)) {
+        return current.length === 1
+          ? current
+          : current.filter((item) => item !== mode);
+      }
+      if (current.length >= 2) {
+        setDashboardMessage("Selecione no máximo 2 visualizações.");
+        return current;
+      }
+      return [mode, ...current];
+    });
+  };
 
   const addToDashboard = () => {
     if (!data || !validFilter) return;
-    addDashboardWidget({
-      title: `${title} · ${teamName}`,
-      teamId,
-      teamName,
-      userIds,
-      type,
-      typeLabel: title,
-      period,
-      periodLabel: selectedPeriodLabel,
-      startDate,
-      endDate,
-      target,
-      mode: mode as "charts" | "table" | "cards",
-      axis,
-      group,
+    selectedModes.forEach((mode) => {
+      addDashboardWidget({
+        title: `${title} · ${teamName}`,
+        teamId,
+        teamName,
+        userIds,
+        type,
+        typeLabel: title,
+        period,
+        periodLabel: selectedPeriodLabel,
+        startDate,
+        endDate,
+        target,
+        mode,
+        axis,
+        group,
+      });
     });
-    setDashboardMessage("Adicionado ao Dashboard.");
+    setDashboardMessage(
+      selectedModes.length === 1
+        ? "1 bloco adicionado ao Dashboard."
+        : `${selectedModes.length} blocos adicionados ao Dashboard.`,
+    );
   };
   return (
     <>
@@ -205,7 +231,7 @@ export default function MetricsAnalysis({
         <button
           type="button"
           className={styles.primary}
-          disabled={!data || !validFilter || loading || Boolean(error)}
+          disabled={!data || !validFilter || loading || Boolean(error) || selectedModes.length === 0}
           onClick={addToDashboard}
         >
           <Plus size={16} /> Adicionar ao Dashboard
@@ -236,9 +262,9 @@ export default function MetricsAnalysis({
           <button
             key={id}
             type="button"
-            aria-pressed={mode === id}
-            onClick={() => setMode(id)}
-            className={mode === id ? styles.selected : ""}
+            aria-pressed={selectedModes.includes(id as DashboardWidgetMode)}
+            onClick={() => toggleMode(id as DashboardWidgetMode)}
+            className={selectedModes.includes(id as DashboardWidgetMode) ? styles.selected : ""}
           >
             <Icon size={23} />
             <span>
@@ -279,7 +305,7 @@ export default function MetricsAnalysis({
                 Nenhum registro encontrado para este time, pessoas e intervalo.
               </p>
             )}
-            {mode === "charts" && (
+            {previewMode === "charts" && (
               <div className={styles.chartGrid}>
                 <section className={styles.chartCard}>
                   <h3>
@@ -495,7 +521,7 @@ export default function MetricsAnalysis({
                 </section>
               </div>
             )}
-            {mode === "table" && (
+            {previewMode === "table" && (
               <div className={styles.tableWrap}>
                 <table>
                   <caption>{title} por período</caption>
@@ -525,7 +551,7 @@ export default function MetricsAnalysis({
                 </table>
               </div>
             )}
-            {mode === "cards" && (
+            {previewMode === "cards" && (
               <div className={styles.indicators}>
                 {[
                   {
