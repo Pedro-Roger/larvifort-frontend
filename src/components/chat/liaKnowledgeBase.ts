@@ -13,7 +13,14 @@ export interface FAQItem {
   id: string;
   question: string;
   answer: string;
-  category: "kanban" | "agenda" | "clientes" | "metas" | "equipe" | "automacoes" | "pesquisa";
+  category:
+    | "kanban"
+    | "agenda"
+    | "clientes"
+    | "metas"
+    | "equipe"
+    | "automacoes"
+    | "pesquisa";
   keywords: string[];
   actionLink?: {
     label: string;
@@ -106,9 +113,18 @@ export const LIA_FAQ_LIST: FAQItem[] = [
   {
     id: "faq-kanban-quadro",
     question: "Como criar ou alternar quadros no Kanban?",
-    answer: "No menu superior do **Quadro Kanban**, clique no seletor de projetos/quadros. Para criar um novo, clique no botão **'+'** ou **'Novo Quadro'**. Você pode usar o assistente passo a passo (Wizard) ou escolher um template pré-definido como Vendas, Suporte ou Onboarding.",
+    answer:
+      "No menu superior do **Quadro Kanban**, clique no seletor de projetos/quadros. Para criar um novo, clique no botão **'+'** ou **'Novo Quadro'**. Você pode usar o assistente passo a passo (Wizard) ou escolher um template pré-definido como Vendas, Suporte ou Onboarding.",
     category: "kanban",
-    keywords: ["kanban", "quadro", "projeto", "criar quadro", "wizard", "template", "mudar quadro"],
+    keywords: [
+      "kanban",
+      "quadro",
+      "projeto",
+      "criar quadro",
+      "wizard",
+      "template",
+      "mudar quadro",
+    ],
     actionLink: {
       label: "Ir para o Kanban",
       href: "/kanban",
@@ -117,9 +133,19 @@ export const LIA_FAQ_LIST: FAQItem[] = [
   {
     id: "faq-kanban-regras-automacoes",
     question: "Como funcionam as Regras e Automações do Kanban?",
-    answer: "No cabeçalho do Kanban você encontra dois botões essenciais: **'Regras'** (define transições permitidas e requisitos entre colunas) e **'Automações'** (executa ações automáticas quando uma tarefa é criada, movida ou concluída, inclusive criando tarefas automaticamente a partir de compromissos da Agenda).",
+    answer:
+      "No cabeçalho do Kanban você encontra dois botões essenciais: **'Regras'** (define transições permitidas e requisitos entre colunas) e **'Automações'** (executa ações automáticas quando uma tarefa é criada, movida ou concluída, inclusive criando tarefas automaticamente a partir de compromissos da Agenda).",
     category: "automacoes",
-    keywords: ["regras", "automacoes", "automacao", "trigger", "bastao", "passagem", "transicao", "kanban"],
+    keywords: [
+      "regras",
+      "automacoes",
+      "automacao",
+      "trigger",
+      "bastao",
+      "passagem",
+      "transicao",
+      "kanban",
+    ],
     actionLink: {
       label: "Configurar Automações",
       href: "/kanban",
@@ -128,9 +154,19 @@ export const LIA_FAQ_LIST: FAQItem[] = [
   {
     id: "faq-agenda-checkin-gps",
     question: "Como fazer check-in com GPS na visita ao cliente?",
-    answer: "Na tela de **Agenda**, localize o card do compromisso agendado. Clique no botão **'Fazer Check-in'**. O sistema solicitará permissão de localização do seu navegador/celular e registrará as coordenadas GPS exatas (latitude/longitude) com timestamp para comprovação da visita.",
+    answer:
+      "Na tela de **Agenda**, localize o card do compromisso agendado. Clique no botão **'Fazer Check-in'**. O sistema solicitará permissão de localização do seu navegador/celular e registrará as coordenadas GPS exatas (latitude/longitude) com timestamp para comprovação da visita.",
     category: "agenda",
-    keywords: ["checkin", "check-in", "gps", "localizacao", "visita", "agenda", "compromisso", "coordenadas"],
+    keywords: [
+      "checkin",
+      "check-in",
+      "gps",
+      "localizacao",
+      "visita",
+      "agenda",
+      "compromisso",
+      "coordenadas",
+    ],
     actionLink: {
       label: "Abrir Agenda",
       href: "/agenda",
@@ -139,9 +175,17 @@ export const LIA_FAQ_LIST: FAQItem[] = [
   {
     id: "faq-clientes-cadastro",
     question: "Como cadastrar e vincular clientes a empresas?",
-    answer: "Acesse **Clientes & Contatos** no menu lateral e clique em **'+ Adicionar Contato'**. Preencha nome, e-mail, telefone, cargo e selecione a empresa correspondente. Se a empresa ainda não existir, você pode cadastrá-la antes na aba **Empresas**.",
+    answer:
+      "Acesse **Clientes & Contatos** no menu lateral e clique em **'+ Adicionar Contato'**. Preencha nome, e-mail, telefone, cargo e selecione a empresa correspondente. Se a empresa ainda não existir, você pode cadastrá-la antes na aba **Empresas**.",
     category: "clientes",
-    keywords: ["cliente", "contato", "cadastrar cliente", "vincular empresa", "telefone", "email"],
+    keywords: [
+      "cliente",
+      "contato",
+      "cadastrar cliente",
+      "vincular empresa",
+      "telefone",
+      "email",
+    ],
     actionLink: {
       label: "Ir para Clientes",
       href: "/clientes",
@@ -150,9 +194,19 @@ export const LIA_FAQ_LIST: FAQItem[] = [
   {
     id: "faq-metas-dashboard",
     question: "Como configurar metas de vendas para os consultores?",
-    answer: "Acesse **Configurar Metas** pelo Dashboard ou pelo menu. Lá você pode definir a meta em **Valor (R$)** e **Volume (Kg ou unidades)** para cada vendedor e para o time geral. O progresso será calculado automaticamente nos gráficos e barras do Dashboard.",
+    answer:
+      "Acesse **Configurar Metas** pelo Dashboard ou pelo menu. Lá você pode definir a meta em **Valor (R$)** e **Volume (Kg ou unidades)** para cada vendedor e para o time geral. O progresso será calculado automaticamente nos gráficos e barras do Dashboard.",
     category: "metas",
-    keywords: ["metas", "meta", "vendas", "volume", "valor", "vendedor", "dashboard", "progresso"],
+    keywords: [
+      "metas",
+      "meta",
+      "vendas",
+      "volume",
+      "valor",
+      "vendedor",
+      "dashboard",
+      "progresso",
+    ],
     actionLink: {
       label: "Configurar Metas",
       href: "/configurar-metas",
@@ -161,9 +215,19 @@ export const LIA_FAQ_LIST: FAQItem[] = [
   {
     id: "faq-equipe-online",
     question: "Como funciona o status de presença (online/offline) da equipe?",
-    answer: "Na tela de **Equipe** e no topo do **Kanban**, cada usuário possui um avatar com uma bolinha indicadora. A bolinha **verde com pulso** indica que o usuário está ativo/online, e a bolinha cinza indica status offline.",
+    answer:
+      "Na tela de **Equipe** e no topo do **Kanban**, cada usuário possui um avatar com uma bolinha indicadora. A bolinha **verde com pulso** indica que o usuário está ativo/online, e a bolinha cinza indica status offline.",
     category: "equipe",
-    keywords: ["online", "offline", "bolinha", "presenca", "avatar", "status", "equipe", "usuario"],
+    keywords: [
+      "online",
+      "offline",
+      "bolinha",
+      "presenca",
+      "avatar",
+      "status",
+      "equipe",
+      "usuario",
+    ],
     actionLink: {
       label: "Ver Equipe",
       href: "/equipe",
@@ -172,9 +236,18 @@ export const LIA_FAQ_LIST: FAQItem[] = [
   {
     id: "faq-pesquisa-mercado",
     question: "Para que serve o módulo de Pesquisa de Mercado?",
-    answer: "O módulo de **Pesquisa** permite criar questionários e registrar dados coletados em visitas técnicas a fazendas e criadouros de camarão/peixes (preços de insumos, marcas concorrentes, demanda e percepção de qualidade).",
+    answer:
+      "O módulo de **Pesquisa** permite criar questionários e registrar dados coletados em visitas técnicas a fazendas e criadouros de camarão/peixes (preços de insumos, marcas concorrentes, demanda e percepção de qualidade).",
     category: "pesquisa",
-    keywords: ["pesquisa", "mercado", "formulario", "concorrencia", "preco", "fazenda", "coleta"],
+    keywords: [
+      "pesquisa",
+      "mercado",
+      "formulario",
+      "concorrencia",
+      "preco",
+      "fazenda",
+      "coleta",
+    ],
     actionLink: {
       label: "Acessar Pesquisa",
       href: "/pesquisa",
@@ -182,10 +255,20 @@ export const LIA_FAQ_LIST: FAQItem[] = [
   },
   {
     id: "faq-dashboard-filtros",
-    question: "Como filtrar as métricas do Dashboard por período e responsável?",
-    answer: "No topo do **Dashboard**, use os seletores **'Este mês'** (permite alternar entre Este mês, Este trimestre, Este ano ou Todo o período) e **'Responsável'** (para filtrar por vendedor específico) e **'Status'** para analisar o funil.",
+    question:
+      "Como filtrar as métricas do Dashboard por período e responsável?",
+    answer:
+      "No topo do **Dashboard**, use os seletores **'Este mês'** (permite alternar entre Este mês, Este trimestre, Este ano ou Todo o período) e **'Responsável'** (para filtrar por vendedor específico) e **'Status'** para analisar o funil.",
     category: "metas",
-    keywords: ["dashboard", "filtro", "periodo", "mes", "trimestre", "responsavel", "metricas"],
+    keywords: [
+      "dashboard",
+      "filtro",
+      "periodo",
+      "mes",
+      "trimestre",
+      "responsavel",
+      "metricas",
+    ],
     actionLink: {
       label: "Ir para o Dashboard",
       href: "/dashboard",
@@ -224,7 +307,7 @@ export function getLiaResponse(userText: string): {
     query === "hey"
   ) {
     return {
-      text: "Olá! 👋 Sou a **Lia**, sua assistente inteligente no LarviFort CRM. Estou aqui para tirar qualquer dúvida sobre o sistema e te ajudar a executar ações rápidas. O que você gostaria de fazer ou aprender agora?",
+      text: "Olá. Sou a **Lia**, assistente do LarviFort CRM. Posso ajudar com agenda, clientes, metas, Kanban e uso da plataforma.",
       actions: [
         { label: "Ir para o Kanban", href: "/kanban" },
         { label: "Abrir Agenda", href: "/agenda" },
@@ -248,7 +331,7 @@ export function getLiaResponse(userText: string): {
     query.includes("coordenada")
   ) {
     return {
-      text: "📍 **Check-in de Visita com Geolocalização GPS**:\n\n1. Acesse a tela de **Agenda**.\n2. Localize o card da sua visita/compromisso agendado.\n3. Clique no botão **'Fazer Check-in'**.\n4. Autorize o acesso à localização do navegador/dispositivo.\n5. O CRM salvará sua latitude, longitude e horário exato com alta precisão para comprovação da visita!",
+      text: "**Check-in de visita**:\n\n1. Acesse **Agenda**.\n2. Localize o compromisso.\n3. Clique em **Fazer Check-in**.\n4. Autorize a localização no navegador.\n5. O CRM registra coordenadas e horário para comprovação da visita.",
       actions: [
         { label: "Abrir Agenda de Visitas", href: "/agenda" },
         { label: "Ver Clientes", href: "/clientes" },
@@ -382,7 +465,7 @@ export function getLiaResponse(userText: string): {
     query.includes("relatório")
   ) {
     return {
-      text: "📊 **Dashboard & Métricas Comerciais**:\n\n• Visão consolidada de todas as tarefas da equipe (Total, Em andamento, Concluídas e Pendentes).\n• Gráficos de metas atingidas x planejadas.\n• Frequência de visitas e histórico de atividades recentes com clientes.\n• Filtros rápidos por período (mês, trimestre, ano) e por responsável.",
+      text: "**Dashboard e métricas comerciais**:\n\n• Tarefas da equipe por status.\n• Metas realizadas e planejadas.\n• Frequência de visitas e histórico de clientes.\n• Filtros por período e responsável.",
       actions: [
         { label: "Abrir Dashboard", href: "/dashboard" },
         { label: "Configurar Metas", href: "/configurar-metas" },
@@ -449,9 +532,7 @@ export function getLiaResponse(userText: string): {
   ) {
     return {
       text: "🔔 **Central de Notificações**:\n\n• Clique no ícone de sino na barra superior ou na sidebar para ver todos os seus alertas em tempo real.\n• Você é avisado sobre novas tarefas atribuídas, automações disparadas e lembretes de compromissos.",
-      actions: [
-        { label: "Ver Dashboard", href: "/dashboard" },
-      ],
+      actions: [{ label: "Ver Dashboard", href: "/dashboard" }],
       suggestedQuestions: [
         "Como funcionam as automações?",
         "Como agendar um lembrete?",
@@ -462,14 +543,19 @@ export function getLiaResponse(userText: string): {
   // Default fallback with helpful matching
   // Check if any FAQ keyword matches
   const matchedFaq = LIA_FAQ_LIST.find((faq) =>
-    faq.keywords.some((kw) => query.includes(kw))
+    faq.keywords.some((kw) => query.includes(kw)),
   );
 
   if (matchedFaq) {
     return {
       text: `💡 **${matchedFaq.question}**\n\n${matchedFaq.answer}`,
       actions: matchedFaq.actionLink
-        ? [{ label: matchedFaq.actionLink.label, href: matchedFaq.actionLink.href }]
+        ? [
+            {
+              label: matchedFaq.actionLink.label,
+              href: matchedFaq.actionLink.href,
+            },
+          ]
         : undefined,
       suggestedQuestions: [
         "Como funciona o check-in GPS?",

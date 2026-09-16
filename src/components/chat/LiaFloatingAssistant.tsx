@@ -1,11 +1,16 @@
 "use client";
 
-import React, { useState, useRef, useEffect, useMemo, useCallback } from "react";
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useMemo,
+  useCallback,
+} from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
   ChatCircleDots,
-  Sparkle,
   X,
   ArrowsClockwise,
   PaperPlaneRight,
@@ -61,24 +66,24 @@ function createMessageId(prefix: string) {
 }
 
 const CLEAN_SUGGESTIONS = [
-  "🌅 Resumo do dia anterior e pendências de hoje",
-  "⏰ Quais as próximas datas importantes e visitas?",
-  "📊 Como estão as metas e vendas deste mês?",
-  "Como fazer check-in com GPS na visita?",
-  "Como criar regras e automações no Kanban?",
+  "Resumo do dia e pendências",
+  "Próximas visitas e reuniões",
+  "Metas e vendas deste mês",
+  "Como fazer check-in na visita?",
+  "Como criar regras no Kanban?",
 ];
 
 const INITIAL_MESSAGES: ChatMessage[] = [
   {
     id: "welcome-1",
     sender: "lia",
-    text: "Olá! Sou a **Lia**, sua assistente inteligente no **LarviFort CRM**! 🦐✨\n\nPosso te ajudar com **insights do dia**, resumo das atividades, dúvidas sobre o sistema e atalhos rápidos.",
+    text: "Olá. Sou a **Lia**, assistente do **LarviFort CRM**.\n\nPosso ajudar com resumo do dia, agenda, clientes, metas e uso da plataforma.",
     timestamp: "Agora",
     suggestedQuestions: CLEAN_SUGGESTIONS,
     actions: [
-      { label: "🌅 Gerar Briefing do Dia", actionKey: "daily-briefing" },
+      { label: "Gerar resumo do dia", actionKey: "daily-briefing" },
       { label: "Ver Ações Rápidas", actionKey: "tab-actions" },
-      { label: "Dúvidas Frequentes", actionKey: "tab-faq" },
+      { label: "Ajuda", actionKey: "tab-faq" },
     ],
   },
 ];
@@ -98,7 +103,9 @@ export default function LiaFloatingAssistant() {
   // FAQ state
   const [faqSearch, setFaqSearch] = useState("");
   const [faqCategory, setFaqCategory] = useState<string>("all");
-  const [expandedFaqId, setExpandedFaqId] = useState<string | null>("faq-agenda-checkin-gps");
+  const [expandedFaqId, setExpandedFaqId] = useState<string | null>(
+    "faq-agenda-checkin-gps",
+  );
 
   // Actions search state
   const [actionSearch, setActionSearch] = useState("");
@@ -134,7 +141,10 @@ export default function LiaFloatingAssistant() {
       const query = (textToSend || inputValue).trim();
       if (!query || isTyping) return;
 
-      const timeStr = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      const timeStr = new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
 
       const userMessage: ChatMessage = {
         id: createMessageId("user"),
@@ -162,16 +172,19 @@ export default function LiaFloatingAssistant() {
             id: createMessageId("lia"),
             sender: "lia",
             text: aiResult.reply,
-            timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+            timestamp: new Date().toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
             actions: [
               { label: "Ir para o Kanban", href: "/kanban" },
               { label: "Abrir Agenda", href: "/agenda" },
               { label: "Ver Dashboard", href: "/dashboard" },
             ],
             suggestedQuestions: [
-              "🌅 Atualizar resumo do dia e pendências",
-              "📊 Quem está mais perto da meta este mês?",
-              "📍 Quais clientes não recebem visita recente?",
+              "Atualizar resumo do dia",
+              "Quem está mais perto da meta este mês?",
+              "Clientes sem visita recente",
             ],
           };
 
@@ -190,7 +203,10 @@ export default function LiaFloatingAssistant() {
           id: createMessageId("lia"),
           sender: "lia",
           text: liaReply.text,
-          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          timestamp: new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
           actions: liaReply.actions,
           suggestedQuestions: liaReply.suggestedQuestions,
         };
@@ -199,7 +215,7 @@ export default function LiaFloatingAssistant() {
         setIsTyping(false);
       }, 450);
     },
-    [inputValue, isTyping, messages]
+    [inputValue, isTyping, messages],
   );
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -214,11 +230,11 @@ export default function LiaFloatingAssistant() {
       {
         id: createMessageId("welcome"),
         sender: "lia",
-        text: "Conversa reiniciada! 🔄 Como posso te ajudar agora?",
+        text: "Conversa reiniciada. Como posso ajudar?",
         timestamp: "Agora",
         suggestedQuestions: CLEAN_SUGGESTIONS,
         actions: [
-          { label: "🌅 Gerar Briefing do Dia", actionKey: "daily-briefing" },
+          { label: "Gerar resumo do dia", actionKey: "daily-briefing" },
           { label: "Ver Ações Rápidas", actionKey: "tab-actions" },
         ],
       },
@@ -228,7 +244,7 @@ export default function LiaFloatingAssistant() {
   const handleTriggerDailyBriefing = () => {
     setActiveTab("chat");
     handleSendMessage(
-      "Por favor, gere um Resumo Executivo Completo com base nos dados do CRM: 1) Resumo do dia anterior (tarefas e visitas realizadas com check-in); 2) Atividades prioritárias de hoje e pendências que faltam; 3) Datas importantes e compromissos dos próximos dias; 4) Insights estratégicos e recomendações para acelerar as metas."
+      "Gere um resumo objetivo do CRM com: resumo de ontem; prioridades de hoje; próximas visitas e reuniões; metas e pontos de atenção.",
     );
   };
 
@@ -238,7 +254,9 @@ export default function LiaFloatingAssistant() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const handleExecuteAction = (action: QuickAction | { href?: string; actionKey?: string }) => {
+  const handleExecuteAction = (
+    action: QuickAction | { href?: string; actionKey?: string },
+  ) => {
     if (action.actionKey === "daily-briefing") {
       handleTriggerDailyBriefing();
       return;
@@ -264,7 +282,9 @@ export default function LiaFloatingAssistant() {
         faqSearch.trim() === "" ||
         item.question.toLowerCase().includes(faqSearch.toLowerCase()) ||
         item.answer.toLowerCase().includes(faqSearch.toLowerCase()) ||
-        item.keywords.some((kw) => kw.toLowerCase().includes(faqSearch.toLowerCase()));
+        item.keywords.some((kw) =>
+          kw.toLowerCase().includes(faqSearch.toLowerCase()),
+        );
       const matchesCat = faqCategory === "all" || item.category === faqCategory;
       return matchesSearch && matchesCat;
     });
@@ -278,7 +298,7 @@ export default function LiaFloatingAssistant() {
       (a) =>
         a.title.toLowerCase().includes(query) ||
         a.description.toLowerCase().includes(query) ||
-        a.category.toLowerCase().includes(query)
+        a.category.toLowerCase().includes(query),
     );
   }, [actionSearch]);
 
@@ -293,13 +313,17 @@ export default function LiaFloatingAssistant() {
       if (line.startsWith("### ") || line.startsWith("## ")) {
         const headerText = line.replace(/^#{2,3}\s+/, "");
         return (
-          <h4 key={idx} className="font-bold text-xs sm:text-sm text-slate-900 mt-2 mb-1 flex items-center gap-1.5">
+          <h4
+            key={idx}
+            className="font-bold text-xs sm:text-sm text-slate-900 mt-2 mb-1 flex items-center gap-1.5"
+          >
             {headerText}
           </h4>
         );
       }
 
-      const isBullet = line.startsWith("• ") || line.startsWith("- ") || line.startsWith("* ");
+      const isBullet =
+        line.startsWith("• ") || line.startsWith("- ") || line.startsWith("* ");
       const isNumbered = /^\d+\.\s/.test(line);
 
       let lineContent = line;
@@ -320,7 +344,10 @@ export default function LiaFloatingAssistant() {
 
       if (isBullet) {
         return (
-          <div key={idx} className="flex items-start gap-2 my-0.5 text-xs sm:text-[13px] leading-relaxed">
+          <div
+            key={idx}
+            className="flex items-start gap-2 my-0.5 text-xs sm:text-[13px] leading-relaxed"
+          >
             <span className="text-brand-600 font-bold select-none">•</span>
             <span className="flex-1">{renderedParts}</span>
           </div>
@@ -331,8 +358,13 @@ export default function LiaFloatingAssistant() {
         const numMatch = line.match(/^(\d+)\.\s/);
         const number = numMatch ? numMatch[1] : "•";
         return (
-          <div key={idx} className="flex items-start gap-2 my-0.5 text-xs sm:text-[13px] leading-relaxed">
-            <span className="text-brand-600 font-bold select-none">{number}.</span>
+          <div
+            key={idx}
+            className="flex items-start gap-2 my-0.5 text-xs sm:text-[13px] leading-relaxed"
+          >
+            <span className="text-brand-600 font-bold select-none">
+              {number}.
+            </span>
             <span className="flex-1">{renderedParts}</span>
           </div>
         );
@@ -358,7 +390,7 @@ export default function LiaFloatingAssistant() {
             <div className="flex items-center gap-1.5">
               <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
               <span>
-                Fale com a <strong>Lia</strong>: Insights & Ações
+                Fale com a <strong>Lia</strong>
               </span>
             </div>
             <button
@@ -386,10 +418,10 @@ export default function LiaFloatingAssistant() {
           className={`group relative flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full p-0.5 shadow-2xl transition-all duration-300 cursor-pointer focus:outline-none focus:ring-4 focus:ring-brand-500/30 ${
             isOpen
               ? "bg-slate-900 text-white scale-95"
-              : "bg-gradient-to-tr from-brand-600 via-brand-500 to-sky-400 hover:scale-105 active:scale-95 shadow-brand-500/30"
+              : "bg-slate-900 hover:scale-105 active:scale-95 shadow-slate-900/20"
           }`}
           aria-label={isOpen ? "Fechar assistente Lia" : "Abrir assistente Lia"}
-          title={isOpen ? "Fechar Lia" : "Assistente Virtual Lia - Insights e Ações"}
+          title={isOpen ? "Fechar Lia" : "Abrir Lia"}
         >
           {isOpen ? (
             <div className="flex items-center justify-center">
@@ -399,7 +431,7 @@ export default function LiaFloatingAssistant() {
             <div className="relative h-full w-full rounded-full overflow-hidden border-2 border-white/90 shadow-inner bg-slate-900 flex items-center justify-center">
               <Image
                 src="/lia.png"
-                alt="Lia - Assistente Virtual LarviFort"
+                alt="Lia"
                 fill
                 sizes="64px"
                 priority
@@ -408,12 +440,6 @@ export default function LiaFloatingAssistant() {
               <span className="absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full bg-emerald-500 ring-2 ring-white" />
               <span className="absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full bg-emerald-400 animate-ping opacity-75 ring-2 ring-white" />
             </div>
-          )}
-
-          {!isOpen && (
-            <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-amber-400 text-slate-950 shadow-md ring-2 ring-white text-[10px] font-black">
-              <Sparkle size={10} weight="fill" />
-            </span>
           )}
         </button>
       </div>
@@ -428,22 +454,27 @@ export default function LiaFloatingAssistant() {
           aria-label="Assistente Lia"
         >
           {/* Header - Clean & Minimalist */}
-          <div className="relative flex items-center justify-between border-b border-slate-800 bg-gradient-to-r from-slate-950 via-slate-900 to-brand-950 px-4 py-3.5 text-white">
+          <div className="relative flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3.5 text-slate-900">
             <div className="flex items-center gap-3">
-              <div className="relative h-10 w-10 shrink-0 rounded-full overflow-hidden border-2 border-emerald-400/80 shadow-md bg-slate-800">
-                <Image src="/lia.png" alt="Lia Avatar" fill sizes="40px" className="object-cover" />
-                <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-1 ring-slate-900" />
+              <div className="relative h-10 w-10 shrink-0 rounded-full overflow-hidden border border-slate-200 shadow-sm bg-slate-100">
+                <Image
+                  src="/lia.png"
+                  alt="Lia Avatar"
+                  fill
+                  sizes="40px"
+                  className="object-cover"
+                />
+                <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-1 ring-white" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h2 className="text-sm font-bold text-white tracking-tight">Lia</h2>
-                  <span className="inline-flex items-center gap-1 rounded-full bg-brand-500/20 px-2 py-0.5 text-[10px] font-semibold text-brand-300 border border-brand-400/30">
-                    <Sparkle size={9} weight="fill" /> IA LarviFort
-                  </span>
+                  <h2 className="text-sm font-semibold text-slate-900 tracking-tight">
+                    Lia
+                  </h2>
                 </div>
-                <p className="text-[11px] text-slate-300 flex items-center gap-1.5 mt-0.5">
+                <p className="text-[11px] text-slate-500 flex items-center gap-1.5 mt-0.5">
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  Online • Dúvidas & Insights
+                  Online • Suporte da plataforma
                 </p>
               </div>
             </div>
@@ -453,7 +484,7 @@ export default function LiaFloatingAssistant() {
                 <button
                   type="button"
                   onClick={handleResetChat}
-                  className="rounded-lg p-1.5 text-slate-400 hover:bg-white/10 hover:text-white transition-colors cursor-pointer"
+                  className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition-colors cursor-pointer"
                   title="Reiniciar conversa"
                 >
                   <ArrowsClockwise size={16} />
@@ -462,7 +493,7 @@ export default function LiaFloatingAssistant() {
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
-                className="rounded-lg p-1.5 text-slate-400 hover:bg-white/10 hover:text-white transition-colors cursor-pointer"
+                className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition-colors cursor-pointer"
                 title="Fechar assistente"
               >
                 <X size={18} />
@@ -471,7 +502,7 @@ export default function LiaFloatingAssistant() {
           </div>
 
           {/* Navigation Tabs */}
-          <div className="flex border-b border-slate-200 bg-slate-50/80 px-2 pt-2 gap-1 shrink-0">
+          <div className="flex border-b border-slate-200 bg-white px-2 pt-2 gap-1 shrink-0">
             <button
               type="button"
               onClick={() => setActiveTab("chat")}
@@ -481,7 +512,10 @@ export default function LiaFloatingAssistant() {
                   : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
               }`}
             >
-              <ChatCircleDots size={15} weight={activeTab === "chat" ? "fill" : "regular"} />
+              <ChatCircleDots
+                size={15}
+                weight={activeTab === "chat" ? "fill" : "regular"}
+              />
               <span>Chat</span>
             </button>
 
@@ -494,7 +528,10 @@ export default function LiaFloatingAssistant() {
                   : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
               }`}
             >
-              <Lightning size={15} weight={activeTab === "actions" ? "fill" : "regular"} />
+              <Lightning
+                size={15}
+                weight={activeTab === "actions" ? "fill" : "regular"}
+              />
               <span>Ações Rápidas</span>
             </button>
 
@@ -507,8 +544,11 @@ export default function LiaFloatingAssistant() {
                   : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
               }`}
             >
-              <Question size={15} weight={activeTab === "faq" ? "fill" : "regular"} />
-              <span>Dúvidas (FAQ)</span>
+              <Question
+                size={15}
+                weight={activeTab === "faq" ? "fill" : "regular"}
+              />
+              <span>Ajuda</span>
             </button>
           </div>
 
@@ -528,12 +568,20 @@ export default function LiaFloatingAssistant() {
                     >
                       <div
                         className={`flex gap-2.5 max-w-[90%] ${
-                          msg.sender === "user" ? "flex-row-reverse" : "flex-row"
+                          msg.sender === "user"
+                            ? "flex-row-reverse"
+                            : "flex-row"
                         }`}
                       >
                         {msg.sender === "lia" && (
                           <div className="relative h-7 w-7 shrink-0 rounded-full overflow-hidden border border-slate-200 bg-slate-800 shadow-sm mt-0.5">
-                            <Image src="/lia.png" alt="Lia" fill sizes="28px" className="object-cover" />
+                            <Image
+                              src="/lia.png"
+                              alt="Lia"
+                              fill
+                              sizes="28px"
+                              className="object-cover"
+                            />
                           </div>
                         )}
 
@@ -546,7 +594,9 @@ export default function LiaFloatingAssistant() {
                         >
                           <div
                             className={
-                              msg.sender === "user" ? "text-white text-xs sm:text-[13px]" : "text-slate-800"
+                              msg.sender === "user"
+                                ? "text-white text-xs sm:text-[13px]"
+                                : "text-slate-800"
                             }
                           >
                             {renderFormattedText(msg.text)}
@@ -573,7 +623,9 @@ export default function LiaFloatingAssistant() {
                           {msg.sender === "lia" && (
                             <button
                               type="button"
-                              onClick={() => handleCopyMessage(msg.id, msg.text)}
+                              onClick={() =>
+                                handleCopyMessage(msg.id, msg.text)
+                              }
                               className="absolute top-1.5 right-1.5 opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-slate-600 rounded transition-opacity cursor-pointer bg-white/70 shadow-xs"
                               title="Copiar texto"
                             >
@@ -587,23 +639,26 @@ export default function LiaFloatingAssistant() {
                         </div>
                       </div>
 
-                      <span className="text-[10px] text-slate-400 mt-1 px-1">{msg.timestamp}</span>
+                      <span className="text-[10px] text-slate-400 mt-1 px-1">
+                        {msg.timestamp}
+                      </span>
 
                       {/* Suggested questions from Lia */}
-                      {msg.suggestedQuestions && msg.suggestedQuestions.length > 0 && (
-                        <div className="mt-2 flex flex-wrap gap-1.5 pl-9 max-w-full">
-                          {msg.suggestedQuestions.map((sug, sIdx) => (
-                            <button
-                              key={sIdx}
-                              type="button"
-                              onClick={() => handleSendMessage(sug)}
-                              className="rounded-full bg-slate-50 border border-slate-200 px-3 py-1 text-[11px] font-medium text-slate-600 hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700 transition-colors cursor-pointer text-left"
-                            >
-                              💬 {sug}
-                            </button>
-                          ))}
-                        </div>
-                      )}
+                      {msg.suggestedQuestions &&
+                        msg.suggestedQuestions.length > 0 && (
+                          <div className="mt-2 flex flex-wrap gap-1.5 pl-9 max-w-full">
+                            {msg.suggestedQuestions.map((sug, sIdx) => (
+                              <button
+                                key={sIdx}
+                                type="button"
+                                onClick={() => handleSendMessage(sug)}
+                                className="rounded-full bg-slate-50 border border-slate-200 px-3 py-1 text-[11px] font-medium text-slate-600 hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700 transition-colors cursor-pointer text-left"
+                              >
+                                {sug}
+                              </button>
+                            ))}
+                          </div>
+                        )}
                     </div>
                   ))}
 
@@ -611,7 +666,13 @@ export default function LiaFloatingAssistant() {
                   {isTyping && (
                     <div className="flex items-center gap-2.5">
                       <div className="relative h-7 w-7 shrink-0 rounded-full overflow-hidden border border-slate-200 bg-slate-800 shadow-sm">
-                        <Image src="/lia.png" alt="Lia" fill sizes="28px" className="object-cover" />
+                        <Image
+                          src="/lia.png"
+                          alt="Lia"
+                          fill
+                          sizes="28px"
+                          className="object-cover"
+                        />
                       </div>
                       <div className="rounded-2xl rounded-bl-xs bg-slate-100 border border-slate-200/70 px-4 py-3 flex items-center gap-1.5">
                         <span
@@ -627,7 +688,7 @@ export default function LiaFloatingAssistant() {
                           style={{ animationDelay: "300ms" }}
                         />
                         <span className="text-[11px] font-medium text-slate-400 ml-1">
-                          Lia analisando dados do CRM...
+                          Consultando dados...
                         </span>
                       </div>
                     </div>
@@ -645,7 +706,7 @@ export default function LiaFloatingAssistant() {
                       value={inputValue}
                       onChange={(e) => setInputValue(e.target.value)}
                       onKeyDown={handleKeyDown}
-                      placeholder="Pergunte sobre dados, clientes, metas ou resumo..."
+                      placeholder="Digite sua pergunta..."
                       className="flex-1 bg-transparent text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none"
                     />
                     <button
@@ -660,7 +721,7 @@ export default function LiaFloatingAssistant() {
                   </div>
                   <div className="mt-1.5 flex items-center justify-between px-1 text-[10px] text-slate-400">
                     <span>Pressione Enter para enviar</span>
-                    <span className="text-slate-400">Lia • LarviFort CRM</span>
+                    <span className="text-slate-400">LarviFort CRM</span>
                   </div>
                 </div>
               </div>
@@ -701,11 +762,11 @@ export default function LiaFloatingAssistant() {
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
                           <h3 className="text-xs sm:text-sm font-bold text-amber-950 group-hover:text-amber-900 truncate">
-                            Briefing do Dia & Insights
+                            Resumo do dia
                           </h3>
                         </div>
                         <p className="text-[11px] text-amber-800 truncate">
-                          Resumo de ontem, tarefas de hoje e datas importantes
+                          Ontem, hoje e próximos compromissos
                         </p>
                       </div>
                     </div>
@@ -739,7 +800,9 @@ export default function LiaFloatingAssistant() {
                                 </span>
                               )}
                             </div>
-                            <p className="text-[11px] text-slate-500 truncate">{action.description}</p>
+                            <p className="text-[11px] text-slate-500 truncate">
+                              {action.description}
+                            </p>
                           </div>
                         </div>
                         <ArrowUpRight
@@ -752,7 +815,8 @@ export default function LiaFloatingAssistant() {
 
                   {filteredQuickActions.length === 0 && (
                     <div className="py-8 text-center text-xs text-slate-400">
-                      Nenhuma ação rápida encontrada para &quot;{actionSearch}&quot;.
+                      Nenhuma ação rápida encontrada para &quot;{actionSearch}
+                      &quot;.
                     </div>
                   )}
                 </div>
@@ -824,22 +888,32 @@ export default function LiaFloatingAssistant() {
                       >
                         <button
                           type="button"
-                          onClick={() => setExpandedFaqId(isExpanded ? null : item.id)}
+                          onClick={() =>
+                            setExpandedFaqId(isExpanded ? null : item.id)
+                          }
                           className="w-full flex items-center justify-between p-3 text-left cursor-pointer gap-2"
                         >
                           <span className="text-xs font-semibold text-slate-800">
                             {item.question}
                           </span>
                           {isExpanded ? (
-                            <CaretUp size={14} className="shrink-0 text-brand-600" />
+                            <CaretUp
+                              size={14}
+                              className="shrink-0 text-brand-600"
+                            />
                           ) : (
-                            <CaretDown size={14} className="shrink-0 text-slate-400" />
+                            <CaretDown
+                              size={14}
+                              className="shrink-0 text-slate-400"
+                            />
                           )}
                         </button>
 
                         {isExpanded && (
                           <div className="px-3 pb-3 pt-0 border-t border-brand-100/60 text-xs text-slate-600">
-                            <div className="pt-2">{renderFormattedText(item.answer)}</div>
+                            <div className="pt-2">
+                              {renderFormattedText(item.answer)}
+                            </div>
                             <div className="mt-3 flex items-center justify-between gap-2">
                               {item.actionLink && (
                                 <button
