@@ -9,6 +9,8 @@ export interface ProjectCard {
   title: string;
   client: string;
   progress: number;
+  subtasksCount?: number;
+  completedSubtasksCount?: number;
   tags: string[];
   assignee: { initials: string; name: string; color: string };
   dueDate: string;
@@ -132,15 +134,23 @@ export default function KanbanCard({
         </p>
       )}
 
-      {/* Progress bar */}
+      {/* Progress bar & Subtasks */}
       <div className="mt-3">
         <div className="flex items-center justify-between mb-1">
-          <span className="text-[10px] font-medium text-slate-500">Progresso</span>
-          <span className="text-[10px] font-bold text-sky-600">{card.progress}%</span>
+          <span className="text-[10px] font-medium text-slate-500">
+            {card.subtasksCount && card.subtasksCount > 0
+              ? `${card.completedSubtasksCount || 0}/${card.subtasksCount} subtarefas`
+              : "Progresso"}
+          </span>
+          <span className={`text-[10px] font-bold ${card.progress === 100 ? "text-emerald-600" : "text-sky-600"}`}>
+            {card.progress}%
+          </span>
         </div>
         <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
           <div
-            className="h-full bg-sky-500 rounded-full transition-all"
+            className={`h-full rounded-full transition-all duration-300 ${
+              card.progress === 100 ? "bg-emerald-500" : "bg-sky-500"
+            }`}
             style={{ width: `${card.progress}%` }}
           />
         </div>

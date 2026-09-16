@@ -52,6 +52,8 @@ export type Task = {
   orderId?: string | null;
   orderNumber?: string | null;
   orderTotal?: number | null;
+  subtasksCount?: number;
+  completedSubtasksCount?: number;
   createdAt: string;
   updatedAt: string;
 };
@@ -199,6 +201,25 @@ export function normalizeTask(raw: unknown): Task {
   const assigneeRaw = t.assignee;
   const { assigneeName, assigneeInitials } = parseAssignee(assigneeRaw);
 
+  const rawSubtasks = Array.isArray(t.subtasks)
+    ? (t.subtasks as unknown[])
+    : Array.isArray(t.subtarefas)
+    ? (t.subtarefas as unknown[])
+    : Array.isArray(t.childTasks)
+    ? (t.childTasks as unknown[])
+    : [];
+
+  const subtasksCount = rawSubtasks.length;
+  const completedSubtasksCount = rawSubtasks.filter((s) => {
+    const item = typeof s === "object" && s !== null ? (s as Record<string, unknown>) : {};
+    return item.status === "CONCLUIDO" || item.progresso === 100 || item.progress === 100;
+  }).length;
+
+  const calculatedProgresso =
+    subtasksCount > 0
+      ? Math.round((completedSubtasksCount / subtasksCount) * 100)
+      : num(t.progresso) ?? num(t.progress);
+
   return {
     id: str(t.id) ?? "",
     projetoId: str(t.projetoId) ?? "",
@@ -210,7 +231,7 @@ export function normalizeTask(raw: unknown): Task {
     descricao: str(t.descricao) ?? str(t.description),
     status: asStatusTarefa(t.status),
     prioridade: asPrioridade(t.prioridade) ?? asPrioridade(t.priority),
-    progresso: num(t.progresso) ?? num(t.progress),
+    progresso: calculatedProgresso,
     tags: asArray<string>(t.tags),
     prazo: str(t.prazo) ?? str(t.dueDate),
     estimativaH: typeof t.estimativaH === "number" ? t.estimativaH : null,
@@ -223,6 +244,8 @@ export function normalizeTask(raw: unknown): Task {
     orderId: str(t.orderId),
     orderNumber: str(t.orderNumber),
     orderTotal: typeof t.orderTotal === "number" ? t.orderTotal : null,
+    subtasksCount,
+    completedSubtasksCount,
     createdAt: str(t.createdAt) ?? "",
     updatedAt: str(t.updatedAt) ?? "",
   };
@@ -703,6 +726,8 @@ export function mapTaskToCard(
   title: string;
   client: string;
   progress: number;
+  subtasksCount?: number;
+  completedSubtasksCount?: number;
   tags: string[];
   assignee: { initials: string; name: string; color: string };
   dueDate: string;
@@ -717,6 +742,8 @@ export function mapTaskToCard(
       : task.titulo,
     client: options.hideClient ? "" : (task.clienteName ?? ""),
     progress: task.progresso,
+    subtasksCount: task.subtasksCount,
+    completedSubtasksCount: task.completedSubtasksCount,
     tags: task.tags,
     assignee:
       task.assigneeName && task.assigneeInitials

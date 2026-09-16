@@ -6,7 +6,7 @@ import {
   CheckCircle, WhatsappLogo, ArrowRight, ArrowsLeftRight, ShoppingCart, ListChecks
 } from "@phosphor-icons/react";
 import ConfirmDeleteModal from "@/components/ui/ConfirmDeleteModal";
-import { getTaskDetails, deleteTask, updateTask, uploadTaskAttachment, deleteTaskAttachment, type TaskWithDetails, type StatusTarefa, type Projeto } from "@/services/tasks";
+import { getTaskDetails, deleteTask, updateTask, uploadTaskAttachment, deleteTaskAttachment, type Task, type TaskWithDetails, type StatusTarefa, type Projeto } from "@/services/tasks";
 import { fetchSubtasks, createSubtask, updateSubtask, deleteSubtask, type Subtask } from "@/services/subtasks";
 import { fetchClients, type Cliente } from "@/services/clients";
 import type { User } from "@/services/users";
@@ -57,16 +57,34 @@ export default function TaskDetailModal({
           fetchSubtasks(taskId),
         ]);
         if (!isMounted) return;
-        setTask(data);
+        const finalSubtasks =
+          loadedSubtasks.length > 0
+            ? loadedSubtasks
+            : data.childrenTasks.map((child) => ({
+                id: child.id,
+                titulo: child.titulo,
+                status: child.status,
+                progresso: child.status === "CONCLUIDO" ? 100 : 0,
+                parentId: data.id,
+                assigneeId: null,
+              }));
+
+        const completedCount = finalSubtasks.filter(
+          (s) => s.status === "CONCLUIDO" || s.progresso === 100
+        ).length;
+        const calculatedProgress =
+          finalSubtasks.length > 0
+            ? Math.round((completedCount / finalSubtasks.length) * 100)
+            : data.progresso;
+
+        setTask({
+          ...data,
+          progresso: calculatedProgress,
+          subtasksCount: finalSubtasks.length,
+          completedSubtasksCount: completedCount,
+        });
         setActiveTab("atividade");
-        setSubtasks(loadedSubtasks.length > 0 ? loadedSubtasks : data.childrenTasks.map((child) => ({
-          id: child.id,
-          titulo: child.titulo,
-          status: child.status,
-          progresso: child.status === "CONCLUIDO" ? 100 : 0,
-          parentId: data.id,
-          assigneeId: null,
-        })));
+        setSubtasks(finalSubtasks);
         setEditedTitle(data.titulo);
         setEditedDesc(data.descricao || "");
         setEditedStatus(data.status);
@@ -178,13 +196,38 @@ export default function TaskDetailModal({
   };
 
   const refreshTaskAfterSubtaskChange = async () => {
-    const [updatedTask, updatedSubtasks] = await Promise.all([
+    const [rawTask, updatedSubtasks] = await Promise.all([
       getTaskDetails(taskId),
       fetchSubtasks(taskId),
     ]);
-    setTask(updatedTask);
+    const completedCount = updatedSubtasks.filter(
+      (s) => s.status === "CONCLUIDO" || s.progresso === 100
+    ).length;
+    const calculatedProgress =
+      updatedSubtasks.length > 0
+        ? Math.round((completedCount / updatedSubtasks.length) * 100)
+        : (rawTask?.progresso ?? 0);
+
+    let updatedTask: Partial<Task> = {};
+    if (rawTask && rawTask.progresso !== calculatedProgress) {
+      try {
+        updatedTask = await updateTask(taskId, { progresso: calculatedProgress });
+      } catch {
+        updatedTask = { progresso: calculatedProgress };
+      }
+    }
+
+    const mergedTask: TaskWithDetails = {
+      ...rawTask,
+      ...updatedTask,
+      progresso: calculatedProgress,
+      subtasksCount: updatedSubtasks.length,
+      completedSubtasksCount: completedCount,
+    };
+
+    setTask(mergedTask);
     setSubtasks(updatedSubtasks);
-    onUpdate?.(updatedTask);
+    onUpdate?.(mergedTask);
   };
 
   const handleCreateSubtask = async () => {

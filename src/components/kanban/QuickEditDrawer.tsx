@@ -201,25 +201,42 @@ function QuickEditDrawerContent({
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center justify-between">
               <label className="text-xs font-semibold text-slate-700">
-                Progresso
+                Progresso{" "}
+                {card.subtasksCount && card.subtasksCount > 0
+                  ? `(${card.completedSubtasksCount || 0}/${card.subtasksCount} subtarefas)`
+                  : ""}
               </label>
-              <span className="text-xs font-bold text-sky-600">{progress}%</span>
+              <span
+                className={`text-xs font-bold ${
+                  progress === 100 ? "text-emerald-600" : "text-sky-600"
+                }`}
+              >
+                {progress}%
+              </span>
             </div>
             <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
               <div
-                className="h-full bg-sky-500 rounded-full transition-all"
+                className={`h-full transition-all duration-300 ${
+                  progress === 100 ? "bg-emerald-500" : "bg-sky-500"
+                }`}
                 style={{ width: `${progress}%` }}
               />
             </div>
-            <input
-              className="w-full accent-sky-600 cursor-pointer"
-              type="range"
-              min={0}
-              max={100}
-              value={progress}
-              disabled={loading}
-              onChange={(e) => setProgress(Number(e.target.value))}
-            />
+            {card.subtasksCount && card.subtasksCount > 0 ? (
+              <p className="text-[11px] text-slate-400">
+                O progresso é calculado automaticamente com base nas subtarefas concluídas.
+              </p>
+            ) : (
+              <input
+                className="w-full accent-sky-600 cursor-pointer"
+                type="range"
+                min={0}
+                max={100}
+                value={progress}
+                disabled={loading}
+                onChange={(e) => setProgress(Number(e.target.value))}
+              />
+            )}
           </div>
 
           {/* Assignee + Due Date */}
