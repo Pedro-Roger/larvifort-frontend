@@ -35,8 +35,18 @@ import { fetchUsers, type User as AppUser } from "@/services/users";
 
 const diasSemana = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 const meses = [
-  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
+  "Janeiro",
+  "Fevereiro",
+  "Março",
+  "Abril",
+  "Maio",
+  "Junho",
+  "Julho",
+  "Agosto",
+  "Setembro",
+  "Outubro",
+  "Novembro",
+  "Dezembro",
 ];
 
 export default function AgendaPage() {
@@ -44,7 +54,9 @@ export default function AgendaPage() {
   const [anoAtual, setAnoAtual] = useState(() => new Date().getFullYear());
   const [diaSelecionado, setDiaSelecionado] = useState<number | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
-  const [filtroTipo, setFiltroTipo] = useState<TipoCompromisso | "todos">("todos");
+  const [filtroTipo, setFiltroTipo] = useState<TipoCompromisso | "todos">(
+    "todos",
+  );
   const [busca, setBusca] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<Appointment | null>(null);
   const [checkinLoading, setCheckinLoading] = useState<string | null>(null);
@@ -64,24 +76,35 @@ export default function AgendaPage() {
     let cancelled = false;
     async function load() {
       try {
-        const [clientsRes, companiesRes, projectsRes, usersRes] = await Promise.all([
-          fetchClients({ pageSize: 200 }).catch(() => ({ items: [], total: 0, page: 1, pageSize: 200 })),
-          fetchEmpresas({ pageSize: 200 }).catch(() => ({ items: [], total: 0, page: 1, pageSize: 200 })),
-          fetchProjetos().catch(() => []),
-          fetchUsers({ active: true }).catch(() => []),
-        ]);
+        const [clientsRes, companiesRes, projectsRes, usersRes] =
+          await Promise.all([
+            fetchClients({ pageSize: 200 }).catch(() => ({
+              items: [],
+              total: 0,
+              page: 1,
+              pageSize: 200,
+            })),
+            fetchEmpresas({ pageSize: 200 }).catch(() => ({
+              items: [],
+              total: 0,
+              page: 1,
+              pageSize: 200,
+            })),
+            fetchProjetos().catch(() => []),
+            fetchUsers({ active: true }).catch(() => []),
+          ]);
         if (cancelled) return;
         setClientes(
           clientsRes.items.map((c) => ({
             id: c.id,
             nome: `${c.firstName} ${c.lastName}`.trim(),
-          }))
+          })),
         );
         setEmpresas(
           companiesRes.items.map((e) => ({
             id: e.id,
             nome: e.name,
-          }))
+          })),
         );
         setProjetos(projectsRes);
         setUsuarios(usersRes);
@@ -90,7 +113,9 @@ export default function AgendaPage() {
       }
     }
     load();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // Load appointments for current month range
@@ -131,13 +156,17 @@ export default function AgendaPage() {
   const anoAtualReal = hoje.getFullYear();
 
   function anterior() {
-    if (mesAtual === 0) { setMesAtual(11); setAnoAtual(anoAtual - 1); }
-    else setMesAtual(mesAtual - 1);
+    if (mesAtual === 0) {
+      setMesAtual(11);
+      setAnoAtual(anoAtual - 1);
+    } else setMesAtual(mesAtual - 1);
   }
 
   function proximo() {
-    if (mesAtual === 11) { setMesAtual(0); setAnoAtual(anoAtual + 1); }
-    else setMesAtual(mesAtual + 1);
+    if (mesAtual === 11) {
+      setMesAtual(0);
+      setAnoAtual(anoAtual + 1);
+    } else setMesAtual(mesAtual + 1);
   }
 
   const startLoad = () => setTryCount((c) => c + 1);
@@ -147,13 +176,15 @@ export default function AgendaPage() {
     setCheckinLoading(appointmentId);
     try {
       // Request geolocation
-      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 0,
-        });
-      });
+      const position = await new Promise<GeolocationPosition>(
+        (resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0,
+          });
+        },
+      );
       const { latitude, longitude, accuracy } = position.coords;
 
       // Call check-in API
@@ -165,7 +196,7 @@ export default function AgendaPage() {
 
       // Update local state
       setAllAppointments((prev) =>
-        prev.map((a) => (a.id === appointmentId ? updated : a))
+        prev.map((a) => (a.id === appointmentId ? updated : a)),
       );
     } catch (err) {
       if (err instanceof Error) {
@@ -199,25 +230,31 @@ export default function AgendaPage() {
     return map;
   }, [allAppointments, mesAtual, anoAtual]);
 
-  const compromissosFiltrados = useCallback((dia: number) => {
-    const lista = compromissosPorDia[dia] || [];
-    const termo = busca.trim().toLowerCase();
-    return lista.filter((c) => {
-      const matchTipo = filtroTipo === "todos" || c.tipo === filtroTipo;
-      const matchBusca = !termo ||
-        c.titulo.toLowerCase().includes(termo) ||
-        (c.clienteNome && c.clienteNome.toLowerCase().includes(termo)) ||
-        (c.empresaNome && c.empresaNome.toLowerCase().includes(termo)) ||
-        (c.endereco && c.endereco.toLowerCase().includes(termo)) ||
-        (c.observacoes && c.observacoes.toLowerCase().includes(termo));
-      return matchTipo && matchBusca;
-    });
-  }, [compromissosPorDia, filtroTipo, busca]);
+  const compromissosFiltrados = useCallback(
+    (dia: number) => {
+      const lista = compromissosPorDia[dia] || [];
+      const termo = busca.trim().toLowerCase();
+      return lista.filter((c) => {
+        const matchTipo = filtroTipo === "todos" || c.tipo === filtroTipo;
+        const matchBusca =
+          !termo ||
+          c.titulo.toLowerCase().includes(termo) ||
+          (c.clienteNome && c.clienteNome.toLowerCase().includes(termo)) ||
+          (c.empresaNome && c.empresaNome.toLowerCase().includes(termo)) ||
+          (c.endereco && c.endereco.toLowerCase().includes(termo)) ||
+          (c.observacoes && c.observacoes.toLowerCase().includes(termo));
+        return matchTipo && matchBusca;
+      });
+    },
+    [compromissosPorDia, filtroTipo, busca],
+  );
 
-  const compromissosDoDia = diaSelecionado ? compromissosFiltrados(diaSelecionado) : [];
-  const totalMes = Object.values(compromissosPorDia).flat().filter((c) =>
-    filtroTipo === "todos" || c.tipo === filtroTipo
-  ).length;
+  const compromissosDoDia = diaSelecionado
+    ? compromissosFiltrados(diaSelecionado)
+    : [];
+  const totalMes = Object.values(compromissosPorDia)
+    .flat()
+    .filter((c) => filtroTipo === "todos" || c.tipo === filtroTipo).length;
 
   if (loading) {
     return (
@@ -236,7 +273,10 @@ export default function AgendaPage() {
               <div className="px-6 py-4 border-b border-slate-100" />
               <div className="grid grid-cols-7 p-4 space-y-4">
                 {Array.from({ length: 35 }).map((_, i) => (
-                  <div key={i} className="h-24 border border-slate-100 bg-slate-50/30 rounded-lg" />
+                  <div
+                    key={i}
+                    className="h-24 border border-slate-100 bg-slate-50/30 rounded-lg"
+                  />
                 ))}
               </div>
             </div>
@@ -246,7 +286,10 @@ export default function AgendaPage() {
               </div>
               <div className="p-4 space-y-3">
                 {Array.from({ length: 3 }).map((_, i) => (
-                  <div key={i} className="h-24 bg-slate-50 border border-slate-100 rounded-lg" />
+                  <div
+                    key={i}
+                    className="h-24 bg-slate-50 border border-slate-100 rounded-lg"
+                  />
                 ))}
               </div>
             </div>
@@ -260,7 +303,9 @@ export default function AgendaPage() {
     return (
       <>
         <header className="px-8 py-5 bg-white/60 backdrop-blur-xl border-b border-slate-200 shrink-0">
-          <h1 className="text-xl font-bold text-slate-800 tracking-tight">Agenda</h1>
+          <h1 className="text-xl font-bold text-slate-800 tracking-tight">
+            Agenda
+          </h1>
         </header>
         <main className="flex-1 overflow-auto p-8 flex items-center justify-center">
           <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center max-w-sm">
@@ -348,7 +393,10 @@ export default function AgendaPage() {
           </div>
 
           <div className="relative flex-1 sm:w-64">
-            <MagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={13} />
+            <MagnifyingGlass
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+              size={13}
+            />
             <input
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
@@ -372,7 +420,9 @@ export default function AgendaPage() {
               >
                 <CaretLeft size={16} />
               </button>
-              <h2 className="text-base font-bold text-slate-800">{meses[mesAtual]} {anoAtual}</h2>
+              <h2 className="text-base font-bold text-slate-800">
+                {meses[mesAtual]} {anoAtual}
+              </h2>
               <button
                 onClick={proximo}
                 className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
@@ -384,7 +434,10 @@ export default function AgendaPage() {
             {/* Weekday Headers */}
             <div className="grid grid-cols-7 border-b border-slate-100">
               {diasSemana.map((d) => (
-                <div key={d} className="py-2 text-center text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                <div
+                  key={d}
+                  className="py-2 text-center text-[11px] font-semibold text-slate-400 uppercase tracking-wider"
+                >
                   {d}
                 </div>
               ))}
@@ -393,41 +446,84 @@ export default function AgendaPage() {
             {/* Day Grid */}
             <div className="grid grid-cols-7">
               {Array.from({ length: primeiroDia }).map((_, i) => (
-                <div key={`empty-${i}`} className="h-24 border-b border-r border-slate-100 bg-slate-50/30" />
+                <div
+                  key={`empty-${i}`}
+                  className="min-h-32 border-b border-r border-slate-100 bg-slate-50/30"
+                />
               ))}
               {Array.from({ length: diasNoMes }).map((_, i) => {
                 const dia = i + 1;
                 const lista = compromissosFiltrados(dia);
-                const isToday = dia === diaAtual && mesAtual === mesAtualReal && anoAtual === anoAtualReal;
+                const isToday =
+                  dia === diaAtual &&
+                  mesAtual === mesAtualReal &&
+                  anoAtual === anoAtualReal;
                 const isSelected = dia === diaSelecionado;
 
                 return (
                   <div
                     key={dia}
                     onClick={() => setDiaSelecionado(dia)}
-                    className={`h-24 border-b border-r border-slate-100 p-1.5 cursor-pointer transition-all hover:bg-sky-50/50 ${
-                      isSelected ? "bg-sky-50 ring-2 ring-inset ring-sky-400" : isToday ? "bg-sky-50/30" : ""
+                    className={`min-h-32 border-b border-r border-slate-100 p-2 cursor-pointer transition-all hover:bg-slate-50 ${
+                      isSelected
+                        ? "bg-sky-50 ring-2 ring-inset ring-sky-500"
+                        : isToday
+                          ? "bg-sky-50/40"
+                          : "bg-white"
                     }`}
                   >
                     <div className="flex items-center justify-between mb-1">
-                      <span className={`text-xs font-semibold w-6 h-6 flex items-center justify-center rounded-full ${
-                        isToday ? "bg-sky-600 text-white" : isSelected ? "text-sky-700" : "text-slate-600"
-                      }`}>
+                      <span
+                        className={`text-xs font-semibold w-6 h-6 flex items-center justify-center rounded-full ${
+                          isToday
+                            ? "bg-sky-600 text-white"
+                            : isSelected
+                              ? "text-sky-700"
+                              : "text-slate-600"
+                        }`}
+                      >
                         {dia}
                       </span>
                     </div>
-                    <div className="space-y-0.5">
-                      {lista.slice(0, 3).map((c) => {
-                        const color = tipoCompromissoColor(c.tipo);
+                    <div className="space-y-1.5">
+                      {lista.slice(0, 2).map((c) => {
+                        const isVisit = c.tipo === "VISITA";
                         return (
-                          <div key={c.id} className="flex items-center gap-1" title={c.titulo}>
-                            <div className={`h-1.5 w-1.5 rounded-full shrink-0 ${color.text}`} />
-                            <span className="text-[9px] text-slate-500 truncate leading-none">{c.titulo.slice(0, 15)}</span>
+                          <div
+                            key={c.id}
+                            className={`rounded-lg border px-2 py-1.5 shadow-sm ${
+                              isVisit
+                                ? "border-sky-200 bg-sky-50 text-sky-950"
+                                : "border-violet-200 bg-violet-50 text-violet-950"
+                            }`}
+                            title={c.titulo}
+                          >
+                            <div className="flex items-center justify-between gap-1">
+                              <span
+                                className={`rounded-full px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wide ${
+                                  isVisit
+                                    ? "bg-sky-600 text-white"
+                                    : "bg-violet-600 text-white"
+                                }`}
+                              >
+                                {isVisit ? "Visita" : "Reunião"}
+                              </span>
+                              {c.horario && (
+                                <span className="text-[9px] font-semibold text-slate-600">
+                                  {formatAppointmentTime(c.horario)}
+                                </span>
+                              )}
+                            </div>
+                            <p className="mt-1 line-clamp-2 text-[10px] font-semibold leading-tight">
+                              {c.titulo}
+                            </p>
                           </div>
                         );
                       })}
-                      {lista.length > 3 && (
-                        <span className="text-[9px] text-slate-400 font-medium">+{lista.length - 3}</span>
+                      {lista.length > 2 && (
+                        <span className="block rounded-md bg-slate-100 px-2 py-1 text-[10px] font-semibold text-slate-500">
+                          +{lista.length - 2} compromisso(s)
+                        </span>
                       )}
                     </div>
                   </div>
@@ -441,12 +537,16 @@ export default function AgendaPage() {
             <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden sticky top-8">
               <div className="px-5 py-4 border-b border-slate-100">
                 <h3 className="text-sm font-bold text-slate-800">
-                  {diaSelecionado ? `${diaSelecionado} de ${meses[mesAtual]} de ${anoAtual}` : "Selecione um dia"}
+                  {diaSelecionado
+                    ? `${diaSelecionado} de ${meses[mesAtual]} de ${anoAtual}`
+                    : "Selecione um dia"}
                 </h3>
                 {diaSelecionado && (
                   <p className="text-[11px] text-slate-400 mt-0.5">
                     {compromissosDoDia.length}{" "}
-                    {compromissosDoDia.length === 1 ? "compromisso" : "compromissos"}
+                    {compromissosDoDia.length === 1
+                      ? "compromisso"
+                      : "compromissos"}
                   </p>
                 )}
               </div>
@@ -459,7 +559,9 @@ export default function AgendaPage() {
                 )}
                 {diaSelecionado && compromissosDoDia.length === 0 && (
                   <div className="text-center py-8">
-                    <p className="text-xs text-slate-400 mb-3">Nenhum compromisso neste dia</p>
+                    <p className="text-xs text-slate-400 mb-3">
+                      Nenhum compromisso neste dia
+                    </p>
                     <button
                       type="button"
                       onClick={() => setModalOpen(true)}
@@ -475,15 +577,27 @@ export default function AgendaPage() {
                   return (
                     <div
                       key={c.id}
-                      className="p-3 rounded-lg bg-slate-50 border border-slate-100 hover:border-sky-200 transition-colors"
+                      className={`rounded-xl border p-4 shadow-sm transition-colors ${
+                        c.tipo === "VISITA"
+                          ? "border-sky-200 bg-sky-50/80 hover:border-sky-300"
+                          : "border-violet-200 bg-violet-50/80 hover:border-violet-300"
+                      }`}
                     >
                       <div className="flex items-start gap-2.5">
-                        <div className={`w-8 h-8 rounded-lg ${color.bg} flex items-center justify-center shrink-0 ${color.border}`}>
-                          <Icon size={14} className={color.text} />
+                        <div
+                          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border bg-white ${color.border}`}
+                        >
+                          <Icon
+                            size={18}
+                            className={color.text}
+                            weight="bold"
+                          />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between gap-2">
-                            <p className="text-xs font-semibold text-slate-800 truncate">{c.titulo}</p>
+                            <p className="truncate text-sm font-bold text-slate-900">
+                              {c.titulo}
+                            </p>
                             <div className="flex items-center gap-1">
                               {!c.checkinAt && (
                                 <button
@@ -497,7 +611,10 @@ export default function AgendaPage() {
                                   title="Fazer check-in (captura localização)"
                                 >
                                   {checkinLoading === c.id ? (
-                                    <CheckCircle size={14} className="animate-spin" />
+                                    <CheckCircle
+                                      size={14}
+                                      className="animate-spin"
+                                    />
                                   ) : (
                                     <MapPinIcon size={14} />
                                   )}
@@ -516,38 +633,58 @@ export default function AgendaPage() {
                               </button>
                             </div>
                           </div>
-                          <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full ${
-                            c.tipo === "REUNIAO" ? "bg-violet-100 text-violet-600" : "bg-sky-100 text-sky-600"
-                          }`}>
+                          <span
+                            className={`inline-flex rounded-full px-2 py-1 text-[10px] font-bold uppercase tracking-wide ${
+                              c.tipo === "REUNIAO"
+                                ? "bg-violet-600 text-white"
+                                : "bg-sky-600 text-white"
+                            }`}
+                          >
                             {tipoCompromissoLabel(c.tipo)}
                           </span>
                           {c.checkinAt && (
                             <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-600">
-                              Check-in: {formatAppointmentDate(c.checkinAt)} {c.checkinAt.split("T")[1]?.slice(0, 5)}
+                              Check-in: {formatAppointmentDate(c.checkinAt)}{" "}
+                              {c.checkinAt.split("T")[1]?.slice(0, 5)}
                             </span>
                           )}
                           {(c.clienteNome || c.empresaNome) && (
                             <div className="flex items-center gap-1.5 mt-1.5">
-                              <User size={11} className="text-slate-400 shrink-0" />
-                              <span className="text-[11px] text-slate-500 truncate">
+                              <User
+                                size={11}
+                                className="text-slate-400 shrink-0"
+                              />
+                              <span className="truncate text-xs font-medium text-slate-700">
                                 {c.clienteNome || c.empresaNome}
                               </span>
                             </div>
                           )}
                           {c.horario && (
                             <div className="flex items-center gap-1.5 mt-0.5">
-                              <Clock size={11} className="text-slate-400 shrink-0" />
-                              <span className="text-[11px] text-slate-500">{formatAppointmentTime(c.horario)}</span>
+                              <Clock
+                                size={11}
+                                className="text-slate-400 shrink-0"
+                              />
+                              <span className="text-xs font-semibold text-slate-700">
+                                {formatAppointmentTime(c.horario)}
+                              </span>
                             </div>
                           )}
                           {c.tipo === "VISITA" && c.endereco && (
                             <div className="flex items-center gap-1.5 mt-0.5">
-                              <MapPin size={11} className="text-slate-400 shrink-0" />
-                              <span className="text-[11px] text-slate-500 truncate">{c.endereco}</span>
+                              <MapPin
+                                size={11}
+                                className="text-slate-400 shrink-0"
+                              />
+                              <span className="truncate text-xs text-slate-600">
+                                {c.endereco}
+                              </span>
                             </div>
                           )}
                           {c.observacoes && (
-                            <p className="text-[10px] text-slate-400 mt-1.5 line-clamp-2">{c.observacoes}</p>
+                            <p className="mt-2 line-clamp-2 rounded-lg bg-white/70 px-2 py-1.5 text-xs text-slate-600">
+                              {c.observacoes}
+                            </p>
                           )}
                         </div>
                       </div>
@@ -563,9 +700,11 @@ export default function AgendaPage() {
       <NovoCompromissoModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        defaultDate={diaSelecionado
-          ? `${anoAtual}-${String(mesAtual + 1).padStart(2, "0")}-${String(diaSelecionado).padStart(2, "0")}`
-          : undefined}
+        defaultDate={
+          diaSelecionado
+            ? `${anoAtual}-${String(mesAtual + 1).padStart(2, "0")}-${String(diaSelecionado).padStart(2, "0")}`
+            : undefined
+        }
         clientes={clientes}
         empresas={empresas}
         projetos={projetos}
@@ -585,7 +724,9 @@ export default function AgendaPage() {
             const target = deleteTarget;
             if (!target) return;
             await deleteAppointment(target.id);
-            setAllAppointments((prev) => prev.filter((a) => a.id !== target.id));
+            setAllAppointments((prev) =>
+              prev.filter((a) => a.id !== target.id),
+            );
             setDeleteTarget(null);
           }}
         />

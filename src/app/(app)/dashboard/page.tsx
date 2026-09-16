@@ -136,7 +136,9 @@ function ActivityList({ tasks }: { tasks: Task[] }) {
             <h2 className="text-base font-bold text-slate-900 tracking-tight">
               Atividades Recentes do CRM
             </h2>
-            <p className="text-xs text-slate-500">Últimas movimentações e status de tarefas</p>
+            <p className="text-xs text-slate-500">
+              Últimas movimentações e status de tarefas
+            </p>
           </div>
         </div>
 
@@ -158,16 +160,21 @@ function ActivityList({ tasks }: { tasks: Task[] }) {
             const status = statusConfig[task.status] || statusConfig.BACKLOG;
             return (
               <div key={task.id} className="flex items-center gap-3 py-3">
-                <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${status.dot}`} />
+                <span
+                  className={`h-2.5 w-2.5 shrink-0 rounded-full ${status.dot}`}
+                />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-xs sm:text-sm font-semibold text-slate-800">
                     {task.titulo}
                   </p>
                   <p className="text-[11px] text-slate-400 mt-0.5">
-                    {task.assigneeName || "Sem responsável"} • {task.prioridade || "Normal"}
+                    {task.assigneeName || "Sem responsável"} •{" "}
+                    {task.prioridade || "Normal"}
                   </p>
                 </div>
-                <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold ${status.badge}`}>
+                <span
+                  className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold ${status.badge}`}
+                >
                   {status.label}
                 </span>
               </div>
@@ -189,21 +196,25 @@ export default function DashboardPage() {
 
   // Customization & Metas state
   const [layoutItems, setLayoutItems] = useState<DashboardLayoutItem[]>(() =>
-    loadDashboardLayout()
+    loadDashboardLayout(),
   );
-  const [commercialGoals, setCommercialGoals] = useState<CommercialGoalsConfig>(() =>
-    loadCommercialGoals()
+  const [commercialGoals, setCommercialGoals] = useState<CommercialGoalsConfig>(
+    () => loadCommercialGoals(),
   );
-  const [dynamicWidgets, setDynamicWidgets] = useState<DashboardMetricWidget[]>(() =>
-    loadDashboardWidgets()
+  const [dynamicWidgets, setDynamicWidgets] = useState<DashboardMetricWidget[]>(
+    () => loadDashboardWidgets(),
   );
   const [isCustomizerOpen, setIsCustomizerOpen] = useState(false);
 
   // Filter state
-  const [periodFilter, setPeriodFilter] = useState<"month" | "quarter" | "year" | "all">("month");
+  const [periodFilter, setPeriodFilter] = useState<
+    "month" | "quarter" | "year" | "all"
+  >("month");
   const [assigneeFilter, setAssigneeFilter] = useState<string>("all");
   const [statusFilter] = useState<StatusTarefa | "all">("all");
-  const [teamSort, setTeamSort] = useState<"progress" | "activities" | "pending">("progress");
+  const [teamSort, setTeamSort] = useState<
+    "progress" | "activities" | "pending"
+  >("progress");
   const [showInactiveMembers] = useState(false);
 
   // Listen to Layout changes & Metas changes
@@ -265,17 +276,24 @@ export default function DashboardPage() {
   const filteredTasks = useMemo(() => {
     return tasks.filter((task) => {
       if (statusFilter !== "all" && task.status !== statusFilter) return false;
-      if (assigneeFilter !== "all" && task.assigneeName !== assigneeFilter) return false;
+      if (assigneeFilter !== "all" && task.assigneeName !== assigneeFilter)
+        return false;
       if (periodFilter !== "all") {
         const taskDate = new Date(task.updatedAt);
         const now = new Date();
         if (periodFilter === "month") {
-          if (taskDate.getMonth() !== now.getMonth() || taskDate.getFullYear() !== now.getFullYear())
+          if (
+            taskDate.getMonth() !== now.getMonth() ||
+            taskDate.getFullYear() !== now.getFullYear()
+          )
             return false;
         } else if (periodFilter === "quarter") {
           const currentQuarter = Math.floor(now.getMonth() / 3);
           const taskQuarter = Math.floor(taskDate.getMonth() / 3);
-          if (taskQuarter !== currentQuarter || taskDate.getFullYear() !== now.getFullYear())
+          if (
+            taskQuarter !== currentQuarter ||
+            taskDate.getFullYear() !== now.getFullYear()
+          )
             return false;
         } else if (periodFilter === "year") {
           if (taskDate.getFullYear() !== now.getFullYear()) return false;
@@ -287,7 +305,9 @@ export default function DashboardPage() {
 
   const assignees = useMemo(() => {
     const names = new Set(
-      tasks.map((t) => t.assigneeName).filter((name): name is string => Boolean(name))
+      tasks
+        .map((t) => t.assigneeName)
+        .filter((name): name is string => Boolean(name)),
     );
     return Array.from(names).sort();
   }, [tasks]);
@@ -313,22 +333,30 @@ export default function DashboardPage() {
                   inProgress: 0,
                   review: 0,
                 },
-              ])
-          ).values()
+              ]),
+          ).values(),
         );
 
   const memberRows = visibleMembers.map((member) => {
-    const memberTasks = filteredTasks.filter((task) => task.assigneeName === member.name);
-    return { member, tasks: memberTasks, summary: summarizeActivities(memberTasks) };
+    const memberTasks = filteredTasks.filter(
+      (task) => task.assigneeName === member.name,
+    );
+    return {
+      member,
+      tasks: memberTasks,
+      summary: summarizeActivities(memberTasks),
+    };
   });
-  const activeMemberRows = memberRows.filter(({ summary }) => summary.total > 0);
-  const displayedMemberRows = [...(showInactiveMembers ? memberRows : activeMemberRows)].sort(
-    (a, b) => {
-      if (teamSort === "activities") return b.summary.total - a.summary.total;
-      if (teamSort === "pending") return b.summary.pending - a.summary.pending;
-      return b.summary.completionRate - a.summary.completionRate;
-    }
+  const activeMemberRows = memberRows.filter(
+    ({ summary }) => summary.total > 0,
   );
+  const displayedMemberRows = [
+    ...(showInactiveMembers ? memberRows : activeMemberRows),
+  ].sort((a, b) => {
+    if (teamSort === "activities") return b.summary.total - a.summary.total;
+    if (teamSort === "pending") return b.summary.pending - a.summary.pending;
+    return b.summary.completionRate - a.summary.completionRate;
+  });
 
   // Goal chart data computed directly from commercial goals & real stats
   const goalChartData = useMemo(() => {
@@ -348,16 +376,17 @@ export default function DashboardPage() {
   const salesGeralData = useMemo(() => {
     const totals = calcGoalsTotals(commercialGoals);
     return {
-      totalClientes: stats?.salesGeral?.totalClientes || 120,
-      clientesAtivos: stats?.salesGeral?.clientesAtivos || 84,
-      taxaConversao: stats?.salesGeral?.taxaConversao || 72,
-      receitaTotal: totals.totalRealizadoValor || stats?.salesGeral?.receitaTotal || 3940000,
-      ticketMedio: stats?.salesGeral?.ticketMedio || 48500,
-      vendasMes: stats?.salesGeral?.vendasMes || 70,
+      totalClientes: stats?.salesGeral?.totalClientes ?? 0,
+      clientesAtivos: stats?.salesGeral?.clientesAtivos ?? 0,
+      taxaConversao: stats?.salesGeral?.taxaConversao ?? 0,
+      receitaTotal:
+        stats?.salesGeral?.receitaTotal ?? totals.totalRealizadoValor ?? 0,
+      ticketMedio: stats?.salesGeral?.ticketMedio ?? 0,
+      vendasMes: stats?.salesGeral?.vendasMes ?? 0,
       metaValor: commercialGoals.metaGlobalValor,
       metaVolume: commercialGoals.metaGlobalVolume,
-      visitas: stats?.salesGeral?.visitas || 95,
-      clientesRetornando: stats?.salesGeral?.clientesRetornando || 38,
+      visitas: stats?.salesGeral?.visitas ?? 0,
+      clientesRetornando: stats?.salesGeral?.clientesRetornando ?? 0,
     };
   }, [stats, commercialGoals]);
 
@@ -368,63 +397,26 @@ export default function DashboardPage() {
     return commercialGoals.consultores.map((c) => ({
       nome: c.nome,
       initials: c.iniciais,
-      clientes: c.contas || 20,
-      vendas: c.vendas || 16,
-      conversao: c.conversao || 72,
+      clientes: c.contas || 0,
+      vendas: c.vendas || 0,
+      conversao: c.conversao || 0,
       receita: c.realizadoValor || 0,
       metaValor: c.valor || 0,
       metaVolume: c.volume || 0,
     }));
   }, [stats, commercialGoals]);
 
-  const visitData = useMemo(() => {
-    if (stats?.visitData && stats.visitData.length > 0) return stats.visitData;
-    return [
-      { cliente: "Fazenda Bela Vista", visitas: 8 },
-      { cliente: "Agropecuária Santa Fé", visitas: 6 },
-      { cliente: "Aquacultura São Pedro", visitas: 5 },
-      { cliente: "Rancho das Águas", visitas: 4 },
-      { cliente: "Fazenda Primavera", visitas: 4 },
-    ];
-  }, [stats]);
+  const visitData = useMemo(() => stats?.visitData ?? [], [stats]);
 
-  const frequencyData = useMemo(() => {
-    if (stats?.frequencyData && stats.frequencyData.length > 0) return stats.frequencyData;
-    return [
-      {
-        id: "1",
-        cliente: "Fazenda Bela Vista",
-        visitas: 8,
-        pedidos: 12,
-        ultimaVisita: "15/09/2026",
-        ultimoPedido: "14/09/2026",
-        ultimoContato: "Hoje",
-      },
-      {
-        id: "2",
-        cliente: "Agropecuária Santa Fé",
-        visitas: 6,
-        pedidos: 9,
-        ultimaVisita: "12/09/2026",
-        ultimoPedido: "10/09/2026",
-        ultimoContato: "3d atrás",
-      },
-      {
-        id: "3",
-        cliente: "Aquacultura São Pedro",
-        visitas: 5,
-        pedidos: 7,
-        ultimaVisita: "08/09/2026",
-        ultimoPedido: "05/09/2026",
-        ultimoContato: "7d atrás",
-      },
-    ];
-  }, [stats]);
+  const frequencyData = useMemo(() => stats?.frequencyData ?? [], [stats]);
 
   // Dynamic metric widgets handlers
-  const handleMoveDynamicWidget = useCallback((id: string, direction: "up" | "down") => {
-    setDynamicWidgets(moveDashboardWidget(id, direction));
-  }, []);
+  const handleMoveDynamicWidget = useCallback(
+    (id: string, direction: "up" | "down") => {
+      setDynamicWidgets(moveDashboardWidget(id, direction));
+    },
+    [],
+  );
 
   const handleRemoveDynamicWidget = useCallback((id: string) => {
     setDynamicWidgets(removeDashboardWidget(id));
@@ -437,16 +429,13 @@ export default function DashboardPage() {
   const enabledLayoutItems = layoutItems.filter((it) => it.enabled);
 
   return (
-    <div className="min-h-full bg-[#f8faff] p-4 sm:p-6 xl:p-8 space-y-6">
+    <div className="min-h-full bg-slate-50 p-4 sm:p-6 xl:p-8 space-y-6">
       {/* Top Header */}
       <header className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="text-xs font-bold uppercase tracking-[0.18em] text-brand-600">
+          <div className="mb-1.5">
+            <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
               Operação Comercial & Metas
-            </span>
-            <span className="rounded-full bg-brand-50 px-2 py-0.5 text-[10px] font-bold text-brand-700 border border-brand-200">
-              UpSprints Engine
             </span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-950">
@@ -471,18 +460,24 @@ export default function DashboardPage() {
                 {periodFilter === "month"
                   ? "Este mês"
                   : periodFilter === "quarter"
-                  ? "Este trimestre"
-                  : periodFilter === "year"
-                  ? "Este ano"
-                  : "Todo o período"}
+                    ? "Este trimestre"
+                    : periodFilter === "year"
+                      ? "Este ano"
+                      : "Todo o período"}
                 <CaretDown size={14} />
               </button>
             }
             items={[
               { label: "Este mês", onClick: () => setPeriodFilter("month") },
-              { label: "Este trimestre", onClick: () => setPeriodFilter("quarter") },
+              {
+                label: "Este trimestre",
+                onClick: () => setPeriodFilter("quarter"),
+              },
               { label: "Este ano", onClick: () => setPeriodFilter("year") },
-              { label: "Todo o período", onClick: () => setPeriodFilter("all") },
+              {
+                label: "Todo o período",
+                onClick: () => setPeriodFilter("all"),
+              },
             ]}
           />
 
@@ -513,11 +508,15 @@ export default function DashboardPage() {
           <button
             type="button"
             onClick={() => setIsCustomizerOpen(true)}
-            className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs sm:text-sm font-bold text-slate-800 shadow-xs hover:bg-slate-50 transition cursor-pointer"
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs sm:text-sm font-semibold text-slate-700 shadow-xs hover:border-slate-300 hover:bg-slate-50 transition cursor-pointer"
             title="Personalizar layout e escolher o que aparece no dashboard"
           >
-            <SlidersHorizontal size={16} weight="bold" className="text-brand-600" />
-            <span>Personalizar Dashboard</span>
+            <SlidersHorizontal
+              size={16}
+              weight="bold"
+              className="text-brand-600"
+            />
+            <span>Personalizar</span>
             <span className="rounded-full bg-slate-100 px-1.5 py-0.2 text-[10px] font-bold text-slate-600">
               {enabledLayoutItems.length}
             </span>
@@ -526,7 +525,7 @@ export default function DashboardPage() {
           {/* Define Goals Link */}
           <Link
             href="/configurar-metas"
-            className="inline-flex items-center gap-1.5 rounded-xl bg-brand-600 hover:bg-brand-700 px-4 py-2 text-xs sm:text-sm font-bold text-white shadow-md shadow-brand-600/20 transition cursor-pointer"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 px-4 py-2 text-xs sm:text-sm font-semibold text-white shadow-sm transition cursor-pointer"
           >
             <Target size={16} weight="bold" />
             <span>Definir Metas</span>
@@ -567,7 +566,8 @@ export default function DashboardPage() {
             Nenhum bloco ativo no seu Dashboard
           </h3>
           <p className="mt-1 text-sm text-slate-500 max-w-md mx-auto">
-            Você pode escolher quais métricas, gráficos e tabelas deseja visualizar na tela.
+            Você pode escolher quais métricas, gráficos e tabelas deseja
+            visualizar na tela.
           </p>
           <button
             type="button"
@@ -583,10 +583,17 @@ export default function DashboardPage() {
           {enabledLayoutItems.map((item) => {
             switch (item.id) {
               case "metas_overview":
-                return <MetasOverviewWidget key={item.id} goals={commercialGoals} />;
+                return (
+                  <MetasOverviewWidget key={item.id} goals={commercialGoals} />
+                );
 
               case "metas_consultores":
-                return <MetasConsultoresWidget key={item.id} goals={commercialGoals} />;
+                return (
+                  <MetasConsultoresWidget
+                    key={item.id}
+                    goals={commercialGoals}
+                  />
+                );
 
               case "goal_chart":
                 return (
@@ -609,13 +616,19 @@ export default function DashboardPage() {
               case "sales_rate":
                 return (
                   <div key={item.id}>
-                    <SalesRate geral={salesGeralData} porPessoa={salesPorPessoaData} />
+                    <SalesRate
+                      geral={salesGeralData}
+                      porPessoa={salesPorPessoaData}
+                    />
                   </div>
                 );
 
               case "team_workload":
                 return (
-                  <div key={item.id} className="rounded-3xl border border-slate-200/90 bg-white p-6 shadow-[0_8px_30px_rgba(15,23,42,0.04)]">
+                  <div
+                    key={item.id}
+                    className="rounded-3xl border border-slate-200/90 bg-white p-6 shadow-[0_8px_30px_rgba(15,23,42,0.04)]"
+                  >
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-100">
                       <div className="flex items-center gap-3">
                         <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-violet-50 text-violet-600 border border-violet-100">
@@ -625,7 +638,9 @@ export default function DashboardPage() {
                           <h2 className="text-base font-bold text-slate-900 tracking-tight">
                             Produtividade e Carga da Equipe
                           </h2>
-                          <p className="text-xs text-slate-500">Tarefas e tempo estimado por membro</p>
+                          <p className="text-xs text-slate-500">
+                            Tarefas e tempo estimado por membro
+                          </p>
                         </div>
                       </div>
 
@@ -638,13 +653,27 @@ export default function DashboardPage() {
                               type="button"
                               className="rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 cursor-pointer"
                             >
-                              Ordenar: {teamSort === "activities" ? "Mais tarefas" : teamSort === "pending" ? "Mais pendências" : "Maior progresso"}
+                              Ordenar:{" "}
+                              {teamSort === "activities"
+                                ? "Mais tarefas"
+                                : teamSort === "pending"
+                                  ? "Mais pendências"
+                                  : "Maior progresso"}
                             </button>
                           }
                           items={[
-                            { label: "Maior progresso", onClick: () => setTeamSort("progress") },
-                            { label: "Mais tarefas", onClick: () => setTeamSort("activities") },
-                            { label: "Mais pendências", onClick: () => setTeamSort("pending") },
+                            {
+                              label: "Maior progresso",
+                              onClick: () => setTeamSort("progress"),
+                            },
+                            {
+                              label: "Mais tarefas",
+                              onClick: () => setTeamSort("activities"),
+                            },
+                            {
+                              label: "Mais pendências",
+                              onClick: () => setTeamSort("pending"),
+                            },
                           ]}
                         />
                       </div>
@@ -674,7 +703,10 @@ export default function DashboardPage() {
                     <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">
                       Frequência de Compras e Últimos Contatos
                     </h3>
-                    <FrequencySection chartData={visitData} tableData={frequencyData} />
+                    <FrequencySection
+                      chartData={visitData}
+                      tableData={frequencyData}
+                    />
                   </div>
                 );
 
