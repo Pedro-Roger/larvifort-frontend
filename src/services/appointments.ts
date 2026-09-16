@@ -75,6 +75,11 @@ function num(value: unknown): number | null {
   return null;
 }
 
+function dateOnly(value: unknown): string {
+  const text = str(value) ?? "";
+  return text.includes("T") ? text.slice(0, 10) : text;
+}
+
 export function normalizeAppointment(raw: unknown): Appointment {
   const a = typeof raw === "object" && raw !== null
     ? (raw as Record<string, unknown>)
@@ -94,7 +99,7 @@ export function normalizeAppointment(raw: unknown): Appointment {
     id: str(a.id) ?? "",
     tipo: asTipoCompromisso(a.tipo),
     titulo: str(a.titulo) ?? "",
-    data: str(a.data) ?? "",
+    data: dateOnly(a.data),
     horario: str(a.horario),
     endereco: str(a.endereco),
     observacoes: str(a.observacoes),
@@ -144,8 +149,8 @@ export function fetchAppointments(params?: {
   tipo?: TipoCompromisso;
 }): Promise<Appointment[]> {
   const query = new URLSearchParams();
-  if (params?.startDate) query.set("startDate", params.startDate);
-  if (params?.endDate) query.set("endDate", params.endDate);
+  if (params?.startDate) query.set("de", params.startDate);
+  if (params?.endDate) query.set("ate", params.endDate);
   if (params?.tipo) query.set("tipo", params.tipo);
   const qs = query.toString();
   return apiGet<unknown>(`/appointments${qs ? `?${qs}` : ""}`).then((raw) =>

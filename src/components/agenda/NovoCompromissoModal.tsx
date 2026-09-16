@@ -11,8 +11,8 @@ import {
   tipoCompromissoLabel,
 } from "@/services/appointments";
 import { ApiError } from "@/services/api";
-import { fetchColumns, fetchProjetos, type Projeto, type TaskColumn } from "@/services/tasks";
-import { fetchUsers, type User } from "@/services/users";
+import { fetchColumns, type Projeto, type TaskColumn } from "@/services/tasks";
+import { type User } from "@/services/users";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface NovoCompromissoModalProps {
@@ -72,7 +72,9 @@ export default function NovoCompromissoModal({
   useEffect(() => {
     if (!open || !form.projectId) return;
     let cancelled = false;
-    setLoadingColumns(true);
+    queueMicrotask(() => {
+      if (!cancelled) setLoadingColumns(true);
+    });
     fetchColumns(form.projectId)
       .then((items) => {
         if (cancelled) return;
@@ -88,15 +90,34 @@ export default function NovoCompromissoModal({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<{
     titulo?: string;
+    clienteId?: string;
     data?: string;
     horario?: string;
+    projectId?: string;
   }>({});
+
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      setForm((prev) => ({
+        ...prev,
+        data: prev.data || defaultDate,
+        projectId: prev.projectId || defaultProjectId,
+        assigneeId: prev.assigneeId || currentUserId,
+      }));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [open, defaultDate, defaultProjectId, currentUserId]);
 
   if (!open) return null;
 
   const handleChange = (field: keyof FormState, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
-    if (field === "titulo" || field === "data" || field === "horario") {
+    if (field === "titulo" || field === "clienteId" || field === "data" || field === "horario" || field === "projectId") {
       setFieldErrors((prev) => ({ ...prev, [field]: undefined }));
     }
   };
@@ -122,15 +143,21 @@ export default function NovoCompromissoModal({
   };
 
   const validate = (): boolean => {
-    const errors: { titulo?: string; data?: string; horario?: string } = {};
+    const errors: { titulo?: string; clienteId?: string; data?: string; horario?: string; projectId?: string } = {};
     if (!form.titulo.trim()) {
       errors.titulo = "Título é obrigatório";
+    }
+    if (!form.clienteId) {
+      errors.clienteId = "Selecione um cliente cadastrado";
     }
     if (!form.data) {
       errors.data = "Data é obrigatória";
     }
     if (!form.horario) {
       errors.horario = "Horário é obrigatório";
+    }
+    if (!form.projectId) {
+      errors.projectId = "Selecione um projeto do quadro para criar a atividade";
     }
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
@@ -286,12 +313,15 @@ export default function NovoCompromissoModal({
                   {c.nome}
                 </option>
               ))}
-              {empresas.map((e) => (
-                <option key={e.id} value={e.id}>
-                  {e.nome} (Empresa)
+              {empresas.length > 0 && (
+                <option value="" disabled>
+                  Empresas aparecem como vínculo do cliente cadastrado
                 </option>
-              ))}
+              )}
             </select>
+            {fieldErrors.clienteId && (
+              <p className="text-[11px] text-red-500 mt-1">{fieldErrors.clienteId}</p>
+            )}
           </div>
 
           {/* Data e Horário */}
@@ -347,6 +377,9 @@ export default function NovoCompromissoModal({
                 <option value="">Selecione o projeto...</option>
                 {projetos.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
               </select>
+              {fieldErrors.projectId && (
+                <p className="text-[11px] text-red-500 mt-1">{fieldErrors.projectId}</p>
+              )}
             </label>
             <label className="block text-xs font-semibold text-slate-700 sm:col-span-2">
               Coluna inicial no quadro

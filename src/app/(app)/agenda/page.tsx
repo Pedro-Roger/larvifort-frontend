@@ -101,10 +101,8 @@ export default function AgendaPage() {
       setLoading(true);
       setError(false);
       try {
-        const firstDay = new Date(anoAtual, mesAtual, 1);
-        const lastDay = new Date(anoAtual, mesAtual + 1, 0);
-        const startDate = firstDay.toISOString().split("T")[0];
-        const endDate = lastDay.toISOString().split("T")[0];
+        const startDate = `${anoAtual}-${String(mesAtual + 1).padStart(2, "0")}-01`;
+        const endDate = `${anoAtual}-${String(mesAtual + 1).padStart(2, "0")}-${String(new Date(anoAtual, mesAtual + 1, 0).getDate()).padStart(2, "0")}`;
 
         const appointments = await fetchAppointments({ startDate, endDate });
         if (cancelled) return;
