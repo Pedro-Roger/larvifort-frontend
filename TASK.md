@@ -51,6 +51,42 @@ O backend deve estar publicado e validado antes de ativar cada fluxo.
 - Usar `Avatar` real quando houver URL e iniciais como fallback.
 - Eliminar nomes/e-mails hardcoded e padronizar mensagens em português.
 
+## CRM-018 — Cliente real no novo compromisso (P0, depende de API-011)
+
+- Remover empresas do seletor e da carga de dados da modal de compromisso.
+- Listar somente clientes reais de `GET /clients` e enviar `clienteId`.
+- Tornar cliente obrigatório e mostrar carregamento, erro com retry e estado
+  vazio sem fallback silencioso.
+- Exibir a empresa vinculada apenas como texto auxiliar do cliente, quando
+  disponível.
+- Cobrir payload correto e impedir que ID de empresa seja enviado como cliente.
+
+## CRM-019 — Coluna de compromissos na automação (P0, depende de API-012)
+
+- Adicionar `Compromisso criado` ao seletor de gatilho.
+- Adicionar `Criar card de compromisso` ao seletor de ação.
+- Exigir coluna de destino carregada do quadro atual e persistir
+  `targetColumnId`.
+- Mostrar a coluna no resumo e bloquear referência inexistente/arquivada.
+- Atualizar o quadro por evento ou refetch seguro, sem inserir card simulado.
+
+## CRM-020 — Card de compromisso e confirmação (P0, depende de API-013/CRM-019)
+
+- Estender o contrato de task com tipo, compromisso, cliente e confirmação.
+- Exibir cliente, atividade, data/horário e estado de confirmação no card.
+- Mostrar `Confirmar atividade` apenas em compromisso pendente autorizado.
+- Capturar uma posição com Geolocation API e enviar latitude, longitude e
+  precisão; usar `confirmedAt` da API na apresentação.
+- Tratar permissão negada, indisponibilidade, timeout, 403, 409 e duplo clique.
+- Compartilhar a ação entre `KanbanCard` e `TaskDetailModal`.
+
+## CRM-021 — Validação integrada e responsiva (P0, depende de CRM-018/020)
+
+- Testar services e componentes para clientes, automação e confirmação.
+- Validar agenda → card na coluna → check-in em desktop e mobile.
+- Confirmar que task geral não exibe botão e que não existe mock/fallback.
+- Executar typecheck, lint e build após o backend estar publicado e validado.
+
 ## Gate de cada tarefa
 
 Executar `npm run typecheck`, `npm run lint`, `npm run build` e inspeção desktop/mobile.

@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import Sidebar from "@/components/layout/Sidebar";
+import LiaFloatingAssistant from "@/components/chat/LiaFloatingAssistant";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -24,6 +25,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <Sidebar />
       <div className="min-w-0 flex-1 flex flex-col min-h-dvh overflow-y-auto relative bg-[#f8f9fb] pt-14 lg:pt-0">
         {children}
+        <LiaFloatingAssistant />
       </div>
     </div>
   );

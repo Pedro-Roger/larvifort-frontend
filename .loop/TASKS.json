@@ -25,6 +25,10 @@
   { "id": "CRM-014", "title": "Frontend: Editor de regras por quadro", "status": "completed", "priority": 14, "dependsOn": ["CRM-012"] },
   { "id": "CRM-015", "title": "Frontend: Editor de automações por quadro", "status": "completed", "priority": 15, "dependsOn": ["CRM-012"] },
   { "id": "CRM-016", "title": "Frontend: Templates opt-in", "status": "completed", "priority": 16, "dependsOn": ["CRM-014", "CRM-015"] },
-  { "id": "CRM-017", "title": "Frontend: UX transversal, dropdowns consistentes e avatar real", "status": "completed", "priority": 17, "dependsOn": ["CRM-013"] }
+  { "id": "CRM-017", "title": "Frontend: UX transversal, dropdowns consistentes e avatar real", "status": "completed", "priority": 17, "dependsOn": ["CRM-013"] },
+  { "id": "CRM-018", "title": "Frontend: usar somente clientes reais no novo compromisso", "status": "pending", "priority": 18, "dependsOn": ["API-011"] },
+  { "id": "CRM-019", "title": "Frontend: configurar coluna de compromissos na automacao", "status": "pending", "priority": 19, "dependsOn": ["API-012"] },
+  { "id": "CRM-020", "title": "Frontend: card de compromisso com confirmacao e geolocalizacao", "status": "pending", "priority": 20, "dependsOn": ["API-013", "CRM-019"] },
+  { "id": "CRM-021", "title": "Frontend: validar fluxo agenda, card e check-in em desktop e mobile", "status": "pending", "priority": 21, "dependsOn": ["CRM-018", "CRM-020"] }
   ]
 }

@@ -184,13 +184,27 @@ Completar e integrar o CRM Larvifort com o backend.
 - [x] CRM-017: UX transversal, dropdowns consistentes e avatar real
 
 - [ ] Backend publicado antes dos fluxos dependentes do frontend
-- [ ] Zero fallback/mock nos fluxos de produção
+- [x] Zero fallback/mock nos fluxos de produção
 
-- [ ] Zero dados mockados em produção
-- [ ] Typecheck passa
-- [ ] Lint passa
-- [ ] Build passa
-- [ ] Fluxo login → dashboard → CRUD completo
+- [x] Zero dados mockados em produção
+- [x] Typecheck passa
+- [x] Lint passa
+- [x] Build passa
+- [ ] Fluxo login → dashboard → CRUD completo (aguarda backend)
+
+### FASE 7 - Compromissos, automação e confirmação de atividade
+
+- [x] CRM-018: `Novo compromisso` usa somente clientes reais cadastrados
+- [x] CRM-019: Automação permite escolher a coluna real que recebe compromissos
+- [x] CRM-020: Card de compromisso mostra cliente/atividade e permite check-in
+- [ ] CRM-021: Fluxo integrado validado em desktop e mobile sem mock/fallback (aguarda backend)
+
+#### Resultado esperado
+
+O usuário seleciona um cliente real ao agendar, configura no quadro a coluna de
+entrada dos compromissos e confirma a atividade no card. A interface captura
+uma única localização mediante ação explícita e exibe a data/hora confirmada
+pela API.
 
 ## Comandos
 

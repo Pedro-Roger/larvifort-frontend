@@ -283,7 +283,7 @@ export default function KanbanPage() {
 
   useEffect(() => {
     if (!projetoId) {
-      setBoardRules([]);
+      queueMicrotask(() => setBoardRules([]));
       return;
     }
     let cancelled = false;
@@ -407,7 +407,7 @@ export default function KanbanPage() {
   const sectorMembers = useMemo(() => {
     const teamMembers = users.filter((u) => !projetoAtual?.teamId || u.teamId === projetoAtual.teamId);
     return teamMembers.length > 0 ? teamMembers : users;
-  }, [projetoAtual?.teamId, users]);
+  }, [projetoAtual, users]);
 
   const totalTasks = columns.reduce(
     (acc, col) => acc + (columnPages[col.id]?.total ?? cards[col.title]?.length ?? 0),
