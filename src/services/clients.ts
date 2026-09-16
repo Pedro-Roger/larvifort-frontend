@@ -57,6 +57,7 @@ export type ClienteInput = {
   uf?: string | null;
   endereco?: string | null;
   observacoes?: string | null;
+  empresaId?: string | null;
   laminaAgua?: number | null;
   qtdViveiros?: number | null;
   densidade?: number | null;

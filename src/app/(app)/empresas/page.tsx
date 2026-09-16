@@ -29,6 +29,12 @@ import {
   type EmpresaStatus,
   type GrupoComercial,
 } from "@/services/companies";
+import {
+  fetchClients,
+  updateClient,
+  clientInitials,
+  type Cliente,
+} from "@/services/clients";
 
 export default function EmpresasPage() {
   const [aba, setAba] = useState<"empresas" | "grupos">("grupos");
@@ -36,6 +42,7 @@ export default function EmpresasPage() {
   // Data state
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [grupos, setGrupos] = useState<GrupoComercial[]>([]);
+  const [clientes, setClientes] = useState<Cliente[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [tryCount, setTryCount] = useState(0);
@@ -61,6 +68,8 @@ export default function EmpresasPage() {
     status: "PROSPECT" as EmpresaStatus,
   });
   const [novaEmpresaLoading, setNovaEmpresaLoading] = useState(false);
+  const [clienteGrupoSelecionado, setClienteGrupoSelecionado] = useState<Record<string, string>>({});
+  const [clienteVinculandoId, setClienteVinculandoId] = useState<string | null>(null);
   const [busca, setBusca] = useState("");
 
   useEffect(() => {
@@ -70,13 +79,15 @@ export default function EmpresasPage() {
       setLoading(true);
       setError(false);
       try {
-        const [empresasResult, gruposResult] = await Promise.all([
+        const [empresasResult, gruposResult, clientesResult] = await Promise.all([
           fetchEmpresas({ pageSize: 100 }),
           fetchGruposComerciais(),
+          fetchClients({ pageSize: 100 }),
         ]);
         if (cancelled) return;
         setEmpresas(empresasResult.items);
         setGrupos(gruposResult);
+        setClientes(clientesResult.items);
       } catch {
         if (cancelled) return;
         setError(true);
@@ -116,6 +127,58 @@ export default function EmpresasPage() {
           (e.grupoName || "").toLowerCase().includes(busca.toLowerCase())
       )
     : todasEmpresas;
+
+  const clientesFiltrados = busca
+    ? clientes.filter((cliente) => {
+        const nome = `${cliente.firstName} ${cliente.lastName}`.toLowerCase();
+        const termo = busca.toLowerCase();
+        return (
+          nome.includes(termo) ||
+          (cliente.cpfCnpj || "").toLowerCase().includes(termo) ||
+          (cliente.cidade || "").toLowerCase().includes(termo)
+        );
+      })
+    : clientes;
+
+  const empresasPorId = new Map(empresas.map((empresa) => [empresa.id, empresa]));
+
+  async function vincularClienteAoGrupo(cliente: Cliente) {
+    const grupoId = clienteGrupoSelecionado[cliente.id];
+    const grupo = grupos.find((g) => g.id === grupoId);
+    if (!grupo) return;
+
+    const nomeCliente = `${cliente.firstName} ${cliente.lastName}`.trim() || "Cliente";
+    setClienteVinculandoId(cliente.id);
+    try {
+      const empresa = await createEmpresa({
+        name: nomeCliente,
+        cnpj: null,
+        city: cliente.cidade
+          ? `${cliente.cidade}${cliente.uf ? `, ${cliente.uf}` : ""}`
+          : null,
+        status: "PROSPECT",
+        grupoId,
+      });
+      const clienteAtualizado = await updateClient(cliente.id, {
+        firstName: cliente.firstName,
+        lastName: cliente.lastName,
+        empresaId: empresa.id,
+      });
+      setEmpresas((atuais) => [...atuais, { ...empresa, grupoName: grupo.name }]);
+      setClientes((atuais) =>
+        atuais.map((item) =>
+          item.id === cliente.id ? clienteAtualizado : item
+        )
+      );
+      setClienteGrupoSelecionado((atual) => {
+        const next = { ...atual };
+        delete next[cliente.id];
+        return next;
+      });
+    } finally {
+      setClienteVinculandoId(null);
+    }
+  }
 
   async function criarGrupo() {
     if (!novoGrupoNome.trim()) return;
@@ -521,9 +584,10 @@ export default function EmpresasPage() {
 
         {/* ABA: Todas as Empresas */}
         {aba === "empresas" && (
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-xs">
+          <div className="space-y-5">
+            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse text-xs">
                 <thead>
                   <tr className="border-b border-slate-200 bg-slate-50/70 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
                     <th className="py-3 px-4">Empresa</th>
@@ -602,8 +666,128 @@ export default function EmpresasPage() {
                     ))
                   )}
                 </tbody>
-              </table>
+                </table>
+              </div>
             </div>
+
+            <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-sm font-bold text-slate-800">
+                    Clientes para adicionar ao grupo comercial
+                  </h2>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Escolha um grupo e o sistema cria a empresa do cliente já vinculada.
+                  </p>
+                </div>
+                <span className="text-[11px] font-semibold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full">
+                  {clientesFiltrados.length} cliente{clientesFiltrados.length === 1 ? "" : "s"}
+                </span>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr className="border-b border-slate-200 bg-slate-50/70 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                      <th className="py-3 px-4">Cliente</th>
+                      <th className="py-3 px-4">Cidade</th>
+                      <th className="py-3 px-4">Empresa / Grupo atual</th>
+                      <th className="py-3 px-4">Grupo comercial</th>
+                      <th className="py-3 px-4 text-right">Ação</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {clientesFiltrados.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="py-10 text-center text-slate-500">
+                          Nenhum cliente encontrado.
+                        </td>
+                      </tr>
+                    ) : (
+                      clientesFiltrados.map((cliente) => {
+                        const empresaAtual = cliente.empresaId
+                          ? empresasPorId.get(cliente.empresaId)
+                          : null;
+                        const nomeCliente = `${cliente.firstName} ${cliente.lastName}`.trim();
+                        const grupoEscolhido = clienteGrupoSelecionado[cliente.id] || "";
+                        return (
+                          <tr key={cliente.id} className="hover:bg-slate-50/80 transition-colors">
+                            <td className="py-3 px-4">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full bg-sky-50 text-sky-700 font-bold text-xs flex items-center justify-center">
+                                  {clientInitials(cliente.firstName, cliente.lastName)}
+                                </div>
+                                <div>
+                                  <p className="font-semibold text-slate-800">
+                                    {nomeCliente || "Sem nome"}
+                                  </p>
+                                  <p className="text-[11px] text-slate-400">
+                                    {cliente.cpfCnpj || cliente.phone || "Sem documento"}
+                                  </p>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="py-3 px-4 text-slate-600">
+                              {cliente.cidade ? `${cliente.cidade}${cliente.uf ? `, ${cliente.uf}` : ""}` : "-"}
+                            </td>
+                            <td className="py-3 px-4">
+                              {empresaAtual ? (
+                                <div>
+                                  <p className="font-medium text-slate-700">{empresaAtual.name}</p>
+                                  <p className="text-[11px] text-slate-400">
+                                    {empresaAtual.grupoName || "Sem grupo"}
+                                  </p>
+                                </div>
+                              ) : (
+                                <span className="text-slate-400">Sem empresa</span>
+                              )}
+                            </td>
+                            <td className="py-3 px-4">
+                              <select
+                                value={grupoEscolhido}
+                                onChange={(event) =>
+                                  setClienteGrupoSelecionado((atual) => ({
+                                    ...atual,
+                                    [cliente.id]: event.target.value,
+                                  }))
+                                }
+                                disabled={Boolean(empresaAtual?.grupoId)}
+                                className="h-8 min-w-[190px] rounded-lg border border-slate-200 bg-white px-2 text-xs text-slate-600 focus:outline-none focus:ring-1 focus:ring-sky-500 disabled:bg-slate-50 disabled:text-slate-400"
+                              >
+                                <option value="">Escolha o grupo</option>
+                                {grupos.map((grupo) => (
+                                  <option key={grupo.id} value={grupo.id}>
+                                    {grupo.name}
+                                  </option>
+                                ))}
+                              </select>
+                            </td>
+                            <td className="py-3 px-4 text-right">
+                              <button
+                                type="button"
+                                onClick={() => vincularClienteAoGrupo(cliente)}
+                                disabled={
+                                  !grupoEscolhido ||
+                                  Boolean(empresaAtual?.grupoId) ||
+                                  clienteVinculandoId === cliente.id
+                                }
+                                className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-sky-600 px-3 py-2 text-[11px] font-bold text-white shadow-sm shadow-sky-500/20 transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-50"
+                              >
+                                {clienteVinculandoId === cliente.id ? (
+                                  <CircleNotch size={13} className="animate-spin" />
+                                ) : (
+                                  <Plus size={13} />
+                                )}
+                                {empresaAtual?.grupoId ? "Vinculado" : "Adicionar"}
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </section>
           </div>
         )}
       </main>
