@@ -5,12 +5,10 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   CaretDown,
   Clock,
-  Funnel,
   Kanban,
   List,
   Plus,
   Trash,
-  Target,
   UsersThree,
   Warning,
 } from "@phosphor-icons/react";
@@ -162,7 +160,7 @@ function EmptyPersonalDashboard() {
   return (
     <section className="mt-8 rounded-3xl border border-dashed border-slate-300 bg-white p-8 text-center shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
       <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-50 text-brand-600">
-        <Target size={24} />
+        <Plus size={24} />
       </div>
       <h2 className="mt-4 text-xl font-bold text-slate-950">
         Seu Dashboard está limpo
@@ -364,94 +362,88 @@ export default function DashboardPage() {
           </p>
         </div>
         <div className="flex w-full flex-wrap items-center gap-2 lg:w-auto">
-          {/* Period Filter */}
-          <DropdownMenu
-            align="left"
-            width="sm"
-            trigger={
-              <button
-                type="button"
-                className="inline-flex min-w-0 flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-600 shadow-sm sm:flex-none"
-              >
-                <Funnel size={16} />
-                {periodFilter === "month"
-                  ? "Este mês"
-                  : periodFilter === "quarter"
-                  ? "Este trimestre"
-                  : periodFilter === "year"
-                  ? "Este ano"
-                  : "Todo o período"}
-                <CaretDown size={14} />
-              </button>
-            }
-            items={[
-              { label: "Este mês", onClick: () => setPeriodFilter("month") },
-              { label: "Este trimestre", onClick: () => setPeriodFilter("quarter") },
-              { label: "Este ano", onClick: () => setPeriodFilter("year") },
-              { label: "Todo o período", onClick: () => setPeriodFilter("all") },
-            ]}
-          />
+          {dashboardWidgets.length > 0 && (
+            <>
+              <DropdownMenu
+                align="left"
+                width="sm"
+                trigger={
+                  <button
+                    type="button"
+                    className="inline-flex min-w-0 flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-600 shadow-sm sm:flex-none"
+                  >
+                    {periodFilter === "month"
+                      ? "Este mês"
+                      : periodFilter === "quarter"
+                        ? "Este trimestre"
+                        : periodFilter === "year"
+                          ? "Este ano"
+                          : "Todo o período"}
+                    <CaretDown size={14} />
+                  </button>
+                }
+                items={[
+                  { label: "Este mês", onClick: () => setPeriodFilter("month") },
+                  { label: "Este trimestre", onClick: () => setPeriodFilter("quarter") },
+                  { label: "Este ano", onClick: () => setPeriodFilter("year") },
+                  { label: "Todo o período", onClick: () => setPeriodFilter("all") },
+                ]}
+              />
 
-          {/* Assignee Filter */}
-          <DropdownMenu
-            align="left"
-            width="sm"
-            trigger={
-              <button
-                type="button"
-                className="inline-flex min-w-0 flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-600 shadow-sm sm:flex-none"
-              >
-                <UsersThree size={16} />
-                {assigneeFilter === "all" ? "Todos" : assigneeFilter}
-                <CaretDown size={14} />
-              </button>
-            }
-            items={[
-              { label: "Todos", onClick: () => setAssigneeFilter("all") },
-              ...(assignees.filter((name): name is string => Boolean(name)).map((name) => ({
-                label: name,
-                onClick: () => setAssigneeFilter(name),
-              })) as Array<{ label: string; onClick: () => void }>),
-            ]}
-          />
+              <DropdownMenu
+                align="left"
+                width="sm"
+                trigger={
+                  <button
+                    type="button"
+                    className="inline-flex min-w-0 flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-600 shadow-sm sm:flex-none"
+                  >
+                    <UsersThree size={16} />
+                    {assigneeFilter === "all" ? "Todos" : assigneeFilter}
+                    <CaretDown size={14} />
+                  </button>
+                }
+                items={[
+                  { label: "Todos", onClick: () => setAssigneeFilter("all") },
+                  ...(assignees.filter((name): name is string => Boolean(name)).map((name) => ({
+                    label: name,
+                    onClick: () => setAssigneeFilter(name),
+                  })) as Array<{ label: string; onClick: () => void }>),
+                ]}
+              />
 
-          {/* Status Filter */}
-          <DropdownMenu
-            align="left"
-            width="sm"
-            trigger={
-              <button
-                type="button"
-                className="inline-flex min-w-0 flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-600 shadow-sm sm:flex-none"
-              >
-                <Kanban size={16} />
-                {statusFilter === "all"
-                  ? "Todos os status"
-                  : statusConfig[statusFilter]?.label || statusFilter}
-                <CaretDown size={14} />
-              </button>
-            }
-            items={[
-              { label: "Todos os status", onClick: () => setStatusFilter("all") },
-              ...(Object.keys(statusConfig) as StatusTarefa[]).map((status) => ({
-                label: statusConfig[status].label,
-                onClick: () => setStatusFilter(status),
-              })),
-            ]}
-          />
+              <DropdownMenu
+                align="left"
+                width="sm"
+                trigger={
+                  <button
+                    type="button"
+                    className="inline-flex min-w-0 flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-600 shadow-sm sm:flex-none"
+                  >
+                    <Kanban size={16} />
+                    {statusFilter === "all"
+                      ? "Todos os status"
+                      : statusConfig[statusFilter]?.label || statusFilter}
+                    <CaretDown size={14} />
+                  </button>
+                }
+                items={[
+                  { label: "Todos os status", onClick: () => setStatusFilter("all") },
+                  ...(Object.keys(statusConfig) as StatusTarefa[]).map((status) => ({
+                    label: statusConfig[status].label,
+                    onClick: () => setStatusFilter(status),
+                  })),
+                ]}
+              />
+            </>
+          )}
 
           <Link
-            href="/configurar-metas"
-            className="inline-flex min-w-0 flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-600 shadow-sm sm:flex-none hover:bg-slate-50 transition-colors"
+            href="/metricas"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-brand-600/20 transition hover:bg-brand-700 sm:w-auto"
           >
-            <Target size={16} /> Configurar Metas
+            <Plus size={17} /> Personalizar em Métricas
           </Link>
-          <button
-            type="button"
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-brand-600/20 hover:bg-brand-700 sm:w-auto"
-          >
-            <Plus size={17} /> Nova atividade
-          </button>
         </div>
       </header>
       {dashboardWidgets.length ? (
