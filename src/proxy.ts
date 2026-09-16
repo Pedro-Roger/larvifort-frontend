@@ -5,6 +5,7 @@ import { AUTH_COOKIE_NAME } from "@/services/api";
 const PROTECTED_PREFIXES = [
   "/dashboard",
   "/kanban",
+  "/pedidos",
   "/clientes",
   "/empresas",
   "/agenda",
@@ -12,6 +13,7 @@ const PROTECTED_PREFIXES = [
   "/metricas",
   "/pesquisa",
   "/perfil",
+  "/configuracoes",
 ];
 
 function isProtectedPath(pathname: string): boolean {
@@ -47,6 +49,7 @@ export const config = {
     "/",
     "/dashboard/:path*",
     "/kanban/:path*",
+    "/pedidos/:path*",
     "/clientes/:path*",
     "/empresas/:path*",
     "/agenda/:path*",
@@ -54,5 +57,6 @@ export const config = {
     "/metricas/:path*",
     "/pesquisa/:path*",
     "/perfil/:path*",
+    "/configuracoes/:path*",
   ],
 };

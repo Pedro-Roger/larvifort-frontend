@@ -11,7 +11,7 @@ import {
   SquaresFour,
   Bell,
   CalendarDots,
-  Handshake,
+  ShoppingCart,
   Kanban,
   ChartBar,
   Buildings,
@@ -30,7 +30,7 @@ const mainMenu = [
   { label: "Dashboard", href: "/dashboard", icon: SquaresFour },
   { label: "Notificações", href: "#", icon: Bell, badge: 3 },
   { label: "Agenda", href: "/agenda", icon: CalendarDots },
-  { label: "Negócios", href: "#", icon: Handshake },
+  { label: "Pedidos", href: "/pedidos", icon: ShoppingCart },
   { label: "Quadro", href: "/kanban", icon: Kanban },
   { label: "Pesquisa", href: "/pesquisa", icon: ClipboardText },
 ];

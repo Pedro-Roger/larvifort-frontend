@@ -9,6 +9,7 @@ import { CARD_DRAG_TYPE, COLUMN_DRAG_TYPE, getDragKind } from "@/services/kanban
 interface KanbanColumnProps {
   title: string;
   count: number;
+  totalValue?: number;
   color: string;
   cards: ProjectCard[];
   hasMore?: boolean;
@@ -44,6 +45,7 @@ const dotColors: Record<string, string> = {
 export default function KanbanColumn({
   title,
   count,
+  totalValue = 0,
   color,
   cards,
   hasMore = false,
@@ -171,6 +173,11 @@ export default function KanbanColumn({
               {count}
             </span>
           </div>
+          {totalValue > 0 && (
+            <span className="ml-9 mt-1 text-[11px] font-semibold text-slate-500">
+              {totalValue.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+            </span>
+          )}
          </div>
          <div className="flex items-center gap-1">
            <DropdownMenu

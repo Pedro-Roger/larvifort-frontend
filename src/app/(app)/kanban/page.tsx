@@ -855,6 +855,7 @@ export default function KanbanPage() {
                   key={col.id}
                   title={col.title}
                   count={columnPages[col.id]?.total ?? cards[col.title]?.length ?? 0}
+                  totalValue={(cards[col.title] || []).reduce((sum, card) => sum + (typeof card.value === "number" ? card.value : 0), 0)}
                   color={col.color}
                   cards={cards[col.title] || []}
                   hasMore={(columnPages[col.id]?.page ?? 0) < (columnPages[col.id]?.totalPages ?? 0)}
