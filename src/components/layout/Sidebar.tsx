@@ -54,9 +54,13 @@ export default function Sidebar() {
   }
 
   const closeMobile = () => setMobileOpen(false);
-  const displayName = [user?.firstName, user?.lastName]
-    .filter((part): part is string => Boolean(part?.trim()))
-    .join(" ") || user?.name || user?.email?.split("@")[0] || "Usuário";
+  const displayName =
+    [user?.firstName, user?.lastName]
+      .filter((part): part is string => Boolean(part?.trim()))
+      .join(" ") ||
+    user?.name ||
+    user?.email?.split("@")[0] ||
+    "Usuário";
 
   return (
     <>
@@ -200,11 +204,20 @@ export default function Sidebar() {
             <CaretUpDown className="shrink-0 text-slate-400" size={14} />
           </div>
           <Link
-            href="#"
+            href="/configuracoes"
             onClick={closeMobile}
-            className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100/80 text-slate-600 transition-colors"
+            className={`flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors ${
+              pathname === "/configuracoes"
+                ? "bg-slate-900 text-white"
+                : "hover:bg-slate-100/80 text-slate-600"
+            }`}
           >
-            <Gear size={18} className="text-slate-400" />
+            <Gear
+              size={18}
+              className={
+                pathname === "/configuracoes" ? "text-white" : "text-slate-400"
+              }
+            />
             <span>Configurações</span>
           </Link>
           <Link
