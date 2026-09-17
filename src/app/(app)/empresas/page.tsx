@@ -603,9 +603,24 @@ export default function EmpresasPage() {
                     <tr>
                       <td
                         colSpan={6}
-                        className="py-12 text-center text-slate-500"
+                        className="py-12 px-6 text-center text-slate-500"
                       >
-                        Nenhuma empresa encontrada.
+                        {busca.trim() ? (
+                          <div className="flex flex-col items-center gap-2">
+                            <span>
+                              Nenhuma empresa corresponde à busca.
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => setBusca("")}
+                              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50"
+                            >
+                              Limpar busca
+                            </button>
+                          </div>
+                        ) : (
+                          "Nenhuma empresa encontrada."
+                        )}
                       </td>
                     </tr>
                   ) : (

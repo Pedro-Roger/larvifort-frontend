@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import {
   X,
-  SlidersHorizontal,
   ArrowUp,
   ArrowDown,
   Check,
@@ -87,44 +86,39 @@ export default function DashboardCustomizerModal({
   const enabledCount = items.filter((it) => it.enabled).length;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-in fade-in duration-200">
       <div
-        className="w-full max-w-2xl max-h-[90vh] flex flex-col rounded-3xl bg-white shadow-2xl border border-slate-200 overflow-hidden"
+        className="w-full max-w-2xl max-h-[90vh] flex flex-col rounded-2xl bg-white shadow-xl border border-slate-200 overflow-hidden"
         role="dialog"
         aria-label="Personalizar Dashboard"
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-5 bg-gradient-to-r from-slate-900 via-slate-800 to-brand-950 text-white">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-brand-500/20 text-brand-400 border border-brand-400/30">
-              <SlidersHorizontal size={20} weight="bold" />
-            </div>
-            <div>
-              <h2 className="text-base font-bold text-white tracking-tight">
-                Personalizar Layout do Dashboard
-              </h2>
-              <p className="text-xs text-slate-300">
-                Escolha o que você quer ver na tela e a ordem dos blocos ({enabledCount} de {items.length} ativos)
-              </p>
-            </div>
+        <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4 bg-white">
+          <div>
+            <h2 className="text-base font-bold text-slate-900 tracking-tight">
+              Personalizar Layout do Dashboard
+            </h2>
+            <p className="text-xs text-slate-500">
+              Escolha o que você quer ver na tela e a ordem dos blocos ({enabledCount} de {items.length} ativos)
+            </p>
           </div>
 
           <button
             type="button"
             onClick={onClose}
-            className="rounded-xl p-2 text-slate-400 hover:bg-white/10 hover:text-white transition-colors cursor-pointer"
+            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors cursor-pointer"
           >
             <X size={18} />
           </button>
         </div>
 
         {/* Action Toolbar */}
-        <div className="flex items-center justify-between px-6 py-3 bg-slate-50 border-b border-slate-200/80 text-xs">
+        <div className="flex items-center justify-between px-6 py-3 bg-slate-50 border-b border-slate-200 text-xs">
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={handleEnableAll}
-              className="rounded-lg px-2.5 py-1 font-semibold text-brand-700 hover:bg-brand-100 transition-colors"
+              className="rounded-md px-2.5 py-1 font-semibold text-brand-700 hover:bg-brand-50 transition-colors cursor-pointer"
             >
               Ativar Todos
             </button>
@@ -132,7 +126,7 @@ export default function DashboardCustomizerModal({
             <button
               type="button"
               onClick={handleResetDefault}
-              className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1 font-semibold text-slate-600 hover:bg-slate-200 transition-colors"
+              className="inline-flex items-center gap-1 rounded-md px-2.5 py-1 font-semibold text-slate-600 hover:bg-slate-200 transition-colors cursor-pointer"
             >
               <ArrowsCounterClockwise size={13} />
               <span>Restaurar Padrão</span>
@@ -142,7 +136,7 @@ export default function DashboardCustomizerModal({
           <Link
             href="/metricas"
             onClick={onClose}
-            className="inline-flex items-center gap-1 font-bold text-brand-600 hover:underline"
+            className="inline-flex items-center gap-1 font-semibold text-brand-600 hover:underline"
           >
             <Plus size={13} weight="bold" />
             <span>Criar nova Métrica</span>
@@ -156,9 +150,9 @@ export default function DashboardCustomizerModal({
             return (
               <div
                 key={item.id}
-                className={`flex items-center justify-between rounded-2xl border p-3.5 transition-all ${
+                className={`flex items-center justify-between rounded-xl border p-3.5 transition-all ${
                   item.enabled
-                    ? "border-slate-200 bg-white shadow-xs"
+                    ? "border-slate-200 bg-white"
                     : "border-slate-100 bg-slate-50/60 opacity-60"
                 }`}
               >
@@ -167,13 +161,13 @@ export default function DashboardCustomizerModal({
                   <button
                     type="button"
                     onClick={() => handleToggle(item.id)}
-                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-colors cursor-pointer ${
+                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors cursor-pointer ${
                       item.enabled
                         ? "bg-brand-50 text-brand-600 border border-brand-200"
                         : "bg-slate-100 text-slate-400 border border-slate-200"
                     }`}
                   >
-                    <IconComp size={18} weight={item.enabled ? "bold" : "regular"} />
+                    <IconComp size={16} weight={item.enabled ? "bold" : "regular"} />
                   </button>
 
                   <div className="min-w-0 flex-1 cursor-pointer" onClick={() => handleToggle(item.id)}>
@@ -198,7 +192,7 @@ export default function DashboardCustomizerModal({
                       type="button"
                       onClick={() => handleMove(item.id, "up")}
                       disabled={idx === 0}
-                      className="p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed rounded-lg transition-colors"
+                      className="p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed rounded-lg transition-colors cursor-pointer"
                       title="Subir posição"
                     >
                       <ArrowUp size={15} />
@@ -207,7 +201,7 @@ export default function DashboardCustomizerModal({
                       type="button"
                       onClick={() => handleMove(item.id, "down")}
                       disabled={idx === items.length - 1}
-                      className="p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed rounded-lg transition-colors"
+                      className="p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed rounded-lg transition-colors cursor-pointer"
                       title="Descer posição"
                     >
                       <ArrowDown size={15} />
@@ -218,7 +212,7 @@ export default function DashboardCustomizerModal({
                   <button
                     type="button"
                     onClick={() => handleToggle(item.id)}
-                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                    className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
                       item.enabled ? "bg-brand-600" : "bg-slate-200"
                     }`}
                     role="switch"
@@ -226,8 +220,8 @@ export default function DashboardCustomizerModal({
                     title={item.enabled ? "Ocultar do dashboard" : "Mostrar no dashboard"}
                   >
                     <span
-                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
-                        item.enabled ? "translate-x-5" : "translate-x-0"
+                      className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white ring-0 transition duration-200 ease-in-out ${
+                        item.enabled ? "translate-x-4" : "translate-x-0"
                       }`}
                     />
                   </button>
@@ -238,7 +232,7 @@ export default function DashboardCustomizerModal({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between border-t border-slate-100 px-6 py-4 bg-white">
+        <div className="flex items-center justify-between border-t border-slate-200 px-6 py-4 bg-white">
           <span className="text-xs text-slate-500">
             As alterações são salvas automaticamente no seu navegador.
           </span>
@@ -247,14 +241,14 @@ export default function DashboardCustomizerModal({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-xl px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+              className="rounded-lg px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
             >
               Cancelar
             </button>
             <button
               type="button"
               onClick={handleSaveAndClose}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-brand-600 px-5 py-2 text-xs font-bold text-white shadow-md shadow-brand-600/20 hover:bg-brand-700 transition-all cursor-pointer"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-4 py-2 text-xs font-semibold text-white hover:bg-brand-700 transition-colors cursor-pointer"
             >
               <Check size={16} weight="bold" />
               <span>Aplicar Layout</span>

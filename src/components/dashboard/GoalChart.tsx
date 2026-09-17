@@ -36,11 +36,11 @@ interface CustomTooltipProps {
 const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-lg text-xs">
+    <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm text-xs">
       <p className="font-semibold text-slate-800 mb-2">{label}</p>
       {payload.map((entry, i: number) => (
         <div key={i} className="flex items-center gap-2 mb-1">
-          <div className="h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: entry.color }} />
+          <div className="h-2.5 w-2.5 rounded-xs" style={{ backgroundColor: entry.color }} />
           <span className="text-slate-500">{entry.name}:</span>
           <span className="font-medium text-slate-700">
             {entry.name.includes("Valor")
@@ -55,7 +55,7 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
 
 export default function GoalChart({ data }: GoalChartProps) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="rounded-xl border border-slate-200 bg-white p-5">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div>
           <h4 className="text-sm font-bold text-slate-700 mb-4">Meta de Valor por Vendedor</h4>

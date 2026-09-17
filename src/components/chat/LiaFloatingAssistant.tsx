@@ -388,7 +388,7 @@ export default function LiaFloatingAssistant() {
         {!isOpen && showTooltip && (
           <div className="mb-3 mr-1 relative flex items-center gap-2 rounded-2xl bg-white/95 px-3.5 py-2 text-xs font-medium text-slate-700 shadow-xl border border-slate-200 backdrop-blur-md transition-all animate-in fade-in slide-in-from-bottom-2 duration-300 max-w-[240px]">
             <div className="flex items-center gap-1.5">
-              <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="flex h-2 w-2 rounded-full bg-emerald-500" />
               <span>
                 Fale com a <strong>Lia</strong>
               </span>
@@ -438,7 +438,6 @@ export default function LiaFloatingAssistant() {
                 className="object-cover transition-transform duration-300 group-hover:scale-110"
               />
               <span className="absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full bg-emerald-500 ring-2 ring-white" />
-              <span className="absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full bg-emerald-400 animate-ping opacity-75 ring-2 ring-white" />
             </div>
           )}
         </button>
@@ -473,7 +472,7 @@ export default function LiaFloatingAssistant() {
                   </h2>
                 </div>
                 <p className="text-[11px] text-slate-500 flex items-center gap-1.5 mt-0.5">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                   Online • Suporte da plataforma
                 </p>
               </div>
@@ -674,21 +673,13 @@ export default function LiaFloatingAssistant() {
                           className="object-cover"
                         />
                       </div>
-                      <div className="rounded-2xl rounded-bl-xs bg-slate-100 border border-slate-200/70 px-4 py-3 flex items-center gap-1.5">
-                        <span
-                          className="h-1.5 w-1.5 rounded-full bg-brand-600 animate-bounce"
-                          style={{ animationDelay: "0ms" }}
+                      <div className="rounded-xl rounded-bl-xs bg-slate-100 border border-slate-200/70 px-3 py-2.5 flex items-center gap-2">
+                        <ArrowsClockwise
+                          size={14}
+                          className="text-slate-400 animate-spin"
                         />
-                        <span
-                          className="h-1.5 w-1.5 rounded-full bg-brand-600 animate-bounce"
-                          style={{ animationDelay: "150ms" }}
-                        />
-                        <span
-                          className="h-1.5 w-1.5 rounded-full bg-brand-600 animate-bounce"
-                          style={{ animationDelay: "300ms" }}
-                        />
-                        <span className="text-[11px] font-medium text-slate-400 ml-1">
-                          Consultando dados...
+                        <span className="text-[11px] font-medium text-slate-500">
+                          Processando resposta...
                         </span>
                       </div>
                     </div>

@@ -10,7 +10,6 @@ import {
   ResponsiveContainer,
   Cell,
 } from "recharts";
-import { CalendarCheck, ShoppingCart, Phone } from "@phosphor-icons/react";
 
 interface FrequencyData {
   id: string;
@@ -80,7 +79,7 @@ export default function FrequencySection({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="rounded-xl border border-slate-200 bg-white p-5">
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
@@ -110,7 +109,6 @@ export default function FrequencySection({
                 contentStyle={{
                   borderRadius: "8px",
                   border: "1px solid #e2e8f0",
-                  boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
                   fontSize: "12px",
                 }}
                 formatter={(value) => [
@@ -128,7 +126,7 @@ export default function FrequencySection({
         </div>
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+      <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
         <div className="flex items-center justify-between px-5 py-3 border-b border-slate-200 bg-slate-50">
           <div className="flex items-center gap-4 text-xs text-slate-500">
             <span>
@@ -154,16 +152,10 @@ export default function FrequencySection({
                   Empresa
                 </th>
                 <th className="px-5 py-3 text-center text-xs font-semibold text-slate-600">
-                  <div className="flex items-center justify-center gap-1">
-                    <CalendarCheck size={12} />
-                    Visitas
-                  </div>
+                  Visitas
                 </th>
                 <th className="px-5 py-3 text-center text-xs font-semibold text-slate-600">
-                  <div className="flex items-center justify-center gap-1">
-                    <ShoppingCart size={12} />
-                    Pedidos
-                  </div>
+                  Pedidos
                 </th>
                 <th className="px-5 py-3 text-right text-xs font-semibold text-slate-600">
                   Última Visita
@@ -172,10 +164,7 @@ export default function FrequencySection({
                   Último Pedido
                 </th>
                 <th className="px-5 py-3 text-right text-xs font-semibold text-slate-600">
-                  <div className="flex items-center justify-end gap-1">
-                    <Phone size={12} />
-                    Último Contato
-                  </div>
+                  Último Contato
                 </th>
               </tr>
             </thead>

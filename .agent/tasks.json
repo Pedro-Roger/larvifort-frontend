@@ -1,0 +1,66 @@
+{
+  "project": "larvifort-crm",
+  "version": 2,
+  "execution": {
+    "status": "blocked",
+    "taskId": null,
+    "reason": "Inicialização/reconciliação bloqueada por ausência de tarefa concreta executável; os itens atuais são diretrizes contínuas, não um backlog de implementação.",
+    "evidence": [
+      "CRM-001 a CRM-004 permanecem com status active; nenhuma tarefa está pending ou in_progress.",
+      "As dependências declaradas não estão done; CRM-001 não tem dependências, mas também não está pending ou in_progress.",
+      "O registro anterior de progresso continha PENDING_SETUP e indicava HARNESS-001, que não existe neste arquivo."
+    ],
+    "humanDecisionNeeded": "Fornecer uma tarefa concreta com status pending, critérios de aceitação e dependências executáveis, ou autorizar a conversão das diretrizes em backlog. Até essa decisão, preservar as diretrizes e seus status sem marcá-las como done ou blocked."
+  },
+  "tasks": [
+    {
+      "id": "CRM-001",
+      "title": "Maintain CRM 360 operational scope",
+      "priority": 1,
+      "status": "active",
+      "dependsOn": [],
+      "acceptanceCriteria": [
+        "SPEC.md describes LarviFort as a CRM 360 for an administrative office",
+        "New modules support operation, auditing, goals, metrics, rules or automation",
+        "Screens avoid decorative-only behavior and expose useful operational actions"
+      ]
+    },
+    {
+      "id": "CRM-002",
+      "title": "Keep architecture aligned with production boundaries",
+      "priority": 1,
+      "status": "active",
+      "dependsOn": ["CRM-001"],
+      "acceptanceCriteria": [
+        "ARCHITECTURE.md documents frontend, backend, deployment and module boundaries",
+        "Frontend changes do not assume backend deployment without real endpoint validation",
+        "Production data, migrations and backend containers are treated as separate high-risk work"
+      ]
+    },
+    {
+      "id": "CRM-003",
+      "title": "Preserve professional no-AI-slop design standard",
+      "priority": 1,
+      "status": "active",
+      "dependsOn": ["CRM-001"],
+      "acceptanceCriteria": [
+        "Relevant UI changes are reviewed against https://github.com/petergyang/no-ai-slop",
+        "No fake production metrics, generic AI-looking sections or decorative cards are introduced",
+        "States, actions, typography and spacing feel professional and usable for daily administrative work"
+      ]
+    },
+    {
+      "id": "CRM-004",
+      "title": "Verify before publishing",
+      "priority": 1,
+      "status": "active",
+      "dependsOn": ["CRM-002", "CRM-003"],
+      "acceptanceCriteria": [
+        "scripts/verify.sh runs project checks through npm scripts",
+        "npm run lint passes before frontend publication",
+        "npm run build passes before frontend publication",
+        "Specific flows touched by a change are validated locally or in production"
+      ]
+    }
+  ]
+}

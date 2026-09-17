@@ -1,6 +1,6 @@
 "use client";
 
-import { TrendUp, TrendDown, ArrowRight, Target, CurrencyDollar, Users } from "@phosphor-icons/react";
+import { TrendUp, TrendDown, ArrowRight } from "@phosphor-icons/react";
 
 interface SalesRateProps {
   geral: {
@@ -72,40 +72,26 @@ export default function SalesRate({ geral, porPessoa }: SalesRateProps) {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-        <div className="flex items-center gap-3 mb-5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100">
-            <Target size={16} className="text-emerald-600" />
-          </div>
-          <div>
-            <h3 className="text-sm font-bold text-slate-800">Taxa de Vendas</h3>
-            <p className="text-xs text-slate-500">Base de clientes por pessoa e geral</p>
-          </div>
+      <div className="rounded-xl border border-slate-200 bg-white p-5">
+        <div className="mb-5">
+          <h3 className="text-sm font-bold text-slate-800">Taxa de Vendas</h3>
+          <p className="text-xs text-slate-500">Base de clientes por pessoa e geral</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="rounded-lg bg-slate-50 border border-slate-100 p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Users size={14} className="text-sky-500" />
-              <span className="text-xs font-medium text-slate-500">Clientes Ativos</span>
-            </div>
-            <p className="text-2xl font-bold text-slate-800">{geral.clientesAtivos}</p>
+          <div className="rounded-lg bg-slate-50 border border-slate-200 p-4">
+            <span className="text-xs font-medium text-slate-500">Clientes Ativos</span>
+            <p className="text-2xl font-bold text-slate-800 mt-1">{geral.clientesAtivos}</p>
             <p className="text-xs text-slate-400 mt-1">de {geral.totalClientes} totais</p>
           </div>
-          <div className="rounded-lg bg-slate-50 border border-slate-100 p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <TrendUp size={14} className="text-emerald-500" />
-              <span className="text-xs font-medium text-slate-500">Taxa de Conversão</span>
-            </div>
-            <p className="text-2xl font-bold text-slate-800">{geral.taxaConversao}%</p>
+          <div className="rounded-lg bg-slate-50 border border-slate-200 p-4">
+            <span className="text-xs font-medium text-slate-500">Taxa de Conversão</span>
+            <p className="text-2xl font-bold text-slate-800 mt-1">{geral.taxaConversao}%</p>
             <p className="text-xs text-slate-400 mt-1">{geral.vendasMes} vendas no mês</p>
           </div>
-          <div className="rounded-lg bg-slate-50 border border-slate-100 p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <CurrencyDollar size={14} className="text-violet-500" />
-              <span className="text-xs font-medium text-slate-500">Ticket Médio</span>
-            </div>
-            <p className="text-2xl font-bold text-slate-800">
+          <div className="rounded-lg bg-slate-50 border border-slate-200 p-4">
+            <span className="text-xs font-medium text-slate-500">Ticket Médio</span>
+            <p className="text-2xl font-bold text-slate-800 mt-1">
               R$ {geral.ticketMedio.toLocaleString("pt-BR")}
             </p>
             <p className="text-xs text-slate-400 mt-1">por cliente ativo</p>
@@ -120,9 +106,9 @@ export default function SalesRate({ geral, porPessoa }: SalesRateProps) {
                 R$ {geral.receitaTotal.toLocaleString("pt-BR")} / R$ {geral.metaValor.toLocaleString("pt-BR")}
               </span>
             </div>
-            <div className="h-3 w-full rounded-full bg-slate-100 overflow-hidden mb-2">
+            <div className="h-2.5 w-full rounded-full bg-slate-100 overflow-hidden mb-2">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-emerald-600 transition-all"
+                className="h-full rounded-full bg-emerald-600 transition-all"
                 style={{ width: `${Math.min(geralPctValor, 100)}%` }}
               />
             </div>
@@ -142,9 +128,9 @@ export default function SalesRate({ geral, porPessoa }: SalesRateProps) {
                 {geral.vendasMes} / {geral.metaVolume} vendas
               </span>
             </div>
-            <div className="h-3 w-full rounded-full bg-slate-100 overflow-hidden mb-2">
+            <div className="h-2.5 w-full rounded-full bg-slate-100 overflow-hidden mb-2">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-sky-400 to-sky-600 transition-all"
+                className="h-full rounded-full bg-sky-600 transition-all"
                 style={{ width: `${Math.min(geralPctVolume, 100)}%` }}
               />
             </div>
@@ -184,7 +170,7 @@ export default function SalesRate({ geral, porPessoa }: SalesRateProps) {
                   <tr key={i} className="hover:bg-slate-50 transition-colors">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2.5">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-sky-50 text-[11px] font-bold text-sky-600">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sky-50 text-[11px] font-bold text-sky-700">
                           {p.initials}
                         </div>
                         <span className="font-medium text-slate-800">{p.nome}</span>

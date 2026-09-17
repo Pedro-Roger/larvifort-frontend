@@ -4,11 +4,9 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   CaretDown,
-  Clock,
   SlidersHorizontal,
   Target,
   UsersThree,
-  Warning,
 } from "@phosphor-icons/react";
 import {
   fetchDashboardStats,
@@ -76,7 +74,7 @@ const statusConfig: Record<
 
 function LoadingCard() {
   return (
-    <div className="h-44 animate-pulse rounded-3xl border border-slate-200 bg-white p-6">
+    <div className="h-44 animate-pulse rounded-2xl border border-slate-200 bg-white p-6">
       <div className="h-9 w-9 rounded-2xl bg-slate-100" />
       <div className="mt-5 h-7 w-28 rounded bg-slate-100" />
       <div className="mt-2 h-3 w-40 rounded bg-slate-100" />
@@ -92,7 +90,7 @@ function Skeleton() {
         <LoadingCard />
         <LoadingCard />
       </div>
-      <div className="h-80 animate-pulse rounded-3xl bg-slate-200" />
+      <div className="h-80 animate-pulse rounded-2xl bg-slate-200" />
     </div>
   );
 }
@@ -100,18 +98,17 @@ function Skeleton() {
 function ErrorState({ onRetry }: { onRetry: () => void }) {
   return (
     <div className="p-8">
-      <div className="rounded-3xl border border-red-200 bg-red-50 p-8 text-center max-w-xl mx-auto">
-        <Warning size={36} className="mx-auto mb-2 text-red-500" />
-        <h3 className="font-bold text-red-700 text-lg">
+      <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center max-w-xl mx-auto">
+        <h3 className="font-semibold text-red-800 text-sm">
           Não foi possível carregar as informações do Dashboard
         </h3>
-        <p className="mt-1 text-sm text-red-600">
+        <p className="mt-1 text-xs text-red-600">
           Verifique a conexão com a API e tente novamente.
         </p>
         <button
           type="button"
           onClick={onRetry}
-          className="mt-5 rounded-xl bg-red-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-red-700 cursor-pointer shadow-md shadow-red-600/20"
+          className="mt-4 rounded-lg bg-red-600 px-4 py-2 text-xs font-semibold text-white hover:bg-red-700 cursor-pointer"
         >
           Tentar novamente
         </button>
@@ -126,20 +123,15 @@ function ActivityList({ tasks }: { tasks: Task[] }) {
     .slice(0, 6);
 
   return (
-    <div className="rounded-3xl border border-slate-200/90 bg-white p-6 shadow-[0_8px_30px_rgba(15,23,42,0.04)]">
+    <div className="rounded-xl border border-slate-200 bg-white p-6">
       <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 border border-amber-100">
-            <Clock size={20} weight="bold" />
-          </div>
-          <div>
-            <h2 className="text-base font-bold text-slate-900 tracking-tight">
-              Atividades Recentes do CRM
-            </h2>
-            <p className="text-xs text-slate-500">
-              Últimas movimentações e status de tarefas
-            </p>
-          </div>
+        <div>
+          <h2 className="text-base font-bold text-slate-900 tracking-tight">
+            Atividades Recentes do CRM
+          </h2>
+          <p className="text-xs text-slate-500">
+            Últimas movimentações e status de tarefas
+          </p>
         </div>
 
         <Link
@@ -433,11 +425,6 @@ export default function DashboardPage() {
       {/* Top Header */}
       <header className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <div className="mb-1.5">
-            <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
-              Operação Comercial & Metas
-            </span>
-          </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-950">
             Dashboard
           </h1>
@@ -558,24 +545,21 @@ export default function DashboardPage() {
 
       {/* Main Widgets Ordered by Layout Items */}
       {enabledLayoutItems.length === 0 && dynamicWidgets.length === 0 ? (
-        <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center shadow-xs">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-600">
-            <SlidersHorizontal size={28} weight="bold" />
-          </div>
-          <h3 className="mt-4 text-lg font-bold text-slate-900">
+        <div className="rounded-xl border border-dashed border-slate-300 bg-white p-12 text-center">
+          <h3 className="text-base font-semibold text-slate-900">
             Nenhum bloco ativo no seu Dashboard
           </h3>
-          <p className="mt-1 text-sm text-slate-500 max-w-md mx-auto">
+          <p className="mt-1 text-xs text-slate-500 max-w-md mx-auto">
             Você pode escolher quais métricas, gráficos e tabelas deseja
             visualizar na tela.
           </p>
           <button
             type="button"
             onClick={() => setIsCustomizerOpen(true)}
-            className="mt-5 inline-flex items-center gap-2 rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-brand-600/20 hover:bg-brand-700 cursor-pointer"
+            className="mt-4 inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2 text-xs font-semibold text-white hover:bg-brand-700 cursor-pointer"
           >
-            <SlidersHorizontal size={16} weight="bold" />
-            <span>Escolher Widgets Agora</span>
+            <SlidersHorizontal size={14} weight="bold" />
+            <span>Escolher widgets</span>
           </button>
         </div>
       ) : (
@@ -627,21 +611,16 @@ export default function DashboardPage() {
                 return (
                   <div
                     key={item.id}
-                    className="rounded-3xl border border-slate-200/90 bg-white p-6 shadow-[0_8px_30px_rgba(15,23,42,0.04)]"
+                    className="rounded-xl border border-slate-200 bg-white p-6"
                   >
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-100">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-violet-50 text-violet-600 border border-violet-100">
-                          <UsersThree size={20} weight="bold" />
-                        </div>
-                        <div>
-                          <h2 className="text-base font-bold text-slate-900 tracking-tight">
-                            Produtividade e Carga da Equipe
-                          </h2>
-                          <p className="text-xs text-slate-500">
-                            Tarefas e tempo estimado por membro
-                          </p>
-                        </div>
+                      <div>
+                        <h2 className="text-base font-bold text-slate-900 tracking-tight">
+                          Produtividade e Carga da Equipe
+                        </h2>
+                        <p className="text-xs text-slate-500">
+                          Tarefas e tempo estimado por membro
+                        </p>
                       </div>
 
                       <div className="flex items-center gap-2">

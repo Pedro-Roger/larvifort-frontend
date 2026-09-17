@@ -345,7 +345,7 @@ export default function AgendaPage() {
           <button
             type="button"
             onClick={() => setModalOpen(true)}
-            className="px-4 py-2 rounded-lg bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold flex items-center gap-2 shadow-sm shadow-sky-500/25 transition-all cursor-pointer"
+            className="px-4 py-2 rounded-lg bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold flex items-center gap-2 transition-colors cursor-pointer"
           >
             <Plus size={14} />
             Novo Compromisso
@@ -491,32 +491,23 @@ export default function AgendaPage() {
                         return (
                           <div
                             key={c.id}
-                            className={`rounded-lg border px-2 py-1.5 shadow-sm ${
+                            className={`rounded-r-md border-l-[3px] px-2 py-1 ${
                               isVisit
-                                ? "border-sky-200 bg-sky-50 text-sky-950"
-                                : "border-violet-200 bg-violet-50 text-violet-950"
+                                ? "border-sky-500 bg-sky-50 text-sky-950"
+                                : "border-violet-500 bg-violet-50 text-violet-950"
                             }`}
                             title={c.titulo}
                           >
-                            <div className="flex items-center justify-between gap-1">
-                              <span
-                                className={`rounded-full px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wide ${
-                                  isVisit
-                                    ? "bg-sky-600 text-white"
-                                    : "bg-violet-600 text-white"
-                                }`}
-                              >
-                                {isVisit ? "Visita" : "Reunião"}
-                              </span>
+                            <div className="flex items-center gap-1">
                               {c.horario && (
-                                <span className="text-[9px] font-semibold text-slate-600">
+                                <span className="shrink-0 text-[9px] font-bold tabular-nums text-slate-600">
                                   {formatAppointmentTime(c.horario)}
                                 </span>
                               )}
+                              <p className="min-w-0 flex-1 truncate text-[10px] font-semibold leading-tight">
+                                {c.titulo}
+                              </p>
                             </div>
-                            <p className="mt-1 line-clamp-2 text-[10px] font-semibold leading-tight">
-                              {c.titulo}
-                            </p>
                           </div>
                         );
                       })}

@@ -3,7 +3,6 @@
 import React from "react";
 import Link from "next/link";
 import {
-  UsersThree,
   ArrowUpRight,
 } from "@phosphor-icons/react";
 import { type CommercialGoalsConfig } from "@/services/commercialMetas";
@@ -30,25 +29,20 @@ export default function MetasConsultoresWidget({ goals }: MetasConsultoresWidget
   });
 
   return (
-    <div className="rounded-3xl border border-slate-200/90 bg-white p-6 shadow-[0_8px_30px_rgba(15,23,42,0.04)]">
+    <div className="rounded-xl border border-slate-200 bg-white p-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-100">
-        <div className="flex items-center gap-3.5">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 border border-indigo-100">
-            <UsersThree size={22} weight="bold" />
-          </div>
-          <div>
-            <h2 className="text-lg font-bold text-slate-900 tracking-tight">
-              Metas & Desempenho por Consultor
-            </h2>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Atingimento individual de cotas de faturamento e volume expedido
-            </p>
-          </div>
+        <div>
+          <h2 className="text-lg font-bold text-slate-900 tracking-tight">
+            Metas & Desempenho por Consultor
+          </h2>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Atingimento individual de cotas de faturamento e volume expedido
+          </p>
         </div>
 
         <Link
           href="/configurar-metas"
-          className="inline-flex items-center gap-1.5 text-xs font-bold text-brand-700 hover:text-brand-800 transition-colors"
+          className="inline-flex items-center gap-1 text-xs font-semibold text-brand-700 hover:text-brand-800 transition-colors"
         >
           <span>Distribuir Cotas</span>
           <ArrowUpRight size={14} />
@@ -68,7 +62,7 @@ export default function MetasConsultoresWidget({ goals }: MetasConsultoresWidget
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 text-xs">
-            {sortedConsultores.map((consultor, idx) => {
+            {sortedConsultores.map((consultor) => {
               const metaVal = consultor.valor || 1;
               const realVal = consultor.realizadoValor || 0;
               const pct = Math.round((realVal / metaVal) * 100);
@@ -77,23 +71,16 @@ export default function MetasConsultoresWidget({ goals }: MetasConsultoresWidget
               const realVol = consultor.realizadoVolume || 0;
               const pctVol = Math.round((realVol / metaVol) * 100);
 
-              const isTop = idx === 0 && pct >= 80;
-
               return (
                 <tr key={consultor.nome} className="group hover:bg-slate-50/80 transition-colors">
                   <td className="py-3.5 pl-1">
                     <div className="flex items-center gap-2.5">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-900 text-white font-bold text-xs shadow-xs">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900 text-white font-bold text-xs">
                         {consultor.iniciais}
                       </div>
                       <div>
-                        <div className="flex items-center gap-1.5 font-bold text-slate-900">
-                          <span>{consultor.nome}</span>
-                          {isTop && (
-                            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-amber-400 text-slate-950 text-[10px]" title="Líder de atingimento">
-                              ★
-                            </span>
-                          )}
+                        <div className="font-bold text-slate-900">
+                          {consultor.nome}
                         </div>
                         <span className="text-[10px] text-slate-400">
                           {consultor.vendas ? `${consultor.vendas} vendas realizadas` : "Consultor Técnico"}

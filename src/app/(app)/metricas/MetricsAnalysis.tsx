@@ -319,18 +319,6 @@ export default function MetricsAnalysis({
                         data={chartData}
                         margin={{ top: 10, right: 8, left: -18, bottom: 0 }}
                       >
-                        <defs>
-                          <linearGradient
-                            id="metricsBars"
-                            x1="0"
-                            y1="0"
-                            x2="0"
-                            y2="1"
-                          >
-                            <stop offset="0" stopColor="#8fc2ff" />
-                            <stop offset="1" stopColor="#126cff" />
-                          </linearGradient>
-                        </defs>
                         <CartesianGrid stroke="#edf2f8" vertical={false} />
                         <XAxis
                           dataKey="label"
@@ -358,7 +346,7 @@ export default function MetricsAnalysis({
                         <Bar
                           dataKey={group === "people" ? "quantity" : axis}
                           name={group === "people" ? "Pedidos" : title}
-                          fill="url(#metricsBars)"
+                          fill="#2563eb"
                           radius={[3, 3, 0, 0]}
                           maxBarSize={28}
                         />
@@ -473,26 +461,6 @@ export default function MetricsAnalysis({
                         data={data.frequency}
                         margin={{ top: 10, right: 8, left: -25, bottom: 0 }}
                       >
-                        <defs>
-                          <linearGradient
-                            id="metricsArea"
-                            x1="0"
-                            y1="0"
-                            x2="0"
-                            y2="1"
-                          >
-                            <stop
-                              offset="0"
-                              stopColor="#0866ff"
-                              stopOpacity={0.24}
-                            />
-                            <stop
-                              offset="1"
-                              stopColor="#0866ff"
-                              stopOpacity={0.02}
-                            />
-                          </linearGradient>
-                        </defs>
                         <CartesianGrid stroke="#edf2f8" vertical={false} />
                         <XAxis
                           dataKey="label"
@@ -510,9 +478,9 @@ export default function MetricsAnalysis({
                           type="monotone"
                           dataKey="value"
                           name="Pedidos"
-                          stroke="#0866ff"
+                          stroke="#2563eb"
                           strokeWidth={2}
-                          fill="url(#metricsArea)"
+                          fill="#dbeafe"
                           dot={{ r: 3, fill: "#fff", strokeWidth: 2 }}
                         />
                       </AreaChart>

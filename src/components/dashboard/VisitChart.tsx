@@ -10,7 +10,7 @@ const COLORS = ["#0ea5e9", "#8b5cf6", "#f59e0b", "#10b981", "#ec4899", "#6366f1"
 
 export default function VisitChart({ data }: VisitChartProps) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="rounded-xl border border-slate-200 bg-white p-5">
       <div className="h-72">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
@@ -33,7 +33,6 @@ export default function VisitChart({ data }: VisitChartProps) {
               contentStyle={{
                 borderRadius: "8px",
                 border: "1px solid #e2e8f0",
-                boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
                 fontSize: "12px",
               }}
               formatter={(value) => [`${value} visitas`, "Visitas"]}

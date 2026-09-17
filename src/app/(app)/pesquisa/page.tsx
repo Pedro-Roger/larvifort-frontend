@@ -375,8 +375,34 @@ export default function PesquisaPage() {
             </table>
           </div>
           {filtered.length === 0 && (
-            <div className="py-12 text-center text-sm text-slate-400">
-              Nenhuma pesquisa encontrada.
+            <div className="py-12 px-6 flex flex-col items-center gap-3 text-center">
+              {busca.trim() ? (
+                <>
+                  <p className="text-sm text-slate-500">
+                    Nenhuma pesquisa corresponde à busca.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setBusca("")}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50"
+                  >
+                    Limpar busca
+                  </button>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm text-slate-500">
+                    Nenhuma pesquisa registrada ainda.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setShowModal(true)}
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-700"
+                  >
+                    <Plus size={14} weight="bold" /> Nova pesquisa
+                  </button>
+                </>
+              )}
             </div>
           )}
         </div>

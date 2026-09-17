@@ -106,12 +106,12 @@ export default function DynamicMetricWidgetCard({
         }));
 
   return (
-    <article className="rounded-3xl border border-slate-200/90 bg-white p-6 shadow-[0_8px_30px_rgba(15,23,42,0.04)] flex flex-col">
+    <article className="rounded-xl border border-slate-200 bg-white p-6 flex flex-col">
       {/* Card Header */}
       <div className="flex items-start justify-between gap-3 pb-4 border-b border-slate-100">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider text-brand-600 bg-brand-50 px-2 py-0.5 rounded-full border border-brand-200">
+            <span className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider text-brand-600 bg-brand-50 px-2 py-0.5 rounded-md border border-brand-200">
               {widget.mode === "charts" ? (
                 <>
                   <ChartBar size={12} weight="bold" /> Gráfico
@@ -171,7 +171,7 @@ export default function DynamicMetricWidgetCard({
           <button
             type="button"
             onClick={() => onRemove(widget.id)}
-            className="rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600 transition-colors cursor-pointer"
+            className="rounded-lg p-1.5 text-red-700 hover:bg-red-50 hover:text-red-800 transition-colors cursor-pointer"
             title="Remover widget"
           >
             <Trash size={15} />
@@ -183,10 +183,7 @@ export default function DynamicMetricWidgetCard({
       <div className="pt-4 flex-1 min-h-[220px]">
         {loading ? (
           <div className="h-48 flex items-center justify-center text-xs text-slate-400">
-            <span className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-brand-600 animate-ping" />
-              Carregando dados da métrica...
-            </span>
+            Carregando dados da métrica...
           </div>
         ) : error ? (
           <div className="h-48 flex flex-col items-center justify-center text-xs text-red-500 gap-2">
@@ -210,12 +207,6 @@ export default function DynamicMetricWidgetCard({
                 data={chartSeries}
                 margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
               >
-                <defs>
-                  <linearGradient id={`dynBars-${widget.id}`} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#0284c7" />
-                    <stop offset="100%" stopColor="#0369a1" />
-                  </linearGradient>
-                </defs>
                 <CartesianGrid stroke="#f1f5f9" vertical={false} />
                 <XAxis
                   dataKey="label"
@@ -232,16 +223,15 @@ export default function DynamicMetricWidgetCard({
                 <Tooltip
                   formatter={(val) => [formatValue(Number(val)), widget.typeLabel]}
                   contentStyle={{
-                    borderRadius: "12px",
+                    borderRadius: "8px",
                     border: "1px solid #e2e8f0",
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
                     fontSize: "12px",
                   }}
                 />
                 <Bar
                   dataKey={widget.group === "people" ? "quantity" : widget.axis}
-                  fill={`url(#dynBars-${widget.id})`}
-                  radius={[6, 6, 0, 0]}
+                  fill="#0284c7"
+                  radius={[4, 4, 0, 0]}
                   maxBarSize={40}
                 />
               </BarChart>
@@ -272,27 +262,27 @@ export default function DynamicMetricWidgetCard({
         ) : (
           /* REAL KPI CARDS */
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="rounded-2xl bg-slate-50 p-3 border border-slate-100">
+            <div className="rounded-lg bg-slate-50 p-3 border border-slate-200">
               <span className="text-[10px] font-bold uppercase text-slate-400">Total</span>
-              <p className="text-lg font-black text-slate-900 mt-1">
+              <p className="text-lg font-bold text-slate-900 mt-1">
                 {formatValue(data?.summary.value || 0)}
               </p>
             </div>
-            <div className="rounded-2xl bg-slate-50 p-3 border border-slate-100">
+            <div className="rounded-lg bg-slate-50 p-3 border border-slate-200">
               <span className="text-[10px] font-bold uppercase text-slate-400">Quantidade</span>
-              <p className="text-lg font-black text-slate-900 mt-1">
+              <p className="text-lg font-bold text-slate-900 mt-1">
                 {numberFormat(data?.summary.quantity || 0)}
               </p>
             </div>
-            <div className="rounded-2xl bg-slate-50 p-3 border border-slate-100">
+            <div className="rounded-lg bg-slate-50 p-3 border border-slate-200">
               <span className="text-[10px] font-bold uppercase text-slate-400">Clientes</span>
-              <p className="text-lg font-black text-slate-900 mt-1">
+              <p className="text-lg font-bold text-slate-900 mt-1">
                 {numberFormat(data?.summary.clients || 0)}
               </p>
             </div>
-            <div className="rounded-2xl bg-slate-50 p-3 border border-slate-100">
+            <div className="rounded-lg bg-slate-50 p-3 border border-slate-200">
               <span className="text-[10px] font-bold uppercase text-slate-400">Visitas</span>
-              <p className="text-lg font-black text-slate-900 mt-1">
+              <p className="text-lg font-bold text-slate-900 mt-1">
                 {numberFormat(data?.summary.visits || 0)}
               </p>
             </div>

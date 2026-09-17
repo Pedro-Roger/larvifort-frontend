@@ -1,34 +1,310 @@
 {
-  "version": 1,
+  "version": 2,
   "tasks": [
-    { "id": "CRM-001", "title": "Finalizar confirmacoes de exclusao", "status": "completed", "priority": 1, "dependsOn": [] },
-    { "id": "CRM-002", "title": "Integrar busca global com a API", "status": "completed", "priority": 2, "dependsOn": ["API-001"] },
-    { "id": "CRM-003", "title": "Remover mocks restantes de dashboard e formularios", "status": "completed", "priority": 3, "dependsOn": ["API-001", "API-002"] },
-    { "id": "CRM-004", "title": "Validar fluxo completo login, dashboard e CRUD", "status": "pending", "priority": 4, "dependsOn": ["API-001", "API-002"] },
-    { "id": "CRM-005", "title": "Adicionar atalhos de teclado do CRM", "status": "completed", "priority": 5, "dependsOn": [] },
-    { "id": "CRM-006", "title": "Frontend: Múltiplos Quadros/Setores e Participantes (AvatarGroup)", "status": "completed", "priority": 6, "dependsOn": [] },
-    { "id": "CRM-007", "title": "Frontend: Gestão Dinâmica de Colunas (Criar, Excluir com Migração)", "status": "completed", "priority": 7, "dependsOn": ["CRM-006"] },
-    { "id": "CRM-008", "title": "Frontend: Modal Completa de Tarefa (TaskDetailModal: Título, Descrição, WhatsApp, Ordem de Pedido, Responsável, Anexos)", "status": "completed", "priority": 8, "dependsOn": ["CRM-006"] },
-    { "id": "CRM-009", "title": "Frontend: Herança e Roteamento Intersetorial (Parent/Child, Gatilhos e Histórico)", "status": "completed", "priority": 9, "dependsOn": ["CRM-007", "CRM-008"] },
-    { "id": "API-003", "title": "Backend: Modelagem e Endpoints de Quadros/Setores e Colunas (/tasks/boards, /tasks/columns)", "status": "pending", "priority": 6, "dependsOn": [] },
-    { "id": "API-004", "title": "Backend: Endpoints de Tarefas com Herança, Anexos e Transferência (/tasks, /tasks/:id/transfer, /tasks/:id/attachments)", "status": "pending", "priority": 7, "dependsOn": ["API-003"] },
-{
-    "id": "CRM-010",
-    "title": "Frontend: Módulo de Notificações (Notification Center + Toasts)",
-    "status": "completed",
-    "priority": 10,
-    "dependsOn": ["CRM-006"]
-  },
-  { "id": "CRM-011", "title": "Frontend: Kanban renderizado exclusivamente por colunas reais da API", "status": "completed", "priority": 11, "dependsOn": ["CRM-007", "CRM-010"] },
-  { "id": "CRM-012", "title": "Frontend: Criação guiada de quadro com colunas personalizadas", "status": "completed", "priority": 12, "dependsOn": ["CRM-011"] },
-  { "id": "CRM-013", "title": "Frontend: CRUD e ordenação de colunas sem simulação local", "status": "completed", "priority": 13, "dependsOn": ["CRM-011"] },
-  { "id": "CRM-014", "title": "Frontend: Editor de regras por quadro", "status": "completed", "priority": 14, "dependsOn": ["CRM-012"] },
-  { "id": "CRM-015", "title": "Frontend: Editor de automações por quadro", "status": "completed", "priority": 15, "dependsOn": ["CRM-012"] },
-  { "id": "CRM-016", "title": "Frontend: Templates opt-in", "status": "completed", "priority": 16, "dependsOn": ["CRM-014", "CRM-015"] },
-  { "id": "CRM-017", "title": "Frontend: UX transversal, dropdowns consistentes e avatar real", "status": "completed", "priority": 17, "dependsOn": ["CRM-013"] },
-  { "id": "CRM-018", "title": "Frontend: usar somente clientes reais no novo compromisso", "status": "pending", "priority": 18, "dependsOn": ["API-011"] },
-  { "id": "CRM-019", "title": "Frontend: configurar coluna de compromissos na automacao", "status": "pending", "priority": 19, "dependsOn": ["API-012"] },
-  { "id": "CRM-020", "title": "Frontend: card de compromisso com confirmacao e geolocalizacao", "status": "pending", "priority": 20, "dependsOn": ["API-013", "CRM-019"] },
-  { "id": "CRM-021", "title": "Frontend: validar fluxo agenda, card e check-in em desktop e mobile", "status": "pending", "priority": 21, "dependsOn": ["CRM-018", "CRM-020"] }
+    {
+      "id": "CRM-001",
+      "title": "Finalizar confirmacoes de exclusao",
+      "status": "completed",
+      "priority": 1,
+      "dependsOn": []
+    },
+    {
+      "id": "CRM-002",
+      "title": "Integrar busca global com a API",
+      "status": "completed",
+      "priority": 2,
+      "dependsOn": [
+        "API-001"
+      ]
+    },
+    {
+      "id": "CRM-003",
+      "title": "Remover mocks restantes de dashboard e formularios",
+      "status": "completed",
+      "priority": 3,
+      "dependsOn": [
+        "API-001",
+        "API-002"
+      ]
+    },
+    {
+      "id": "CRM-004",
+      "title": "Validar fluxo completo login, dashboard e CRUD",
+      "status": "pending",
+      "priority": 40,
+      "dependsOn": [
+        "API-001",
+        "API-002"
+      ]
+    },
+    {
+      "id": "CRM-005",
+      "title": "Adicionar atalhos de teclado do CRM",
+      "status": "completed",
+      "priority": 5,
+      "dependsOn": []
+    },
+    {
+      "id": "CRM-006",
+      "title": "Frontend: Múltiplos Quadros/Setores e Participantes (AvatarGroup)",
+      "status": "completed",
+      "priority": 6,
+      "dependsOn": []
+    },
+    {
+      "id": "CRM-007",
+      "title": "Frontend: Gestão Dinâmica de Colunas (Criar, Excluir com Migração)",
+      "status": "completed",
+      "priority": 7,
+      "dependsOn": [
+        "CRM-006"
+      ]
+    },
+    {
+      "id": "CRM-008",
+      "title": "Frontend: Modal Completa de Tarefa (TaskDetailModal: Título, Descrição, WhatsApp, Ordem de Pedido, Responsável, Anexos)",
+      "status": "completed",
+      "priority": 8,
+      "dependsOn": [
+        "CRM-006"
+      ]
+    },
+    {
+      "id": "CRM-009",
+      "title": "Frontend: Herança e Roteamento Intersetorial (Parent/Child, Gatilhos e Histórico)",
+      "status": "completed",
+      "priority": 9,
+      "dependsOn": [
+        "CRM-007",
+        "CRM-008"
+      ]
+    },
+    {
+      "id": "CRM-010",
+      "title": "Frontend: Módulo de Notificações (Notification Center + Toasts)",
+      "status": "completed",
+      "priority": 10,
+      "dependsOn": [
+        "CRM-006"
+      ]
+    },
+    {
+      "id": "CRM-011",
+      "title": "Frontend: Kanban renderizado exclusivamente por colunas reais da API",
+      "status": "completed",
+      "priority": 11,
+      "dependsOn": [
+        "CRM-007",
+        "CRM-010"
+      ]
+    },
+    {
+      "id": "CRM-012",
+      "title": "Frontend: Criação guiada de quadro com colunas personalizadas",
+      "status": "completed",
+      "priority": 12,
+      "dependsOn": [
+        "CRM-011"
+      ]
+    },
+    {
+      "id": "CRM-013",
+      "title": "Frontend: CRUD e ordenação de colunas sem simulação local",
+      "status": "completed",
+      "priority": 13,
+      "dependsOn": [
+        "CRM-011"
+      ]
+    },
+    {
+      "id": "CRM-014",
+      "title": "Frontend: Editor de regras por quadro",
+      "status": "completed",
+      "priority": 14,
+      "dependsOn": [
+        "CRM-012"
+      ]
+    },
+    {
+      "id": "CRM-015",
+      "title": "Frontend: Editor de automações por quadro",
+      "status": "completed",
+      "priority": 15,
+      "dependsOn": [
+        "CRM-012"
+      ]
+    },
+    {
+      "id": "CRM-016",
+      "title": "Frontend: Templates opt-in",
+      "status": "completed",
+      "priority": 16,
+      "dependsOn": [
+        "CRM-014",
+        "CRM-015"
+      ]
+    },
+    {
+      "id": "CRM-017",
+      "title": "Frontend: UX transversal, dropdowns consistentes e avatar real",
+      "status": "completed",
+      "priority": 17,
+      "dependsOn": [
+        "CRM-013"
+      ]
+    },
+    {
+      "id": "CRM-018",
+      "title": "Frontend: usar somente clientes reais no novo compromisso",
+      "status": "pending",
+      "priority": 41,
+      "dependsOn": [
+        "API-011"
+      ]
+    },
+    {
+      "id": "CRM-019",
+      "title": "Frontend: configurar coluna de compromissos na automacao",
+      "status": "pending",
+      "priority": 42,
+      "dependsOn": [
+        "API-012"
+      ]
+    },
+    {
+      "id": "CRM-020",
+      "title": "Frontend: card de compromisso com confirmacao e geolocalizacao",
+      "status": "pending",
+      "priority": 43,
+      "dependsOn": [
+        "API-013",
+        "CRM-019"
+      ]
+    },
+    {
+      "id": "CRM-021",
+      "title": "Frontend: validar fluxo agenda, card e check-in em desktop e mobile",
+      "status": "pending",
+      "priority": 44,
+      "dependsOn": [
+        "CRM-018",
+        "CRM-020"
+      ]
+    },
+    {
+      "id": "CRM-VIS-001",
+      "title": "No-ai-slop dashboard: reduzir sombras decorativas, arredondamentos excessivos e cards sem função",
+      "status": "completed",
+      "priority": 1,
+      "dependsOn": [],
+      "acceptanceCriteria": [
+        "Dashboard mantém dados reais e estados vazios honestos",
+        "Remove ou reduz caixas de ícones decorativas sem função operacional",
+        "Padroniza radius, bordas e sombras para aparência profissional",
+        "Verificação passa com lint, typecheck e build"
+      ]
+    },
+    {
+      "id": "CRM-VIS-002",
+      "title": "No-ai-slop métricas: padronizar tela de análise e controles para parecer ferramenta profissional",
+      "status": "completed",
+      "priority": 2,
+      "dependsOn": [],
+      "acceptanceCriteria": [
+        "Métricas prioriza leitura dos dados e comparação entre fontes reais",
+        "Controles de visualização ficam claros e sem excesso visual",
+        "Cards e gráficos seguem a mesma linguagem visual da plataforma",
+        "Verificação passa com lint, typecheck e build"
+      ]
+    },
+    {
+      "id": "CRM-VIS-003",
+      "title": "No-ai-slop agenda: destacar compromissos de visita/reunião com hierarquia operacional clara",
+      "status": "completed",
+      "priority": 3,
+      "dependsOn": [],
+      "acceptanceCriteria": [
+        "Compromissos aparecem de forma evidente no calendário",
+        "Visita, reunião e entrega têm diferenciação visual funcional",
+        "Sem gradientes/decorações que atrapalhem leitura operacional",
+        "Verificação passa com lint, typecheck e build"
+      ]
+    },
+    {
+      "id": "CRM-VIS-004",
+      "title": "No-ai-slop chat Lia: remover aspecto de IA e deixar como assistente operacional discreto",
+      "status": "completed",
+      "priority": 4,
+      "dependsOn": [],
+      "acceptanceCriteria": [
+        "Chat usa linguagem e visual de suporte operacional, sem rótulos chamativos de IA",
+        "Ações rápidas e FAQ ficam mais sóbrias e úteis",
+        "Estados de carregamento não parecem gimmick de IA",
+        "Verificação passa com lint, typecheck e build"
+      ]
+    },
+    {
+      "id": "CRM-VIS-005",
+      "title": "No-ai-slop pedidos: polir tela para fluxo operacional real de pedido, estoque, logística e fiscal",
+      "status": "completed",
+      "priority": 5,
+      "dependsOn": [],
+      "acceptanceCriteria": [
+        "Tela de pedidos comunica status operacional e próximos passos",
+        "Campos fiscais/comerciais ficam organizados sem aparência de mock",
+        "Ações principais são evidentes: novo pedido, configurar coluna, acompanhar card",
+        "Verificação passa com lint, typecheck e build"
+      ]
+    },
+    {
+      "id": "CRM-VIS-006",
+      "title": "Design system pass: padronizar radius, sombra, bordas, ícones e empty states nos módulos principais",
+      "status": "completed",
+      "priority": 6,
+      "dependsOn": [
+        "CRM-VIS-001",
+        "CRM-VIS-002",
+        "CRM-VIS-003",
+        "CRM-VIS-004",
+        "CRM-VIS-005"
+      ],
+      "acceptanceCriteria": [
+        "Dashboard, métricas, agenda, pedidos e chat usam tokens visuais consistentes",
+        "Empty states explicam ação real, sem texto decorativo",
+        "Ícones aparecem para orientar ação, não como decoração genérica",
+        "Verificação passa com lint, typecheck e build"
+      ]
+    },
+    {
+      "id": "API-003",
+      "title": "Backend: Modelagem e Endpoints de Quadros/Setores e Colunas (/tasks/boards, /tasks/columns)",
+      "status": "pending",
+      "priority": 60,
+      "dependsOn": [],
+      "lastAttempt": {
+        "date": "2026-09-16",
+        "iteration": 52,
+        "result": "BLOCKED",
+        "reason": "Implementação pertence ao lavifort-API, fora do escopo deste frontend; tarefas visuais CRM-VIS foram priorizadas para permitir progresso no frontend."
+      }
+    },
+    {
+      "id": "API-004",
+      "title": "Backend: Endpoints de Tarefas com Herança, Anexos e Transferência (/tasks, /tasks/:id/transfer, /tasks/:id/attachments)",
+      "status": "pending",
+      "priority": 61,
+      "dependsOn": [
+        "API-003"
+      ]
+    },
+    {
+      "id": "API-005",
+      "title": "Backend: Endpoints de Vínculo de Ordens de Pedido (/orders, /orders/:id)",
+      "status": "pending",
+      "priority": 62,
+      "dependsOn": [
+        "API-003"
+      ]
+    }
   ]
 }

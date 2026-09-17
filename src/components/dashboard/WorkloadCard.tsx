@@ -31,10 +31,10 @@ export default function WorkloadCard({
   const offset = circumference - (pct / 100) * circumference;
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="rounded-xl border border-slate-200 bg-white p-5">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-sky-50 text-sm font-bold text-sky-600">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-50 text-sm font-bold text-sky-700">
             {initials}
           </div>
           <h3 className="text-base font-semibold text-slate-800">{name}</h3>

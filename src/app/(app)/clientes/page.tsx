@@ -10,6 +10,7 @@ import {
   ArrowRight,
   Warning,
   CaretRight,
+  Plus,
 } from "@phosphor-icons/react";
 import Header from "@/components/layout/Header";
 import NovoContatoModal from "@/components/clientes/NovoContatoModal";
@@ -273,8 +274,41 @@ export default function ClientesPage() {
                   
                   {!loading && clients.length === 0 ? (
                     <tr>
-                      <td colSpan={9} className="py-12 text-center text-slate-500">
-                        Nenhum contato encontrado.
+                      <td colSpan={9} className="py-12 px-6 text-center">
+                        <div className="flex flex-col items-center gap-3">
+                          {debouncedSearch || activeTab !== 0 ? (
+                            <>
+                              <p className="text-sm text-slate-500">
+                                Nenhum contato corresponde à busca ou filtro
+                                aplicado.
+                              </p>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setSearchInput("");
+                                  handleTabChange(0);
+                                }}
+                                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50"
+                              >
+                                Limpar busca e filtro
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <p className="text-sm text-slate-500">
+                                Nenhum contato cadastrado ainda.
+                              </p>
+                              <button
+                                type="button"
+                                onClick={() => setModalOpen(true)}
+                                className="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-700"
+                              >
+                                <Plus size={14} weight="bold" /> Cadastrar
+                                contato
+                              </button>
+                            </>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ) : (

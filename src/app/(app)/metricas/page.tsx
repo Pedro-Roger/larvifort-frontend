@@ -476,7 +476,7 @@ export default function MetricsPage() {
                     Escolha o indicador que deseja acompanhar.
                   </p>
                   <div className={styles.typeList}>
-                    {METRIC_TYPES.map((item, index) => (
+                    {METRIC_TYPES.map((item) => (
                       <button
                         key={item.id}
                         type="button"
@@ -484,9 +484,7 @@ export default function MetricsPage() {
                         aria-pressed={form.type === item.id}
                         onClick={() => patch({ type: item.id })}
                       >
-                        <span
-                          className={`${styles.typeIcon} ${styles["type" + index]}`}
-                        >
+                        <span className={styles.typeIcon}>
                           <Target size={18} />
                         </span>
                         <span>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import {
   ArrowClockwise,
   CalendarBlank,
@@ -36,6 +37,26 @@ function clientName(client: Cliente) {
 function addressFor(client: Cliente | null) {
   if (!client) return "";
   return [client.endereco, client.cidade, client.uf].filter(Boolean).join(", ");
+}
+
+const PHASE_CONFIG: Record<
+  string,
+  { label: string; className: string }
+> = {
+  DRAFT: { label: "Rascunho", className: "bg-slate-100 text-slate-600" },
+  ABERTO: { label: "Aberto", className: "bg-sky-100 text-sky-700" },
+  PENDING: { label: "Pendente", className: "bg-amber-100 text-amber-700" },
+  APROVADO: { label: "Aprovado", className: "bg-indigo-100 text-indigo-700" },
+  FATURADO: { label: "Faturado", className: "bg-violet-100 text-violet-700" },
+  ENTREGUE: { label: "Entregue", className: "bg-emerald-100 text-emerald-700" },
+  CANCELLED: { label: "Cancelado", className: "bg-red-100 text-red-700" },
+};
+
+function phaseBadge(phase: string) {
+  return PHASE_CONFIG[phase] ?? {
+    label: phase || "Sem fase",
+    className: "bg-slate-100 text-slate-600",
+  };
 }
 
 function NewOrderModal({
@@ -126,7 +147,7 @@ function NewOrderModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4">
       <form
         onSubmit={submit}
-        className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-3xl border border-slate-200 bg-white shadow-2xl"
+        className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-2xl"
       >
         <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
           <div>
@@ -169,7 +190,7 @@ function NewOrderModal({
           </label>
 
           {selectedClient && (
-            <div className="md:col-span-2 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+            <div className="md:col-span-2 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
               <strong className="text-slate-900">
                 Dados preenchidos do cadastro
               </strong>
@@ -361,24 +382,30 @@ export default function PedidosPage() {
   return (
     <main className="min-h-full bg-slate-50 p-4 sm:p-6 xl:p-8">
       <div className="mx-auto max-w-7xl space-y-6">
-        <header className="flex flex-col gap-4 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm lg:flex-row lg:items-end lg:justify-between">
+        <header className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
-              Comercial
-            </span>
-            <h1 className="mt-2 text-2xl font-extrabold tracking-tight text-slate-950 sm:text-3xl">
+            <h1 className="text-2xl font-extrabold tracking-tight text-slate-950 sm:text-3xl">
               Pedidos
             </h1>
             <p className="mt-1 text-sm text-slate-500">
               Gerencie pedidos, entrega, cliente, valor e vínculo com o quadro.
             </p>
           </div>
-          <button
+          <div className="flex items-center gap-2">
+            <Link
+              href="/kanban"
+              title="Abrir o quadro para ver cards e configurar colunas"
+              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 shadow-sm hover:bg-slate-50"
+            >
+              <Package size={17} weight="bold" /> Configurar Quadro
+            </Link>
+            <button
             onClick={() => setModalOpen(true)}
             className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800"
           >
             <Plus size={17} weight="bold" /> Novo pedido
           </button>
+          </div>
         </header>
 
         <section className="grid gap-4 md:grid-cols-4">
@@ -387,7 +414,7 @@ export default function PedidosPage() {
             return (
               <div
                 key={item.label}
-                className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+                className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
               >
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-semibold text-slate-500">
@@ -403,7 +430,7 @@ export default function PedidosPage() {
           })}
         </section>
 
-        <section className="rounded-3xl border border-slate-200 bg-white shadow-sm">
+        <section className="rounded-xl border border-slate-200 bg-white shadow-sm">
           <div className="flex flex-col gap-3 border-b border-slate-100 p-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="relative max-w-md flex-1">
               <MagnifyingGlass
@@ -462,8 +489,10 @@ export default function PedidosPage() {
                         {dateOnly(order.deliveryDate) || "Sem data"}
                       </td>
                       <td className="px-4 py-3">
-                        <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-600">
-                          {order.phase}
+                        <span
+                          className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${phaseBadge(order.phase).className}`}
+                        >
+                          {phaseBadge(order.phase).label}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-right font-bold text-slate-900">
