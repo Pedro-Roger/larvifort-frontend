@@ -3,7 +3,7 @@
   width: 100%;
   padding: 24px;
   color: #0f172a;
-  background: #f8faff;
+  background: #f8fafc;
   font-size: 13px;
   --brand: #2563eb;
   --brand-dark: #1d4ed8;
@@ -317,18 +317,6 @@
   border-radius: 12px;
   background: var(--soft);
   padding: 14px;
-}
-
-.iconTile {
-  display: grid;
-  width: 36px;
-  height: 36px;
-  flex-shrink: 0;
-  place-items: center;
-  border: 1px solid #dbeafe;
-  border-radius: 8px;
-  background: #fff;
-  color: var(--brand);
 }
 
 .teamDescription strong {

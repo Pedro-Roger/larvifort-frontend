@@ -234,9 +234,6 @@ export default function MetricsPage() {
                         Descrição do time
                       </h4>
                       <div className={styles.teamDescription}>
-                        <span className={styles.iconTile}>
-                          <ChartBar size={24} />
-                        </span>
                         <div>
                           <strong>{team?.name ?? "Escolha um time"}</strong>
                           <p>
