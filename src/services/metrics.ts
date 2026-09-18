@@ -23,7 +23,37 @@ export type MetricGoal = MetricGoalInput & {
   createdBy?: string;
   updatedAt?: string;
 };
+export type MetricSource = {
+  id: string;
+  label: string;
+  entity: string;
+  measure: string;
+  aggregation?: "count" | "sum" | "average" | "rate";
+};
+export type MetricFilter = {
+  field: string;
+  operator: "equals" | "not_equals" | "contains" | "in" | "between";
+  value: string | number | boolean | string[] | number[];
+};
+export type MetricVisualization = "chart" | "table" | "card";
+export type MetricMode = "guided" | "blocks" | "advanced";
 export type MetricAnalysis = {
+  id: string;
+  name: string;
+  mode: MetricMode;
+  primarySource: MetricSource;
+  secondarySource?: MetricSource;
+  filters: MetricFilter[];
+  period: MetricPeriod;
+  visualization: MetricVisualization;
+  goal?: { target: number; label?: string };
+  publishedToDashboard: boolean;
+  dashboardPosition?: number;
+  createdAt: string;
+  updatedAt: string;
+  definition?: string;
+};
+export type MetricAnalysisResult = {
   series: { label: string; value: number; quantity: number }[];
   comparison: {
     label: string;
@@ -92,7 +122,7 @@ export function fetchMetricAnalysis(
     userIds: input.userIds.join(","),
   });
   if (!input.userIds.length) params.delete("userIds");
-  return apiGet<MetricAnalysis>(`/metrics/analysis?${params}`, { signal });
+  return apiGet<MetricAnalysisResult>(`/metrics/analysis?${params}`, { signal });
 }
 export function defaultMetricDates() {
   const today = new Date();

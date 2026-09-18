@@ -26,7 +26,7 @@ import {
   fetchMetricAnalysis,
   METRIC_PERIODS,
   METRIC_TYPES,
-  type MetricAnalysis,
+  type MetricAnalysisResult,
   type MetricGoalInput,
 } from "@/services/metrics";
 import {
@@ -53,7 +53,7 @@ export default function MetricsAnalysis({
   const [group, setGroup] = useState<"period" | "people">("period");
   const [response, setResponse] = useState<{
     key: string;
-    data: MetricAnalysis | null;
+    data: MetricAnalysisResult | null;
     error: string;
   }>({ key: "", data: null, error: "" });
   const [retry, setRetry] = useState(0);

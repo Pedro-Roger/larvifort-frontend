@@ -21,7 +21,7 @@ import {
 } from "@phosphor-icons/react";
 import {
   fetchMetricAnalysis,
-  type MetricAnalysis,
+  type MetricAnalysisResult,
 } from "@/services/metrics";
 import type { DashboardMetricWidget } from "@/services/dashboardWidgets";
 
@@ -50,7 +50,7 @@ export default function DynamicMetricWidgetCard({
   onMove,
   onRemove,
 }: DynamicMetricWidgetCardProps) {
-  const [data, setData] = useState<MetricAnalysis | null>(null);
+  const [data, setData] = useState<MetricAnalysisResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [retry, setRetry] = useState(0);
