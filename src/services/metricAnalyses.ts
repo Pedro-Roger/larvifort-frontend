@@ -1,4 +1,4 @@
-import type { MetricAnalysis, MetricMode } from "./metrics";
+import type { MetricAnalysis, MetricMode } from "./metrics.ts";
 
 export const METRIC_ANALYSES_STORAGE_KEY = "larvifort:metric-analyses:v1";
 export const METRIC_ANALYSES_EVENT = "larvifort:metric-analyses-changed";
@@ -21,7 +21,11 @@ function isMetricAnalysis(value: unknown): value is MetricAnalysis {
   return typeof item.id === "string" && typeof item.name === "string" &&
     (item.mode === "guided" || item.mode === "blocks" || item.mode === "advanced") &&
     typeof item.primarySource === "object" && Array.isArray(item.filters) &&
-    Array.isArray(item.dimensions) && typeof item.period === "string" &&
+    Array.isArray(item.dimensions) && item.dimensions.every((dimension) => {
+      if (!dimension || typeof dimension !== "object") return false;
+      const entry = dimension as Record<string, unknown>;
+      return typeof entry.id === "string" && typeof entry.label === "string";
+    }) && typeof item.period === "string" &&
     typeof item.visualization === "string" && typeof item.publishedToDashboard === "boolean" &&
     typeof item.createdAt === "string" && typeof item.updatedAt === "string";
 }
