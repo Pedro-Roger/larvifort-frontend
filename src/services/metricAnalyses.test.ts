@@ -9,6 +9,7 @@ import {
 } from "./metricAnalyses";
 
 const source = { id: "orders.total", label: "Pedidos", entity: "orders", measure: "total", aggregation: "sum" as const };
+const dimensions = [{ id: "period", label: "Período" }];
 
 describe("metricAnalyses", () => {
   beforeEach(() => window.localStorage.clear());
@@ -19,6 +20,7 @@ describe("metricAnalyses", () => {
       mode: "guided",
       primarySource: source,
       filters: [],
+      dimensions,
       period: "MONTHLY",
       visualization: "chart",
       publishedToDashboard: false,
@@ -28,7 +30,7 @@ describe("metricAnalyses", () => {
   });
 
   it("duplicates without publishing or sharing identity", () => {
-    const original = createMetricAnalysis({ name: "A", mode: "blocks", primarySource: source, filters: [], period: "DAILY", visualization: "card", publishedToDashboard: true });
+    const original = createMetricAnalysis({ name: "A", mode: "blocks", primarySource: source, filters: [], dimensions, period: "DAILY", visualization: "card", publishedToDashboard: true });
     const copy = duplicateMetricAnalysis(original.id)!;
     expect(copy.id).not.toBe(original.id);
     expect(copy.name).toBe("A (cópia)");
@@ -37,7 +39,7 @@ describe("metricAnalyses", () => {
   });
 
   it("publishes and removes an analysis", () => {
-    const item = createMetricAnalysis({ name: "A", mode: "advanced", primarySource: source, filters: [], period: "YEARLY", visualization: "table", publishedToDashboard: false });
+    const item = createMetricAnalysis({ name: "A", mode: "advanced", primarySource: source, filters: [], dimensions, period: "YEARLY", visualization: "table", publishedToDashboard: false });
     expect(setMetricAnalysisPublished(item.id, true)?.publishedToDashboard).toBe(true);
     expect(removeMetricAnalysis(item.id)).toBe(true);
     expect(loadMetricAnalyses()).toEqual([]);
@@ -45,7 +47,7 @@ describe("metricAnalyses", () => {
   });
 
   it("updates the definition and mode while preserving identity", () => {
-    const item = createMetricAnalysis({ name: "A", mode: "guided", primarySource: source, filters: [], period: "MONTHLY", visualization: "chart", publishedToDashboard: false });
+    const item = createMetricAnalysis({ name: "A", mode: "guided", primarySource: source, filters: [], dimensions, period: "MONTHLY", visualization: "chart", publishedToDashboard: false });
     const updated = updateMetricAnalysis(item.id, { name: "Pedidos x visitas", visualization: "table" });
     expect(updated?.id).toBe(item.id);
     expect(updated?.name).toBe("Pedidos x visitas");

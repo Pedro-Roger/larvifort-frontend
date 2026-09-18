@@ -15,13 +15,24 @@ function write(items: MetricAnalysis[]) {
   emitChange();
 }
 
+function isMetricAnalysis(value: unknown): value is MetricAnalysis {
+  if (!value || typeof value !== "object") return false;
+  const item = value as Record<string, unknown>;
+  return typeof item.id === "string" && typeof item.name === "string" &&
+    (item.mode === "guided" || item.mode === "blocks" || item.mode === "advanced") &&
+    typeof item.primarySource === "object" && Array.isArray(item.filters) &&
+    Array.isArray(item.dimensions) && typeof item.period === "string" &&
+    typeof item.visualization === "string" && typeof item.publishedToDashboard === "boolean" &&
+    typeof item.createdAt === "string" && typeof item.updatedAt === "string";
+}
+
 export function loadMetricAnalyses(): MetricAnalysis[] {
   if (typeof window === "undefined") return [];
   try {
     const raw = window.localStorage.getItem(METRIC_ANALYSES_STORAGE_KEY);
     if (!raw) return [];
     const parsed: unknown = JSON.parse(raw);
-    return Array.isArray(parsed) ? (parsed as MetricAnalysis[]) : [];
+    return Array.isArray(parsed) ? parsed.filter(isMetricAnalysis) : [];
   } catch {
     return [];
   }
@@ -73,4 +84,3 @@ export function setMetricAnalysisPublished(id: string, published: boolean): Metr
 export function setMetricAnalysisMode(id: string, mode: MetricMode): MetricAnalysis | null {
   return updateMetricAnalysis(id, { mode });
 }
-

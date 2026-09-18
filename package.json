@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test:unit": "node --experimental-strip-types --test src/services/api.test.ts src/services/dashboard.test.ts src/services/dashboardMetrics.test.ts src/services/formatMonthLabel.test.ts src/services/kanbanBoard.test.ts src/services/kanbanDragDrop.test.ts src/services/kanbanPagination.test.ts src/services/kanbanProjectSelection.test.ts src/services/ruleModel.test.ts src/services/subtasks.test.ts src/services/tasks.test.ts",
+    "test:unit": "node --experimental-strip-types --test src/services/api.test.ts src/services/dashboard.test.ts src/services/dashboardMetrics.test.ts src/services/formatMonthLabel.test.ts src/services/kanbanBoard.test.ts src/services/kanbanDragDrop.test.ts src/services/kanbanPagination.test.ts src/services/kanbanProjectSelection.test.ts src/services/ruleModel.test.ts src/services/subtasks.test.ts src/services/tasks.test.ts src/services/metricAnalyses.test.ts",
     "lint": "eslint --max-warnings=0 .",
     "typecheck": "tsc --noEmit"
   },

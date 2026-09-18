@@ -37,6 +37,7 @@ export type MetricFilter = {
 };
 export type MetricVisualization = "chart" | "table" | "card";
 export type MetricMode = "guided" | "blocks" | "advanced";
+export type MetricDimension = { id: string; label: string };
 export type MetricAnalysis = {
   id: string;
   name: string;
@@ -44,6 +45,7 @@ export type MetricAnalysis = {
   primarySource: MetricSource;
   secondarySource?: MetricSource;
   filters: MetricFilter[];
+  dimensions: MetricDimension[];
   period: MetricPeriod;
   visualization: MetricVisualization;
   goal?: { target: number; label?: string };
