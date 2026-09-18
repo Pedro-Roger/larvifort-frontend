@@ -9,7 +9,7 @@ import {
   setMetricAnalysisPublished,
   updateMetricAnalysis,
 } from "@/services/metricAnalyses";
-import type { MetricAnalysis, MetricPeriod, MetricVisualization } from "@/services/metrics";
+import type { MetricAnalysis, MetricPeriod, MetricSource, MetricVisualization } from "@/services/metrics";
 import {
   getMetricSource,
   METRIC_BUILDER_PERIODS,
@@ -24,6 +24,9 @@ type Editor = {
   name: string;
   primaryId: string;
   secondaryId: string;
+  originalPrimaryId?: string;
+  originalSecondaryId?: string;
+  sources: MetricSource[];
   period: MetricPeriod;
   visualization: MetricVisualization;
 };
@@ -32,6 +35,7 @@ const emptyEditor = (): Editor => ({
   name: "",
   primaryId: "orders.count",
   secondaryId: "",
+  sources: [],
   period: "MONTHLY",
   visualization: "chart",
 });
@@ -42,9 +46,39 @@ function editorFromAnalysis(analysis: MetricAnalysis): Editor {
     name: analysis.name,
     primaryId: analysis.primarySource.id,
     secondaryId: analysis.secondarySource?.id ?? "",
+    originalPrimaryId: analysis.primarySource.id,
+    originalSecondaryId: analysis.secondarySource?.id,
+    sources: analysisSources(analysis),
     period: analysis.period,
     visualization: analysis.visualization,
   };
+}
+
+function analysisSources(analysis: MetricAnalysis) {
+  return analysis.sources?.length
+    ? analysis.sources
+    : [analysis.primarySource, analysis.secondarySource].filter(
+        (source): source is NonNullable<typeof source> => Boolean(source),
+      );
+}
+
+function updateSources(editor: Editor, primarySource: MetricSource, secondarySource?: MetricSource) {
+  const originalSources = editor.sources.length
+    ? editor.sources
+    : [primarySource, secondarySource].filter(
+        (source): source is MetricSource => Boolean(source),
+      );
+  const replacements = originalSources.flatMap((source) => {
+    if (source.id === editor.originalPrimaryId) return [primarySource];
+    if (source.id === editor.originalSecondaryId) return secondarySource ? [secondarySource] : [];
+    return [source];
+  });
+  const sources = replacements.length
+    ? replacements
+    : [primarySource, secondarySource].filter(
+        (source): source is MetricSource => Boolean(source),
+      );
+  return Array.from(new Map(sources.map((source) => [source.id, source])).values());
 }
 
 export default function MetricBlocksView() {
@@ -67,10 +101,12 @@ export default function MetricBlocksView() {
       return;
     }
     const secondarySource = editor.secondaryId ? getMetricSource(editor.secondaryId) : undefined;
+    const sources = updateSources(editor, primarySource, secondarySource);
     const changes = {
       name: editor.name.trim() || primarySource.label,
       primarySource,
       secondarySource,
+      sources,
       period: editor.period,
       visualization: editor.visualization,
     };
@@ -112,7 +148,9 @@ export default function MetricBlocksView() {
             <article className={styles.analysisBlock} key={analysis.id}>
               <div>
                 <h4>{analysis.name}</h4>
-                <p>{analysis.primarySource.label}{analysis.secondarySource ? ` x ${analysis.secondarySource.label}` : ""} · {METRIC_BUILDER_PERIODS.find((period) => period.id === analysis.period)?.label}</p>
+                <p>{analysisSources(analysis).map((source) => source.label).join(", ")} · {METRIC_BUILDER_PERIODS.find((period) => period.id === analysis.period)?.label}</p>
+                {analysis.definition && <p>Definição: {analysis.definition}</p>}
+                <p>Resultado: ainda não calculado</p>
               </div>
               <span className={styles.blockVisualization}>{METRIC_BUILDER_VISUALIZATIONS.find((item) => item.id === analysis.visualization)?.label}</span>
               <div className={styles.blockActions}>

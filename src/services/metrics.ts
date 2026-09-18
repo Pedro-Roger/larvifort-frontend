@@ -44,6 +44,7 @@ export type MetricAnalysis = {
   mode: MetricMode;
   primarySource: MetricSource;
   secondarySource?: MetricSource;
+  sources?: MetricSource[];
   filters: MetricFilter[];
   dimensions: MetricDimension[];
   period: MetricPeriod;

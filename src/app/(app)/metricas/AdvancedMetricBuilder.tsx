@@ -61,6 +61,7 @@ export default function AdvancedMetricBuilder({ onSaved }: { onSaved?: () => voi
       mode: "advanced",
       primarySource: sources[0],
       secondarySource: sources[1],
+      sources,
       filters: [],
       dimensions: [TEMPORAL_DIMENSION],
       period,

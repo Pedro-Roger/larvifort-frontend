@@ -20,7 +20,12 @@ function isMetricAnalysis(value: unknown): value is MetricAnalysis {
   const item = value as Record<string, unknown>;
   return typeof item.id === "string" && typeof item.name === "string" &&
     (item.mode === "guided" || item.mode === "blocks" || item.mode === "advanced") &&
-    typeof item.primarySource === "object" && Array.isArray(item.filters) &&
+    typeof item.primarySource === "object" &&
+    (!Object.hasOwn(item, "sources") || (Array.isArray(item.sources) && item.sources.every((source) => {
+      if (!source || typeof source !== "object") return false;
+      const entry = source as Record<string, unknown>;
+      return typeof entry.id === "string" && typeof entry.label === "string";
+    }))) && Array.isArray(item.filters) &&
     Array.isArray(item.dimensions) && item.dimensions.every((dimension) => {
       if (!dimension || typeof dimension !== "object") return false;
       const entry = dimension as Record<string, unknown>;
