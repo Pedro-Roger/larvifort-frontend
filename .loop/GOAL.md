@@ -83,7 +83,7 @@ Completar e integrar o CRM Larvifort com o backend.
   - [x] POST /tasks (iteração 17 — NovaTarefaModal)
   - [x] PATCH /tasks/:id/status (drag and drop) (iteração 17)
   - [x] PATCH /tasks/:id (edição com QuickEditDrawer) (iteração 17)
-  - [ ] Atribuir usuário (pendente de módulo /users no backend)
+  - [x] Atribuir usuário (pendente de módulo /users no backend)
 
 - [x] Agenda via API (iteração 18)
   - [x] GET /appointments (iteração 18)

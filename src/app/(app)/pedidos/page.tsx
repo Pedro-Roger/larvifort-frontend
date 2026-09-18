@@ -4,13 +4,22 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   ArrowClockwise,
+  ArrowRight,
   CalendarBlank,
   CheckCircle,
+  CaretLeft,
+  CaretRight,
+  ChartBar,
+  CurrencyCircleDollar,
+  DotsThree,
+  Eye,
+  Faders,
   MagnifyingGlass,
   Package,
   Plus,
   ShoppingCart,
   SpinnerGap,
+  PencilSimple,
   Warning,
   X,
 } from "@phosphor-icons/react";
@@ -20,6 +29,7 @@ import {
   fetchOrders,
   fetchOrderStats,
   type Order,
+  type OrderPhase,
   type OrderStats,
 } from "@/services/orders";
 import { createTask } from "@/services/tasks";
@@ -44,10 +54,10 @@ const PHASE_CONFIG: Record<
   { label: string; className: string }
 > = {
   DRAFT: { label: "Rascunho", className: "bg-slate-100 text-slate-600" },
-  ABERTO: { label: "Aberto", className: "bg-sky-100 text-sky-700" },
+  ABERTO: { label: "Em preparo", className: "bg-amber-100 text-amber-700" },
   PENDING: { label: "Pendente", className: "bg-amber-100 text-amber-700" },
-  APROVADO: { label: "Aprovado", className: "bg-indigo-100 text-indigo-700" },
-  FATURADO: { label: "Faturado", className: "bg-violet-100 text-violet-700" },
+  APROVADO: { label: "Confirmado", className: "bg-emerald-100 text-emerald-700" },
+  FATURADO: { label: "Em transporte", className: "bg-sky-100 text-sky-700" },
   ENTREGUE: { label: "Entregue", className: "bg-emerald-100 text-emerald-700" },
   CANCELLED: { label: "Cancelado", className: "bg-red-100 text-red-700" },
 };
@@ -308,6 +318,9 @@ export default function PedidosPage() {
   const [stats, setStats] = useState<OrderStats | null>(null);
   const [clients, setClients] = useState<Cliente[]>([]);
   const [search, setSearch] = useState("");
+  const [phase, setPhase] = useState<OrderPhase | "">("");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -320,12 +333,7 @@ export default function PedidosPage() {
       setLoading(true);
       setError(false);
       return Promise.all([
-      fetchOrders({ search, limit: 50 }).catch(() => ({
-        items: [],
-        total: 0,
-        page: 1,
-        totalPages: 1,
-      })),
+      fetchOrders({ search, phase: phase || undefined, page, limit: 10 }),
       fetchOrderStats().catch(() => null),
       fetchClients({ pageSize: 300 }).catch(() => ({
         items: [],
@@ -340,6 +348,7 @@ export default function PedidosPage() {
         const [ordersResult, statsResult, clientsResult] = result;
         if (cancelled) return;
         setOrders(ordersResult.items);
+        setTotalPages(ordersResult.totalPages);
         setStats(statsResult);
         setClients(clientsResult.items);
       })
@@ -352,11 +361,14 @@ export default function PedidosPage() {
     return () => {
       cancelled = true;
     };
-  }, [search, refresh]);
+  }, [search, phase, page, refresh]);
+
+  const today = new Date().toISOString().slice(0, 10);
+  const todayDeliveries = orders.filter((order) => dateOnly(order.deliveryDate) === today);
 
   const summary = useMemo(
     () => [
-      {
+       {
         label: "Pedidos",
         value: stats?.totalPedidos ?? orders.length,
         icon: ShoppingCart,
@@ -367,12 +379,12 @@ export default function PedidosPage() {
           stats?.totalRevenue ??
             orders.reduce((sum, order) => sum + order.totalAmount, 0),
         ),
-        icon: Package,
+         icon: CurrencyCircleDollar,
       },
       {
         label: "Ticket médio",
         value: money(stats?.averageTicket ?? 0),
-        icon: CalendarBlank,
+         icon: ChartBar,
       },
       { label: "Cancelados", value: stats?.totalCancelled ?? 0, icon: Warning },
     ],
@@ -380,11 +392,11 @@ export default function PedidosPage() {
   );
 
   return (
-    <main className="min-h-full bg-slate-50 p-4 sm:p-6 xl:p-8">
-      <div className="mx-auto max-w-7xl space-y-6">
-        <header className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm lg:flex-row lg:items-end lg:justify-between">
+    <main className="min-h-full bg-[#f5f7fa] p-4 sm:p-6 xl:p-7">
+      <div className="mx-auto max-w-[1440px] space-y-5">
+        <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <h1 className="text-2xl font-extrabold tracking-tight text-slate-950 sm:text-3xl">
+            <h1 className="text-3xl font-bold tracking-tight text-[#172033]">
               Pedidos
             </h1>
             <p className="mt-1 text-sm text-slate-500">
@@ -392,37 +404,46 @@ export default function PedidosPage() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <Link
+             <div className="flex items-center gap-2">
+             <label className="hidden items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600 sm:flex">
+               <CalendarBlank size={15} />
+               <span>01/04/2024 – 30/04/2024</span>
+             </label>
+             <button onClick={() => setPhase(phase ? "" : "APROVADO")} className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50">
+               <Faders size={15} /> Filtros
+             </button>
+             <Link
               href="/kanban"
               title="Abrir o quadro para ver cards e configurar colunas"
-              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 shadow-sm hover:bg-slate-50"
+               className="hidden"
             >
               <Package size={17} weight="bold" /> Configurar Quadro
             </Link>
-            <button
+             <button
             onClick={() => setModalOpen(true)}
-            className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800"
+             className="inline-flex items-center gap-2 rounded-lg bg-[#073B82] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#0B4FA3]"
           >
             <Plus size={17} weight="bold" /> Novo pedido
           </button>
-          </div>
+          </div></div>
         </header>
 
-        <section className="grid gap-4 md:grid-cols-4">
+        <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_260px]">
+        <section className="rounded-lg border border-slate-200 bg-white shadow-sm">
           {summary.map((item) => {
             const Icon = item.icon;
             return (
-              <div
+               <div
                 key={item.label}
-                className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+                 className="flex items-center gap-3 border-b border-slate-100 p-4 last:border-0"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold text-slate-500">
+                   <span className="text-xs font-semibold text-slate-500">
                     {item.label}
                   </span>
-                  <Icon size={20} className="text-slate-400" />
+                   <Icon size={18} className="text-[#0B4FA3]" />
                 </div>
-                <strong className="mt-3 block text-2xl font-extrabold text-slate-950">
+                 <strong className="ml-auto block text-lg font-bold text-slate-950">
                   {item.value}
                 </strong>
               </div>
@@ -430,7 +451,7 @@ export default function PedidosPage() {
           })}
         </section>
 
-        <section className="rounded-xl border border-slate-200 bg-white shadow-sm">
+        <section className="rounded-lg border border-slate-200 bg-white shadow-sm">
           <div className="flex flex-col gap-3 border-b border-slate-100 p-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="relative max-w-md flex-1">
               <MagnifyingGlass
@@ -441,7 +462,7 @@ export default function PedidosPage() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Buscar pedido ou cliente..."
-                className="w-full rounded-xl border border-slate-200 py-2 pl-9 pr-3 text-sm"
+                className="w-full rounded-lg border border-slate-200 py-2 pl-9 pr-3 text-sm"
               />
             </div>
             <button
@@ -468,43 +489,58 @@ export default function PedidosPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
-                  <tr>
-                    <th className="px-4 py-3 text-left">Pedido</th>
-                    <th className="px-4 py-3 text-left">Cliente</th>
-                    <th className="px-4 py-3 text-left">Entrega</th>
-                    <th className="px-4 py-3 text-left">Fase</th>
-                    <th className="px-4 py-3 text-right">Valor</th>
+                   <tr>
+                     <th className="px-4 py-3 text-left">#</th>
+                     <th className="px-4 py-3 text-left">Cliente</th>
+                     <th className="px-4 py-3 text-left">Quantidade</th>
+                     <th className="px-4 py-3 text-left">Entrega</th>
+                     <th className="px-4 py-3 text-left">Status</th>
+                     <th className="px-4 py-3 text-left">Responsável</th>
+                     <th className="px-4 py-3 text-right">Valor</th>
+                     <th className="px-4 py-3 text-right">Ações</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {orders.map((order) => (
                     <tr key={order.id} className="hover:bg-slate-50/70">
-                      <td className="px-4 py-3 font-semibold text-slate-900">
+                       <td className="px-4 py-3 text-xs font-semibold text-slate-500">
                         {order.orderNumber ?? "Sem número"}
                       </td>
-                      <td className="px-4 py-3 text-slate-600">
+                       <td className="px-4 py-3 font-medium text-slate-800">
                         {order.clientName ?? "Cliente"}
                       </td>
-                      <td className="px-4 py-3 text-slate-600">
+                       <td className="px-4 py-3 text-slate-600">
+                         {order.items.reduce((sum, item) => sum + item.quantity, 0).toLocaleString("pt-BR")} {order.items[0]?.unit?.toLowerCase() || "un."}
+                       </td>
+                       <td className="px-4 py-3 text-slate-600">
                         {dateOnly(order.deliveryDate) || "Sem data"}
                       </td>
-                      <td className="px-4 py-3">
+                       <td className="px-4 py-3">
                         <span
                           className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${phaseBadge(order.phase).className}`}
                         >
                           {phaseBadge(order.phase).label}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-right font-bold text-slate-900">
-                        {money(order.totalAmount)}
-                      </td>
+                       <td className="px-4 py-3 text-slate-600">
+                         {order.salesRepName || "—"}
+                       </td>
+                       <td className="px-4 py-3 text-right font-semibold text-slate-900">
+                         {money(order.totalAmount)}
+                       </td>
+                       <td className="px-4 py-3 text-right"><div className="flex justify-end gap-1"><button aria-label="Visualizar pedido" className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"><Eye size={15} /></button><button aria-label="Editar pedido" className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"><PencilSimple size={15} /></button><button aria-label="Mais ações" className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"><DotsThree size={16} /></button></div></td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-          )}
-        </section>
+           )}
+           {!loading && !error && orders.length > 0 && <div className="flex items-center justify-between border-t border-slate-100 px-4 py-3 text-xs text-slate-500"><span>Mostrando pedidos desta página</span><div className="flex items-center gap-1"><button disabled={page <= 1} onClick={() => setPage((value) => Math.max(1, value - 1))} className="rounded border border-slate-200 p-1 disabled:opacity-40"><CaretLeft size={14} /></button><span className="rounded bg-[#073B82] px-2 py-1 font-semibold text-white">{page}</span><button disabled={page >= totalPages} onClick={() => setPage((value) => value + 1)} className="rounded border border-slate-200 p-1 disabled:opacity-40"><CaretRight size={14} /></button></div></div>}
+         </section>
+        <aside className="space-y-4">
+          <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm"><h2 className="text-sm font-bold text-slate-900">Resumo do período</h2><div className="mt-3 space-y-1">{summary.map((item) => { const Icon = item.icon; return <div key={item.label} className="flex items-center gap-3 border-b border-slate-100 py-3 last:border-0"><Icon size={18} className="text-[#0B4FA3]" /><span className="text-xs text-slate-500">{item.label}</span><strong className="ml-auto text-sm text-slate-900">{item.value}</strong></div>; })}</div></section>
+          <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm"><div className="flex items-center justify-between"><h2 className="text-sm font-bold text-slate-900">Entregas de hoje</h2><span className="text-sm font-bold text-slate-700">{todayDeliveries.length}</span></div><div className="mt-3 divide-y divide-slate-100">{todayDeliveries.length ? todayDeliveries.slice(0, 4).map((order) => <div key={order.id} className="py-3"><p className="text-xs font-semibold text-slate-800">{order.clientName || "Cliente"}</p><p className="mt-1 text-[11px] text-slate-500">{order.items.reduce((sum, item) => sum + item.quantity, 0).toLocaleString("pt-BR")} larvas <span className="float-right text-emerald-600">● {phaseBadge(order.phase).label}</span></p></div>) : <p className="py-5 text-xs text-slate-500">Nenhuma entrega programada para hoje.</p>}</div><button className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-[#073B82]">Ver todas as entregas <ArrowRight size={14} /></button></section>
+        </aside></div>
       </div>
       {modalOpen && (
         <NewOrderModal

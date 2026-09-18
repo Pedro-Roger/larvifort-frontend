@@ -14,6 +14,7 @@ import { ApiError } from "@/services/api";
 import { fetchColumns, type Projeto, type TaskColumn } from "@/services/tasks";
 import { type User } from "@/services/users";
 import { useAuth } from "@/contexts/AuthContext";
+import { loadAppointmentSettings } from "@/services/appointmentSettings";
 
 interface NovoCompromissoModalProps {
   open: boolean;
@@ -52,7 +53,8 @@ export default function NovoCompromissoModal({
 }: NovoCompromissoModalProps) {
   const { user } = useAuth();
   const currentUserId = user?.id ? String(user.id) : "";
-  const defaultProjectId = projetos[0]?.id ?? "";
+  const appointmentSettings = loadAppointmentSettings();
+  const defaultProjectId = appointmentSettings.projectId || projetos[0]?.id || "";
   const [form, setForm] = useState<FormState>({
     tipo: "REUNIAO",
     titulo: "",
@@ -63,7 +65,7 @@ export default function NovoCompromissoModal({
     endereco: "",
     observacoes: "",
     projectId: defaultProjectId,
-    columnId: "",
+    columnId: appointmentSettings.columnId,
     assigneeId: currentUserId,
   });
   const [columns, setColumns] = useState<TaskColumn[]>([]);

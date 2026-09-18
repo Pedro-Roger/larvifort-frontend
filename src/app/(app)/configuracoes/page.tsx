@@ -15,8 +15,9 @@ import {
 } from "@phosphor-icons/react";
 import { fetchColumns, fetchProjetos, type Projeto, type TaskColumn } from "@/services/tasks";
 import { loadOrderSettings, saveOrderSettings, type OrderSettings } from "@/services/orderSettings";
+import { loadAppointmentSettings, saveAppointmentSettings, type AppointmentSettings } from "@/services/appointmentSettings";
 
-type SettingsSection = "pedidos" | "integracoes" | "whatsapp" | "hubfort" | "mobile";
+type SettingsSection = "pedidos" | "compromissos" | "integracoes" | "whatsapp" | "hubfort" | "mobile";
 
 type SettingsItem = {
   id: SettingsSection;
@@ -29,6 +30,15 @@ type SettingsItem = {
 };
 
 const sections: SettingsItem[] = [
+  {
+    id: "compromissos",
+    title: "Compromissos",
+    eyebrow: "Agenda e quadro",
+    description: "Escolha onde visitas e reuniões entram automaticamente no quadro.",
+    icon: CheckCircle,
+    status: "available",
+    items: ["Coluna automática", "Card no quadro", "Check-in de campo"],
+  },
   {
     id: "pedidos",
     title: "Pedidos",
@@ -90,6 +100,7 @@ export default function ConfiguracoesPage() {
   const [projetos, setProjetos] = useState<Projeto[]>([]);
   const [columns, setColumns] = useState<TaskColumn[]>([]);
   const [settings, setSettings] = useState<OrderSettings>(emptySettings);
+  const [appointmentSettings, setAppointmentSettings] = useState<AppointmentSettings>(loadAppointmentSettings);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -104,9 +115,13 @@ export default function ConfiguracoesPage() {
   }, []);
 
   useEffect(() => {
-    if (!settings.projectId) return;
-    fetchColumns(settings.projectId).then(setColumns).catch(() => setColumns([]));
-  }, [settings.projectId]);
+    const projectId = active === "compromissos" ? appointmentSettings.projectId : settings.projectId;
+    if (!projectId) {
+      queueMicrotask(() => setColumns([]));
+      return;
+    }
+    fetchColumns(projectId).then(setColumns).catch(() => setColumns([]));
+  }, [active, settings.projectId, appointmentSettings.projectId]);
 
   function updateSettings<K extends keyof OrderSettings>(key: K, value: OrderSettings[K]) {
     setSaved(false);
@@ -116,6 +131,13 @@ export default function ConfiguracoesPage() {
   function handleSave() {
     setSaving(true);
     saveOrderSettings(settings);
+    setSaving(false);
+    setSaved(true);
+  }
+
+  function handleAppointmentSave() {
+    setSaving(true);
+    saveAppointmentSettings(appointmentSettings);
     setSaving(false);
     setSaved(true);
   }
@@ -211,7 +233,26 @@ export default function ConfiguracoesPage() {
               </div>
             </div>
 
-            {selected.id === "pedidos" ? (
+            {selected.id === "compromissos" ? (
+              <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                <h3 className="text-base font-bold text-slate-950">Automação de compromissos</h3>
+                <p className="mt-1 text-sm text-slate-500">Todo compromisso criado com cliente real vira atividade no quadro selecionado.</p>
+                <div className="mt-5 grid gap-4 md:grid-cols-2">
+                  <label className="space-y-1.5 text-sm font-semibold text-slate-700">Projeto do quadro
+                    <select value={appointmentSettings.projectId} onChange={(e) => { setAppointmentSettings({ projectId: e.target.value, columnId: "" }); setColumns([]); setSaved(false); }} className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm">
+                      <option value="">Selecione um projeto</option>{projetos.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+                    </select>
+                  </label>
+                  <label className="space-y-1.5 text-sm font-semibold text-slate-700">Coluna dos compromissos
+                    <select value={appointmentSettings.columnId} onChange={(e) => setAppointmentSettings((s) => ({ ...s, columnId: e.target.value }))} disabled={!appointmentSettings.projectId} className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm disabled:bg-slate-100">
+                      <option value="">Primeira coluna do projeto</option>{columns.map((c) => <option key={c.id} value={c.id}>{c.title}</option>)}
+                    </select>
+                  </label>
+                </div>
+                <div className="mt-5 flex justify-end"><button type="button" onClick={handleAppointmentSave} disabled={saving} className="rounded-xl bg-slate-950 px-4 py-2 text-sm font-bold text-white">{saving ? "Salvando..." : "Salvar configurações"}</button></div>
+                {saved && <p className="mt-3 text-sm font-semibold text-emerald-700">Configurações salvas.</p>}
+              </div>
+            ) : selected.id === "pedidos" ? (
               <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
                 <h3 className="text-base font-bold text-slate-950">Automação de pedidos</h3>
                 <p className="mt-1 text-sm text-slate-500">

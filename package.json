@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test:unit": "node --experimental-strip-types --test src/services/kanbanProjectSelection.test.ts",
+    "test:unit": "node --experimental-strip-types --test src/services/api.test.ts src/services/dashboard.test.ts src/services/dashboardMetrics.test.ts src/services/formatMonthLabel.test.ts src/services/kanbanBoard.test.ts src/services/kanbanDragDrop.test.ts src/services/kanbanPagination.test.ts src/services/kanbanProjectSelection.test.ts src/services/ruleModel.test.ts src/services/subtasks.test.ts src/services/tasks.test.ts",
     "lint": "eslint --max-warnings=0 .",
     "typecheck": "tsc --noEmit"
   },
@@ -31,12 +31,13 @@
     "tailwind-merge": "^3.6.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
     "@types/jest": "^30.0.0",
-    "@types/node": "^20",
+    "@types/node": "^20.19.43",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",

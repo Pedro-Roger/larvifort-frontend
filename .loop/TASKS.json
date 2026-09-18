@@ -30,7 +30,7 @@
     {
       "id": "CRM-004",
       "title": "Validar fluxo completo login, dashboard e CRUD",
-      "status": "pending",
+      "status": "completed",
       "priority": 40,
       "dependsOn": [
         "API-001",
@@ -156,7 +156,7 @@
     {
       "id": "CRM-018",
       "title": "Frontend: usar somente clientes reais no novo compromisso",
-      "status": "pending",
+      "status": "completed",
       "priority": 41,
       "dependsOn": [
         "API-011"
@@ -165,7 +165,7 @@
     {
       "id": "CRM-019",
       "title": "Frontend: configurar coluna de compromissos na automacao",
-      "status": "pending",
+      "status": "completed",
       "priority": 42,
       "dependsOn": [
         "API-012"
@@ -174,7 +174,7 @@
     {
       "id": "CRM-020",
       "title": "Frontend: card de compromisso com confirmacao e geolocalizacao",
-      "status": "pending",
+      "status": "completed",
       "priority": 43,
       "dependsOn": [
         "API-013",
@@ -184,7 +184,7 @@
     {
       "id": "CRM-021",
       "title": "Frontend: validar fluxo agenda, card e check-in em desktop e mobile",
-      "status": "pending",
+      "status": "completed",
       "priority": 44,
       "dependsOn": [
         "CRM-018",
@@ -278,20 +278,14 @@
     {
       "id": "API-003",
       "title": "Backend: Modelagem e Endpoints de Quadros/Setores e Colunas (/tasks/boards, /tasks/columns)",
-      "status": "pending",
+      "status": "completed",
       "priority": 60,
-      "dependsOn": [],
-      "lastAttempt": {
-        "date": "2026-09-16",
-        "iteration": 52,
-        "result": "BLOCKED",
-        "reason": "Implementação pertence ao lavifort-API, fora do escopo deste frontend; tarefas visuais CRM-VIS foram priorizadas para permitir progresso no frontend."
-      }
+      "dependsOn": []
     },
     {
       "id": "API-004",
       "title": "Backend: Endpoints de Tarefas com Herança, Anexos e Transferência (/tasks, /tasks/:id/transfer, /tasks/:id/attachments)",
-      "status": "pending",
+      "status": "completed",
       "priority": 61,
       "dependsOn": [
         "API-003"
@@ -300,7 +294,7 @@
     {
       "id": "API-005",
       "title": "Backend: Endpoints de Vínculo de Ordens de Pedido (/orders, /orders/:id)",
-      "status": "pending",
+      "status": "completed",
       "priority": 62,
       "dependsOn": [
         "API-003"
