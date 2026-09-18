@@ -66,28 +66,21 @@ export default function DynamicMetricWidgetCard({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [retry, setRetry] = useState(0);
-  const [savedAnalysis, setSavedAnalysis] = useState<MetricAnalysis | null>(null);
+  const [, setAnalysisVersion] = useState(0);
   const [, startTransition] = useTransition();
+  const savedAnalysis: MetricAnalysis | null = widget.analysisId
+    ? loadMetricAnalyses().find((analysis) => analysis.id === widget.analysisId) ?? null
+    : null;
 
   useEffect(() => {
-    if (!widget.analysisId) {
-      setSavedAnalysis(null);
-      return;
-    }
-    const refresh = () => setSavedAnalysis(
-      loadMetricAnalyses().find((analysis) => analysis.id === widget.analysisId) ?? null,
-    );
-    refresh();
+    if (!widget.analysisId) return;
+    const refresh = () => setAnalysisVersion((version) => version + 1);
     window.addEventListener(METRIC_ANALYSES_EVENT, refresh);
     return () => window.removeEventListener(METRIC_ANALYSES_EVENT, refresh);
   }, [widget.analysisId]);
 
   useEffect(() => {
-    if (widget.analysisId) {
-      setLoading(false);
-      setError("");
-      return;
-    }
+    if (widget.analysisId) return;
     const controller = new AbortController();
 
     fetchMetricAnalysis(
