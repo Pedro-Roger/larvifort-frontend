@@ -33,6 +33,11 @@ import {
   addDashboardWidget,
   type DashboardWidgetMode,
 } from "@/services/dashboardWidgets";
+import type { MetricMode } from "@/services/metrics";
+import AdvancedMetricBuilder from "./AdvancedMetricBuilder";
+import GuidedMetricBuilder from "./GuidedMetricBuilder";
+import MetricBlocksView from "./MetricBlocksView";
+import MetricModeSelector from "./MetricModeSelector";
 import styles from "./metrics.module.css";
 const COLORS = ["#0866ff", "#78b3ff", "#40c4aa", "#ff9035"];
 const number = (value: number) =>
@@ -58,6 +63,7 @@ export default function MetricsAnalysis({
   }>({ key: "", data: null, error: "" });
   const [retry, setRetry] = useState(0);
   const [dashboardMessage, setDashboardMessage] = useState("");
+  const [builderMode, setBuilderMode] = useState<MetricMode>("guided");
   const { teamId, userIds, type, period, startDate, endDate } = filter;
   const memberKey = [...userIds].sort().join(",");
   const requestKey = JSON.stringify([
@@ -190,6 +196,27 @@ export default function MetricsAnalysis({
   };
   return (
     <>
+      <section className={styles.metricBuilderWorkspace} aria-label="Criação de análises">
+        <div className={styles.metricBuilderIntro}>
+          <div>
+            <h2>Construa suas métricas</h2>
+            <p className={styles.muted}>
+              Escolha o modo que melhor funciona agora. Seus rascunhos permanecem
+              disponíveis ao trocar de modo.
+            </p>
+          </div>
+        </div>
+        <MetricModeSelector value={builderMode} onChange={setBuilderMode} />
+        <div hidden={builderMode !== "guided"}>
+          <GuidedMetricBuilder />
+        </div>
+        <div hidden={builderMode !== "blocks"}>
+          <MetricBlocksView />
+        </div>
+        <div hidden={builderMode !== "advanced"}>
+          <AdvancedMetricBuilder />
+        </div>
+      </section>
       <div className={styles.analysisHeader}>
         <div>
           <h2>Visualização e Análise</h2>
