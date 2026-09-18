@@ -1,15 +1,22 @@
 # LOOP STATE
 
-status: DONE
-iteration: 70
-VERIFICATION: PASS (Atribuição de usuário validada — funcionalidade implementada no backend e frontend).
+status: WORKING
+iteration: 71
+VERIFICATION: PASS (CRM-031 implementada; ./scripts/verify.sh passou).
 
 ## Estado atual
 
-Todas as tarefas de frontend acionáveis concluídas (CRM-001..017, CRM-VIS-001..006, FASE 1-5, FASE 6/7 frontend). Funcionalidade de atribuição de usuários via /users confirmada como operacional.
+CRM-022 a CRM-031 concluídas. A tela de Pós-venda usa os contratos reais de
+acompanhamento e finalização após entrega.
 
 ## Current Task
-CRM-018 a CRM-021 concluídas: compromissos com cliente real, coluna configurável, check-in e validação de build/testes.
+CRM-031 — Frontend: Fluxo de Pós-venda após entrega.
+
+TASK_RESULT: PASS
+
+Próxima tarefa: nenhuma na FASE 8. Permanecem critérios anteriores do GOAL
+dependentes de backend publicado e validação E2E.
+
 
 ## Completed
 Histórico de completed permanece em `GOAL.md` e `LOG.md`. Atribuição de usuário (Kanban) marcada como concluída em `GOAL.md`. O projeto está operacional.

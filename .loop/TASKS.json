@@ -299,6 +299,86 @@
       "dependsOn": [
         "API-003"
       ]
+    },
+    {
+      "id": "CRM-022",
+      "title": "Frontend: Tela de Produtos e unidades de medida",
+      "status": "completed",
+      "priority": 70,
+      "dependsOn": ["API-015"],
+      "acceptanceCriteria": ["Lista e busca usam /products", "Criar e editar unidade, preço padrão e status", "Sem produtos mockados"]
+    },
+    {
+      "id": "CRM-023",
+      "title": "Frontend: Tela de Unidades, locais e berçários",
+      "status": "completed",
+      "priority": 71,
+      "dependsOn": ["API-016", "CRM-022"],
+      "acceptanceCriteria": ["Unidades e locais são filtráveis", "CRUD usa endpoints reais", "Capacidade e status ficam visíveis"]
+    },
+    {
+      "id": "CRM-024",
+      "title": "Frontend: Consulta e movimentação de Estoque",
+      "status": "completed",
+      "priority": 72,
+      "dependsOn": ["API-017", "CRM-022", "CRM-023"],
+      "acceptanceCriteria": ["Disponibilidade separa disponível e reservado", "Movimentações exigem tipo e motivo", "Filtros por produto, unidade e local funcionam"]
+    },
+    {
+      "id": "CRM-025",
+      "title": "Frontend: Reservas e integração Pedido-Estoque",
+      "status": "completed",
+      "priority": 73,
+      "dependsOn": ["API-019", "CRM-024"],
+      "acceptanceCriteria": ["Reserva não ultrapassa disponibilidade", "Reserva fica vinculada ao pedido", "Liberação atualiza a disponibilidade"]
+    },
+    {
+      "id": "CRM-026",
+      "title": "Frontend: Fila e detalhe do Laboratório",
+      "status": "completed",
+      "priority": 74,
+      "dependsOn": ["API-021", "CRM-025"],
+      "acceptanceCriteria": ["OS pode ser gerada por pedido fechado", "Status e responsável são atualizáveis", "Bloqueio exige motivo"]
+    },
+    {
+      "id": "CRM-027",
+      "title": "Frontend: Separação e conferência de pedidos",
+      "status": "completed",
+      "priority": 75,
+      "dependsOn": ["API-022", "CRM-026"],
+      "acceptanceCriteria": ["Separação registra responsável e horário", "Quantidade conferida é persistida", "Divergência exige motivo"]
+    },
+    {
+      "id": "CRM-028",
+      "title": "Frontend: Cadastro de motoristas e veículos",
+      "status": "completed",
+      "priority": 76,
+      "dependsOn": ["API-023"],
+      "acceptanceCriteria": ["Motoristas e veículos possuem CRUD real", "Status e disponibilidade são filtráveis", "Dados sensíveis não ficam hardcoded"]
+    },
+    {
+      "id": "CRM-029",
+      "title": "Frontend: Entregas, rotas e comprovantes",
+      "status": "completed",
+      "priority": 77,
+      "dependsOn": ["API-024", "CRM-027", "CRM-028"],
+      "acceptanceCriteria": ["Entrega só inicia após separação", "Motorista e veículo podem ser atribuídos", "Status, comprovante e problema são auditáveis"]
+    },
+    {
+      "id": "CRM-030",
+      "title": "Frontend: Pendências e resumo Fiscal",
+      "status": "completed",
+      "priority": 78,
+      "dependsOn": ["API-025", "CRM-022"],
+      "acceptanceCriteria": ["Resumo fiscal reúne dados reais do pedido", "Status fiscal possui transições explícitas", "Alterações exibem erro e confirmação"]
+    },
+    {
+      "id": "CRM-031",
+      "title": "Frontend: Fluxo de Pós-venda após entrega",
+      "status": "completed",
+      "priority": 79,
+      "dependsOn": ["API-026", "CRM-029"],
+      "acceptanceCriteria": ["Acompanhamento nasce de entrega concluída", "Problemas e próxima ação ficam registrados", "Finalização preserva responsável e histórico"]
     }
   ]
 }

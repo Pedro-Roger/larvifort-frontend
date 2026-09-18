@@ -24,6 +24,7 @@ import {
 } from "@phosphor-icons/react";
 import {
   fetchMetricAnalysis,
+  METRIC_SOURCES,
   METRIC_PERIODS,
   METRIC_TYPES,
   type MetricAnalysisResult,
@@ -206,6 +207,17 @@ export default function MetricsAnalysis({
             </p>
           </div>
         </div>
+        <details className={styles.sourceCatalog}>
+          <summary>Fontes de dados conectadas</summary>
+          <p>
+            Escolha qualquer fonte no eixo A, eixo B ou como origem do filtro.
+          </p>
+          <ul>
+            {METRIC_SOURCES.map((source) => (
+              <li key={source.id}>{source.label}</li>
+            ))}
+          </ul>
+        </details>
         <MetricModeSelector value={builderMode} onChange={setBuilderMode} />
         <div hidden={builderMode !== "guided"}>
           <GuidedMetricBuilder />

@@ -1159,6 +1159,42 @@
   text-align: center;
 }
 
+.sourceCatalog {
+  margin: 0 0 16px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  padding: 11px 13px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.sourceCatalog summary {
+  cursor: pointer;
+  color: #1e293b;
+  font-weight: 700;
+}
+
+.sourceCatalog p {
+  margin: 10px 0 7px;
+}
+
+.sourceCatalog ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sourceCatalog li {
+  border: 1px solid #dbe4f0;
+  border-radius: 999px;
+  background: #f8fafc;
+  padding: 4px 8px;
+}
+
 .chartMessage p {
   max-width: 45ch;
   line-height: 1.7;

@@ -29,6 +29,18 @@ export type MetricSource = {
   entity: string;
   measure: string;
   aggregation?: "count" | "sum" | "average" | "rate";
+  /** Rota já disponível na API que alimenta esta fonte. */
+  dataPath?: string;
+  /** Campos que podem restringir dados desta fonte. */
+  filterFields?: MetricSourceFilterField[];
+};
+export type MetricSourceFilterField = {
+  id: string;
+  label: string;
+};
+export type MetricSourceFilterOption = MetricSourceFilterField & {
+  sourceId: string;
+  sourceLabel: string;
 };
 export type MetricFilter = {
   field: string;
@@ -114,6 +126,50 @@ export const METRIC_PERIODS: { id: MetricPeriod; label: string }[] = [
   { id: "MONTHLY", label: "Mensal" },
   { id: "YEARLY", label: "Anual" },
 ];
+
+const commercialFilters: MetricSourceFilterField[] = [
+  { id: "status", label: "Status" },
+  { id: "client", label: "Cliente" },
+  { id: "responsible", label: "Responsável" },
+];
+
+/**
+ * Fonte única para os três construtores. Cada item aponta para uma rota real
+ * do CRM e declara os filtros que seus dados aceitam.
+ */
+export const METRIC_SOURCES: MetricSource[] = [
+  { id: "orders.count", label: "Pedidos", entity: "orders", measure: "count", aggregation: "count", dataPath: "/orders", filterFields: commercialFilters },
+  { id: "orders.revenue", label: "Faturamento", entity: "orders", measure: "revenue", aggregation: "sum", dataPath: "/orders", filterFields: commercialFilters },
+  { id: "appointments.visits", label: "Visitas", entity: "appointments", measure: "count", aggregation: "count", dataPath: "/appointments", filterFields: commercialFilters },
+  { id: "appointments.meetings", label: "Reuniões", entity: "appointments", measure: "count", aggregation: "count", dataPath: "/appointments", filterFields: commercialFilters },
+  { id: "clients.new", label: "Clientes novos", entity: "clients", measure: "new", aggregation: "count", dataPath: "/clients", filterFields: [{ id: "segment", label: "Segmento" }, { id: "responsible", label: "Responsável" }] },
+  { id: "clients.existing", label: "Clientes antigos", entity: "clients", measure: "existing", aggregation: "count", dataPath: "/clients", filterFields: [{ id: "segment", label: "Segmento" }, { id: "responsible", label: "Responsável" }] },
+  { id: "stock.on_hand", label: "Estoque", entity: "stock", measure: "on_hand", aggregation: "sum", dataPath: "/metrics/operations/stock", filterFields: [{ id: "unit", label: "Unidade" }, { id: "location", label: "Berçário ou local" }, { id: "product", label: "Produto" }] },
+  { id: "reservations.active", label: "Reservas", entity: "reservations", measure: "active", aggregation: "count", dataPath: "/stock/reservations", filterFields: [{ id: "status", label: "Status" }, { id: "unit", label: "Unidade" }, { id: "product", label: "Produto" }] },
+  { id: "laboratory.analyses", label: "Laboratório", entity: "laboratory", measure: "analyses", aggregation: "count", dataPath: "/lab/orders", filterFields: [{ id: "status", label: "Status" }, { id: "unit", label: "Unidade" }, { id: "product", label: "Produto" }] },
+  { id: "separation.orders", label: "Separação", entity: "separation", measure: "orders", aggregation: "count", dataPath: "/metrics/operations/funnel", filterFields: [{ id: "status", label: "Status" }, { id: "unit", label: "Unidade" }, { id: "responsible", label: "Responsável" }] },
+  { id: "deliveries.completed", label: "Entregas", entity: "deliveries", measure: "completed", aggregation: "count", dataPath: "/metrics/operations/logistics", filterFields: [{ id: "status", label: "Status" }, { id: "driver", label: "Motorista" }, { id: "unit", label: "Unidade" }] },
+  { id: "after-sales.followups", label: "Pós-venda", entity: "after-sales", measure: "followups", aggregation: "count", dataPath: "/metrics/operations/post-sales", filterFields: [{ id: "status", label: "Status" }, { id: "client", label: "Cliente" }, { id: "responsible", label: "Responsável" }] },
+];
+
+export function getMetricSource(id: string): MetricSource | undefined {
+  return METRIC_SOURCES.find((source) => source.id === id);
+}
+
+/** Gera filtros apenas para as mesmas fontes escolhidas na análise. */
+export function getMetricSourceFilters(
+  sources: MetricSource[],
+): MetricSourceFilterOption[] {
+  return sources.flatMap((source) =>
+    (source.filterFields ?? []).map((field) => ({
+      ...field,
+      id: `${source.id}.${field.id}`,
+      sourceId: source.id,
+      sourceLabel: source.label,
+    })),
+  );
+}
+
 export function fetchMetricsOptions() {
   return apiGet<{ teams: MetricTeam[] }>("/metrics/options");
 }

@@ -1,19 +1,15 @@
-import type { MetricDimension, MetricOperation, MetricPeriod, MetricSource, MetricVisualization } from "@/services/metrics";
+import {
+  getMetricSource as getCatalogMetricSource,
+  METRIC_SOURCES,
+  type MetricDimension,
+  type MetricOperation,
+  type MetricPeriod,
+  type MetricSource,
+  type MetricVisualization,
+} from "@/services/metrics";
 
-export const METRIC_BUILDER_SOURCES: MetricSource[] = [
-  { id: "orders.count", label: "Pedidos", entity: "orders", measure: "count", aggregation: "count" },
-  { id: "orders.revenue", label: "Faturamento", entity: "orders", measure: "revenue", aggregation: "sum" },
-  { id: "appointments.visits", label: "Visitas", entity: "appointments", measure: "count", aggregation: "count" },
-  { id: "appointments.meetings", label: "Reuniões", entity: "appointments", measure: "count", aggregation: "count" },
-  { id: "clients.new", label: "Clientes novos", entity: "clients", measure: "new", aggregation: "count" },
-  { id: "clients.existing", label: "Clientes antigos", entity: "clients", measure: "existing", aggregation: "count" },
-  { id: "stock.on_hand", label: "Estoque", entity: "stock", measure: "on_hand", aggregation: "sum" },
-  { id: "reservations.active", label: "Reservas", entity: "reservations", measure: "active", aggregation: "count" },
-  { id: "laboratory.analyses", label: "Laboratório", entity: "laboratory", measure: "analyses", aggregation: "count" },
-  { id: "separation.orders", label: "Separação", entity: "separation", measure: "orders", aggregation: "count" },
-  { id: "deliveries.completed", label: "Entregas", entity: "deliveries", measure: "completed", aggregation: "count" },
-  { id: "after-sales.followups", label: "Pós-venda", entity: "after-sales", measure: "followups", aggregation: "count" },
-];
+/** Compatibilidade para os construtores; o catálogo fica centralizado no serviço. */
+export const METRIC_BUILDER_SOURCES = METRIC_SOURCES;
 
 export const METRIC_BUILDER_OPERATIONS: Record<MetricOperation, string> = {
   difference: "Diferença",
@@ -57,5 +53,5 @@ export const TEMPORAL_DIMENSION: MetricDimension = {
 };
 
 export function getMetricSource(id: string) {
-  return METRIC_BUILDER_SOURCES.find((source) => source.id === id);
+  return getCatalogMetricSource(id);
 }

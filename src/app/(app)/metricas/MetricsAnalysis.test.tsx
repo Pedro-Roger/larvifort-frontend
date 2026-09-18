@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, within } from "@testing-library/react";
 import MetricsAnalysis from "./MetricsAnalysis";
 import { fetchMetricAnalysis, type MetricGoalInput } from "@/services/metrics";
 import { loadMetricAnalyses } from "@/services/metricAnalyses";
@@ -130,4 +130,73 @@ it("permite trocar os modos pelo teclado", async () => {
     "true",
   );
   expect(screen.getByRole("tab", { name: /^Blocos/ })).toHaveFocus();
+});
+
+it("exibe o catálogo operacional e salva a meta com um filtro da fonte escolhida", async () => {
+  render(<MetricsAnalysis filter={filter} enabled target={200} />);
+  await screen.findByText("50%");
+
+  expect(screen.getByText("Fontes de dados conectadas")).toBeInTheDocument();
+  const catalog = screen.getByText("Fontes de dados conectadas").closest("details");
+  expect(catalog).not.toBeNull();
+  expect(within(catalog!).getByText("Pós-venda")).toBeInTheDocument();
+  const guidedPanel = screen.getByRole("tabpanel", { name: /Guiado/ });
+  fireEvent.change(within(guidedPanel).getByLabelText("Métrica B"), {
+    target: { value: "appointments.visits" },
+  });
+  fireEvent.change(within(guidedPanel).getByLabelText("Filtrar dados de"), {
+    target: { value: "appointments.visits" },
+  });
+  fireEvent.change(within(guidedPanel).getByLabelText("Campo do filtro"), {
+    target: { value: "appointments.visits.status" },
+  });
+  fireEvent.change(within(guidedPanel).getByLabelText("Valor do filtro"), {
+    target: { value: "confirmado" },
+  });
+  fireEvent.change(within(guidedPanel).getByLabelText("Meta opcional"), {
+    target: { value: "75" },
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Salvar análise" }));
+
+  expect(loadMetricAnalyses()[0]).toEqual(
+    expect.objectContaining({
+      goal: { target: 75 },
+      filters: [
+        {
+          field: "appointments.visits.status",
+          operator: "equals",
+          value: "confirmado",
+        },
+      ],
+    }),
+  );
+});
+
+it("mostra carregamento, vazio e erro sem substituir dados por mocks", async () => {
+  let resolveRequest: ((value: typeof data) => void) | undefined;
+  jest.mocked(fetchMetricAnalysis).mockImplementationOnce(
+    () =>
+      new Promise((resolve) => {
+        resolveRequest = resolve;
+      }),
+  );
+  const { rerender } = render(<MetricsAnalysis filter={filter} enabled target={200} />);
+  expect(screen.getByRole("status")).toHaveTextContent("Carregando resultados");
+
+  resolveRequest?.({
+    ...data,
+    series: [{ label: "2026-09-01", value: 0, quantity: 0 }],
+    summary: { value: 0, quantity: 0, clients: 0, visits: 0 },
+  });
+  await screen.findByText("Nenhum registro encontrado para este time, pessoas e intervalo.");
+
+  jest.mocked(fetchMetricAnalysis).mockRejectedValueOnce(new Error("Fonte indisponível"));
+  rerender(
+    <MetricsAnalysis
+      filter={{ ...filter, period: "MONTHLY" }}
+      enabled
+      target={200}
+    />,
+  );
+  await screen.findByText("Fonte indisponível");
 });

@@ -1,7 +1,12 @@
 import { useState } from "react";
 import { Check, Plus } from "@phosphor-icons/react";
 import { createMetricAnalysis } from "@/services/metricAnalyses";
-import type { MetricFilter, MetricPeriod, MetricVisualization } from "@/services/metrics";
+import {
+  getMetricSourceFilters,
+  type MetricFilter,
+  type MetricPeriod,
+  type MetricVisualization,
+} from "@/services/metrics";
 import {
   getMetricSource,
   METRIC_BUILDER_PERIODS,
@@ -18,6 +23,8 @@ type Draft = {
   period: MetricPeriod;
   visualization: MetricVisualization;
   includeTime: boolean;
+  filterSourceId: string;
+  filterKey: string;
   filterValue: string;
   target: string;
 };
@@ -29,6 +36,8 @@ const initialDraft: Draft = {
   period: "MONTHLY",
   visualization: "chart",
   includeTime: true,
+  filterSourceId: "orders.count",
+  filterKey: "orders.count.status",
   filterValue: "",
   target: "",
 };
@@ -42,6 +51,22 @@ export default function GuidedMetricBuilder({ onSaved }: { onSaved?: () => void 
   };
   const primarySource = getMetricSource(draft.primaryId);
   const secondarySource = draft.secondaryId ? getMetricSource(draft.secondaryId) : undefined;
+  const selectedSources = [primarySource, secondarySource].filter(
+    (source): source is NonNullable<typeof source> => Boolean(source),
+  );
+  const sourceFilters = getMetricSourceFilters(selectedSources);
+  const selectedFilter =
+    sourceFilters.find((item) => item.id === draft.filterKey) ?? sourceFilters[0];
+
+  const selectFilterSource = (sourceId: string) => {
+    const nextFilter = getMetricSourceFilters(
+      selectedSources.filter((source) => source.id === sourceId),
+    )[0];
+    patch({
+      filterSourceId: sourceId,
+      filterKey: nextFilter?.id ?? "",
+    });
+  };
 
   const save = () => {
     if (!primarySource) {
@@ -53,8 +78,8 @@ export default function GuidedMetricBuilder({ onSaved }: { onSaved?: () => void 
       return;
     }
     const target = Number(draft.target);
-    const filters: MetricFilter[] = draft.filterValue.trim()
-      ? [{ field: "status", operator: "equals", value: draft.filterValue.trim() }]
+    const filters: MetricFilter[] = draft.filterValue.trim() && selectedFilter
+      ? [{ field: selectedFilter.id, operator: "equals", value: draft.filterValue.trim() }]
       : [];
     createMetricAnalysis({
       name: draft.name.trim() || `${primarySource.label}${secondarySource ? ` x ${secondarySource.label}` : ""}`,
@@ -88,7 +113,14 @@ export default function GuidedMetricBuilder({ onSaved }: { onSaved?: () => void 
         </label>
         <label>
           Métrica A
-          <select aria-label="Métrica A" value={draft.primaryId} onChange={(event) => patch({ primaryId: event.target.value })}>
+          <select aria-label="Métrica A" value={draft.primaryId} onChange={(event) => {
+            const primaryId = event.target.value;
+            patch({
+              primaryId,
+              filterSourceId: primaryId,
+              filterKey: `${primaryId}.${getMetricSource(primaryId)?.filterFields?.[0]?.id ?? ""}`,
+            });
+          }}>
             {METRIC_BUILDER_SOURCES.map((source) => <option key={source.id} value={source.id}>{source.label}</option>)}
           </select>
         </label>
@@ -112,8 +144,20 @@ export default function GuidedMetricBuilder({ onSaved }: { onSaved?: () => void 
           </select>
         </label>
         <label>
-          Filtro por status
-          <input aria-label="Filtro por status" value={draft.filterValue} onChange={(event) => patch({ filterValue: event.target.value })} placeholder="Ex.: confirmado" />
+          Filtrar dados de
+          <select aria-label="Filtrar dados de" value={selectedFilter?.sourceId ?? draft.filterSourceId} onChange={(event) => selectFilterSource(event.target.value)}>
+            {selectedSources.map((source) => <option key={source.id} value={source.id}>{source.label}</option>)}
+          </select>
+        </label>
+        <label>
+          Campo do filtro
+          <select aria-label="Campo do filtro" value={selectedFilter?.id ?? ""} onChange={(event) => patch({ filterKey: event.target.value })}>
+            {sourceFilters.filter((item) => item.sourceId === (selectedFilter?.sourceId ?? draft.filterSourceId)).map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
+          </select>
+        </label>
+        <label>
+          Valor do filtro
+          <input aria-label="Valor do filtro" value={draft.filterValue} onChange={(event) => patch({ filterValue: event.target.value })} placeholder="Ex.: confirmado" />
         </label>
         <label>
           Meta opcional

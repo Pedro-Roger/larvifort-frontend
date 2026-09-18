@@ -206,6 +206,22 @@ entrada dos compromissos e confirma a atividade no card. A interface captura
 uma única localização mediante ação explícita e exibe a data/hora confirmada
 pela API.
 
+### FASE 8 - Módulos operacionais do pedido
+
+- [x] CRM-022: Tela de Produtos
+- [x] CRM-023: Tela de Unidades e Berçários
+- [x] CRM-024: Tela de Estoque
+- [x] CRM-025: Tela de Reservas e integração Pedido-Estoque
+- [x] CRM-026: Tela de Laboratório
+- [x] CRM-027: Tela de Separação
+- [x] CRM-028: Tela de Motoristas e Veículos
+- [x] CRM-029: Tela de Entregas
+- [x] CRM-030: Tela Fiscal
+- [x] CRM-031: Tela de Pós-venda
+
+O detalhamento funcional e os contratos de cada tela estão em
+`docs/specs/operational-modules-frontend.md`.
+
 ## Comandos
 
 ```bash

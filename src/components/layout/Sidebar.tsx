@@ -18,6 +18,15 @@ import {
   AddressBook,
   UsersThree,
   ClipboardText,
+  Cube,
+  Package,
+  LinkSimple,
+  Flask,
+  CheckCircle,
+  Truck,
+  MapPin,
+  FileText,
+  Heartbeat,
   Gear,
   Question,
   SignOut,
@@ -28,6 +37,14 @@ import {
 
 const mainMenu = [
   { label: "Dashboard", href: "/dashboard", icon: SquaresFour },
+  { label: "Estoque", href: "/estoque", icon: Package },
+  { label: "Reservas", href: "/estoque/reservas", icon: LinkSimple },
+  { label: "Laboratório", href: "/laboratorio", icon: Flask },
+  { label: "Separação", href: "/separacao", icon: CheckCircle },
+  { label: "Logística", href: "/logistica", icon: Truck },
+  { label: "Entregas", href: "/entregas", icon: MapPin },
+  { label: "Fiscal", href: "/fiscal", icon: FileText },
+  { label: "Pós-venda", href: "/pos-venda", icon: Heartbeat },
   { label: "Notificações", href: "#", icon: Bell, badge: 3 },
   { label: "Agenda", href: "/agenda", icon: CalendarDots },
   { label: "Pedidos", href: "/pedidos", icon: ShoppingCart },
@@ -36,6 +53,8 @@ const mainMenu = [
 ];
 
 const registros = [
+  { label: "Produtos", href: "/produtos", icon: Cube },
+  { label: "Unidades e berçários", href: "/estoque/unidades", icon: Buildings },
   { label: "Métricas", href: "/metricas", icon: ChartBar },
   { label: "Empresas", href: "/empresas", icon: Buildings },
   { label: "Clientes & Contatos", href: "/clientes", icon: AddressBook },
