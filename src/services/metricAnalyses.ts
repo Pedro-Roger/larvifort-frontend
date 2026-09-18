@@ -96,6 +96,9 @@ export function updateMetricAnalysis(
   if (!found) return null;
   const updated = { ...found, ...changes, updatedAt: new Date().toISOString() };
   write(current.map((item) => (item.id === id ? updated : item)));
+  if (updated.publishedToDashboard && !Object.hasOwn(changes, "dashboardPosition")) {
+    addMetricAnalysisDashboardWidget(updated);
+  }
   return updated;
 }
 
@@ -113,6 +116,7 @@ export function duplicateMetricAnalysis(id: string): MetricAnalysis | null {
 export function removeMetricAnalysis(id: string): boolean {
   const current = loadMetricAnalyses();
   if (!current.some((item) => item.id === id)) return false;
+  removeMetricAnalysisWidget(id);
   write(current.filter((item) => item.id !== id));
   return true;
 }

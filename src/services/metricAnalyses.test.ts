@@ -68,6 +68,22 @@ test("publishes an analysis through the dashboard widget integration", () => {
      assert.equal(loadDashboardWidgets().length, 0);
 });
 
+test("synchronizes a published widget when its analysis changes", () => {
+    const item = createMetricAnalysis({ name: "Conversão", mode: "advanced", primarySource: source, sources: [source], filters: [{ field: "status", operator: "equals", value: "open" }], dimensions, period: "MONTHLY", visualization: "card", definition: "Pedidos", operation: "sum", publishedToDashboard: false });
+    setMetricAnalysisPublished(item.id, true);
+    updateMetricAnalysis(item.id, { name: "Conversão revisada", definition: "Soma de Pedidos" });
+    assert.equal(loadDashboardWidgets()[0]?.title, "Conversão revisada");
+    assert.equal(loadDashboardWidgets()[0]?.analysisId, item.id);
+});
+
+test("removes the published widget with its analysis", () => {
+    const item = createMetricAnalysis({ name: "A", mode: "guided", primarySource: source, filters: [], dimensions, period: "MONTHLY", visualization: "card", publishedToDashboard: false });
+    setMetricAnalysisPublished(item.id, true);
+    assert.equal(loadDashboardWidgets().length, 1);
+    assert.equal(removeMetricAnalysis(item.id), true);
+    assert.equal(loadDashboardWidgets().length, 0);
+});
+
 test("rejects malformed nested storage data", () => {
     window.localStorage.setItem("larvifort:metric-analyses:v1", JSON.stringify([{
       id: "bad",

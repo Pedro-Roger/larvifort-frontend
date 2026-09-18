@@ -21,9 +21,11 @@ import {
 } from "@phosphor-icons/react";
 import {
   fetchMetricAnalysis,
+  type MetricAnalysis,
   type MetricAnalysisResult,
 } from "@/services/metrics";
 import type { DashboardMetricWidget } from "@/services/dashboardWidgets";
+import { loadMetricAnalyses, METRIC_ANALYSES_EVENT } from "@/services/metricAnalyses";
 
 interface DynamicMetricWidgetCardProps {
   widget: DashboardMetricWidget;
@@ -43,6 +45,16 @@ const moneyFormat = (val: number) =>
     maximumFractionDigits: 0,
   });
 
+function analysisResultText(analysis: MetricAnalysis) {
+  if (analysis.result?.status === "ready") {
+    return `${analysis.result.value.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}${analysis.result.label ? ` ${analysis.result.label}` : ""}`;
+  }
+  if (analysis.result?.status === "unavailable") {
+    return analysis.result.reason ?? "Resultado indisponível";
+  }
+  return "Aguardando cálculo";
+}
+
 export default function DynamicMetricWidgetCard({
   widget,
   index,
@@ -54,9 +66,28 @@ export default function DynamicMetricWidgetCard({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [retry, setRetry] = useState(0);
+  const [savedAnalysis, setSavedAnalysis] = useState<MetricAnalysis | null>(null);
   const [, startTransition] = useTransition();
 
   useEffect(() => {
+    if (!widget.analysisId) {
+      setSavedAnalysis(null);
+      return;
+    }
+    const refresh = () => setSavedAnalysis(
+      loadMetricAnalyses().find((analysis) => analysis.id === widget.analysisId) ?? null,
+    );
+    refresh();
+    window.addEventListener(METRIC_ANALYSES_EVENT, refresh);
+    return () => window.removeEventListener(METRIC_ANALYSES_EVENT, refresh);
+  }, [widget.analysisId]);
+
+  useEffect(() => {
+    if (widget.analysisId) {
+      setLoading(false);
+      setError("");
+      return;
+    }
     const controller = new AbortController();
 
     fetchMetricAnalysis(
@@ -95,6 +126,7 @@ export default function DynamicMetricWidgetCard({
 
   const currency = widget.type === "SALES" && widget.axis === "value";
   const formatValue = (val: number) => (currency ? moneyFormat(val) : numberFormat(val));
+  const widgetTitle = savedAnalysis?.name ?? (widget.title || widget.typeLabel);
 
   const chartSeries =
     widget.group === "period"
@@ -130,7 +162,7 @@ export default function DynamicMetricWidgetCard({
           </div>
 
           <h3 className="mt-1.5 truncate text-base font-bold text-slate-900 tracking-tight">
-            {widget.title || widget.typeLabel}
+            {widgetTitle}
           </h3>
           <p className="text-xs text-slate-500">
             {widget.teamName} · {widget.startDate} até {widget.endDate}
@@ -181,7 +213,17 @@ export default function DynamicMetricWidgetCard({
 
       {/* Card Body with Real Dynamic Data */}
       <div className="pt-4 flex-1 min-h-[220px]">
-        {loading ? (
+        {widget.analysisId ? (
+          savedAnalysis ? (
+            <div className="h-48 flex flex-col justify-center gap-2 text-sm text-slate-600">
+              <p className="font-semibold text-slate-900">{savedAnalysis.definition ?? savedAnalysis.sources?.map((source) => source.label).join(", ") ?? savedAnalysis.primarySource.label}</p>
+              <p>{savedAnalysis.filters.length ? `${savedAnalysis.filters.length} filtro(s) aplicado(s)` : "Sem filtros aplicados"}</p>
+              <p className="text-xs text-slate-500">Resultado: {analysisResultText(savedAnalysis)}</p>
+            </div>
+          ) : (
+            <div className="h-48 flex items-center justify-center text-sm text-slate-500">A análise publicada não está mais disponível.</div>
+          )
+        ) : loading ? (
           <div className="h-48 flex items-center justify-center text-xs text-slate-400">
             Carregando dados da métrica...
           </div>
