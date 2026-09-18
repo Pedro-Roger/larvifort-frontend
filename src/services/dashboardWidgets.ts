@@ -1,4 +1,4 @@
-import type { MetricPeriod, MetricType } from "./metrics";
+import type { MetricAnalysis, MetricPeriod, MetricType } from "./metrics";
 
 export type DashboardWidgetMode = "charts" | "table" | "cards";
 export type DashboardWidgetAxis = "value" | "quantity";
@@ -21,6 +21,7 @@ export type DashboardMetricWidget = {
   axis: DashboardWidgetAxis;
   group: DashboardWidgetGroup;
   addedAt: string;
+  analysisId?: string;
 };
 
 export const DASHBOARD_WIDGETS_EVENT = "larvifort:dashboard-widgets-changed";
@@ -66,7 +67,7 @@ export function addDashboardWidget(
   input: Omit<DashboardMetricWidget, "id" | "addedAt">,
 ): DashboardMetricWidget[] {
   if (typeof window === "undefined") return [];
-  const id = [
+  const id = input.analysisId ? `analysis:${input.analysisId}` : [
     input.teamId,
     input.type,
     input.period,
@@ -83,6 +84,54 @@ export function addDashboardWidget(
     addedAt: new Date().toISOString(),
   };
   const widgets = [widget, ...loadDashboardWidgets().filter((item) => item.id !== id)];
+  saveDashboardWidgets(widgets);
+  return widgets;
+}
+
+function dateRangeFor(period: MetricPeriod) {
+  const today = new Date();
+  const format = (date: Date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+  const start = new Date(today);
+  if (period === "WEEKLY") start.setDate(today.getDate() - 6);
+  if (period === "MONTHLY") start.setDate(1);
+  if (period === "YEARLY") start.setMonth(0, 1);
+  return { startDate: format(start), endDate: format(today) };
+}
+
+function metricTypeForAnalysis(analysis: MetricAnalysis): MetricType {
+  switch (analysis.primarySource.id) {
+    case "orders.revenue": return "SALES";
+    case "appointments.visits": return "VISITS";
+    case "clients.new": return "PROSPECTING";
+    case "clients.existing": return "RETURN";
+    default: return "ACTIVITIES";
+  }
+}
+
+export function addMetricAnalysisDashboardWidget(analysis: MetricAnalysis): DashboardMetricWidget[] {
+  const { startDate, endDate } = dateRangeFor(analysis.period);
+  return addDashboardWidget({
+    analysisId: analysis.id,
+    title: analysis.name,
+    teamId: "all",
+    teamName: "Todas as equipes",
+    userIds: [],
+    type: metricTypeForAnalysis(analysis),
+    typeLabel: analysis.primarySource.label,
+    period: analysis.period,
+    periodLabel: { DAILY: "Diário", WEEKLY: "Semanal", MONTHLY: "Mensal", YEARLY: "Anual" }[analysis.period],
+    startDate,
+    endDate,
+    target: analysis.goal?.target ?? 0,
+    mode: analysis.visualization === "chart" ? "charts" : analysis.visualization === "table" ? "table" : "cards",
+    axis: "value",
+    group: "period",
+  });
+}
+
+export function removeMetricAnalysisWidget(analysisId: string): DashboardMetricWidget[] {
+  if (typeof window === "undefined") return [];
+  const widgets = loadDashboardWidgets().filter((widget) => widget.analysisId !== analysisId);
   saveDashboardWidgets(widgets);
   return widgets;
 }

@@ -37,7 +37,12 @@ export type MetricFilter = {
 };
 export type MetricVisualization = "chart" | "table" | "card";
 export type MetricMode = "guided" | "blocks" | "advanced";
+export type MetricOperation = "difference" | "percentage" | "ratio" | "sum" | "average";
 export type MetricDimension = { id: string; label: string };
+export type MetricResult =
+  | { status: "pending" }
+  | { status: "ready"; value: number; label?: string }
+  | { status: "unavailable"; reason?: string };
 export type MetricAnalysis = {
   id: string;
   name: string;
@@ -55,6 +60,8 @@ export type MetricAnalysis = {
   createdAt: string;
   updatedAt: string;
   definition?: string;
+  operation?: MetricOperation;
+  result?: MetricResult;
 };
 export type MetricAnalysisResult = {
   series: { label: string; value: number; quantity: number }[];

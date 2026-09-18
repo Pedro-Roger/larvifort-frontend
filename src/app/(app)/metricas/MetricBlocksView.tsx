@@ -9,9 +9,10 @@ import {
   setMetricAnalysisPublished,
   updateMetricAnalysis,
 } from "@/services/metricAnalyses";
-import type { MetricAnalysis, MetricPeriod, MetricSource, MetricVisualization } from "@/services/metrics";
+import type { MetricAnalysis, MetricOperation, MetricPeriod, MetricSource, MetricVisualization } from "@/services/metrics";
 import {
   getMetricSource,
+  buildMetricExpression,
   METRIC_BUILDER_PERIODS,
   METRIC_BUILDER_SOURCES,
   METRIC_BUILDER_VISUALIZATIONS,
@@ -27,6 +28,8 @@ type Editor = {
   originalPrimaryId?: string;
   originalSecondaryId?: string;
   sources: MetricSource[];
+  operation?: MetricOperation;
+  mode?: MetricAnalysis["mode"];
   period: MetricPeriod;
   visualization: MetricVisualization;
 };
@@ -49,6 +52,8 @@ function editorFromAnalysis(analysis: MetricAnalysis): Editor {
     originalPrimaryId: analysis.primarySource.id,
     originalSecondaryId: analysis.secondarySource?.id,
     sources: analysisSources(analysis),
+    operation: analysis.operation,
+    mode: analysis.mode,
     period: analysis.period,
     visualization: analysis.visualization,
   };
@@ -81,6 +86,17 @@ function updateSources(editor: Editor, primarySource: MetricSource, secondarySou
   return Array.from(new Map(sources.map((source) => [source.id, source])).values());
 }
 
+function resultText(analysis: MetricAnalysis) {
+  if (analysis.result?.status === "ready") {
+    const value = analysis.result.value.toLocaleString("pt-BR", { maximumFractionDigits: 2 });
+    return `Resultado: ${value}${analysis.result.label ? ` ${analysis.result.label}` : ""}`;
+  }
+  if (analysis.result?.status === "unavailable") {
+    return `Resultado indisponível${analysis.result.reason ? `: ${analysis.result.reason}` : ""}`;
+  }
+  return "Resultado aguardando cálculo";
+}
+
 export default function MetricBlocksView() {
   const [analyses, setAnalyses] = useState<MetricAnalysis[]>([]);
   const [editor, setEditor] = useState<Editor | null>(null);
@@ -102,11 +118,18 @@ export default function MetricBlocksView() {
     }
     const secondarySource = editor.secondaryId ? getMetricSource(editor.secondaryId) : undefined;
     const sources = updateSources(editor, primarySource, secondarySource);
+    const definition = editor.operation
+      ? buildMetricExpression(editor.operation, sources)
+      : editor.mode === "advanced"
+        ? undefined
+        : undefined;
     const changes = {
       name: editor.name.trim() || primarySource.label,
       primarySource,
       secondarySource,
       sources,
+      definition,
+      result: { status: "pending" } as const,
       period: editor.period,
       visualization: editor.visualization,
     };
@@ -150,7 +173,7 @@ export default function MetricBlocksView() {
                 <h4>{analysis.name}</h4>
                 <p>{analysisSources(analysis).map((source) => source.label).join(", ")} · {METRIC_BUILDER_PERIODS.find((period) => period.id === analysis.period)?.label}</p>
                 {analysis.definition && <p>Definição: {analysis.definition}</p>}
-                <p>Resultado: ainda não calculado</p>
+                <p>{resultText(analysis)}</p>
               </div>
               <span className={styles.blockVisualization}>{METRIC_BUILDER_VISUALIZATIONS.find((item) => item.id === analysis.visualization)?.label}</span>
               <div className={styles.blockActions}>

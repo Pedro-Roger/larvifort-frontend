@@ -31,6 +31,8 @@ function createAnalysis() {
     period: "MONTHLY",
     visualization: "chart",
     definition: "Pedidos ÷ Visitas",
+    operation: "ratio",
+    result: { status: "ready", value: 54, label: "Pedidos" },
     publishedToDashboard: false,
   });
 }
@@ -42,7 +44,7 @@ it("mostra as fontes e a definição da análise avançada", async () => {
   await screen.findByText("Conversão comercial");
   expect(screen.getByText("Pedidos, Visitas · Mensal")).toBeInTheDocument();
   expect(screen.getByText("Definição: Pedidos ÷ Visitas")).toBeInTheDocument();
-  expect(screen.getByText("Resultado: ainda não calculado")).toBeInTheDocument();
+  expect(screen.getByText("Resultado: 54 Pedidos")).toBeInTheDocument();
 });
 
 it("edita, duplica, publica, oculta e exclui um bloco", async () => {
@@ -66,6 +68,8 @@ it("edita, duplica, publica, oculta e exclui um bloco", async () => {
           expect.objectContaining({ id: "orders.revenue" }),
           expect.objectContaining({ id: "appointments.visits" }),
         ],
+        definition: "Faturamento ÷ Visitas",
+        result: { status: "pending" },
       }),
     ),
   );

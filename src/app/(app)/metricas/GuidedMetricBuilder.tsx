@@ -66,6 +66,7 @@ export default function GuidedMetricBuilder({ onSaved }: { onSaved?: () => void 
       period: draft.period,
       visualization: draft.visualization,
       goal: Number.isFinite(target) && target > 0 ? { target } : undefined,
+      result: { status: "pending" },
       publishedToDashboard: false,
     });
     setMessage("Análise salva. Ela já está disponível em Blocos.");

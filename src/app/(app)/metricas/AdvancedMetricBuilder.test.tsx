@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import AdvancedMetricBuilder from "./AdvancedMetricBuilder";
 import { loadMetricAnalyses } from "@/services/metricAnalyses";
+import { METRIC_BUILDER_SOURCES } from "./metricBuilderOptions";
 
 beforeEach(() => window.localStorage.clear());
 
@@ -47,6 +48,23 @@ it("salva todas as fontes e a expressão de uma agregação avançada", () => {
         expect.objectContaining({ id: "orders.revenue" }),
       ],
       definition: "Soma de Pedidos, Visitas, Faturamento",
+      result: { status: "pending" },
     }),
   ]);
+});
+
+it("limita operações binárias a duas fontes e oferece o catálogo operacional", () => {
+  render(<AdvancedMetricBuilder />);
+
+  expect(screen.getByLabelText("Faturamento")).toBeDisabled();
+  expect(METRIC_BUILDER_SOURCES.map((source) => source.label)).toEqual(
+    expect.arrayContaining([
+      "Estoque",
+      "Reservas",
+      "Laboratório",
+      "Separação",
+      "Entregas",
+      "Pós-venda",
+    ]),
+  );
 });

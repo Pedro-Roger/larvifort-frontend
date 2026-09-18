@@ -7,6 +7,7 @@ import {
   setMetricAnalysisPublished,
   updateMetricAnalysis,
 } from "./metricAnalyses.ts";
+import { loadDashboardWidgets } from "./dashboardWidgets.ts";
 import { beforeEach, test } from "node:test";
 import assert from "node:assert/strict";
 
@@ -53,6 +54,36 @@ test("publishes and removes an analysis", () => {
     assert.equal(removeMetricAnalysis(item.id), true);
     assert.deepEqual(loadMetricAnalyses(), []);
     assert.equal(removeMetricAnalysis(item.id), false);
+});
+
+test("publishes an analysis through the dashboard widget integration", () => {
+    const item = createMetricAnalysis({ name: "Pedidos", mode: "guided", primarySource: source, filters: [], dimensions, period: "MONTHLY", visualization: "card", publishedToDashboard: false });
+    const published = setMetricAnalysisPublished(item.id, true);
+    assert.equal(published?.publishedToDashboard, true);
+    assert.equal(published?.dashboardPosition, 0);
+    assert.equal(loadDashboardWidgets()[0]?.analysisId, item.id);
+
+    const hidden = setMetricAnalysisPublished(item.id, false);
+    assert.equal(hidden?.publishedToDashboard, false);
+     assert.equal(loadDashboardWidgets().length, 0);
+});
+
+test("rejects malformed nested storage data", () => {
+    window.localStorage.setItem("larvifort:metric-analyses:v1", JSON.stringify([{
+      id: "bad",
+      name: "Incompleta",
+      mode: "advanced",
+      primarySource: { id: "orders", label: "Pedidos" },
+      sources: [{ id: "orders", label: "Pedidos", entity: "orders" }],
+      filters: [{ field: "status", operator: "unknown", value: "open" }],
+      dimensions,
+      period: "MONTHLY",
+      visualization: "chart",
+      publishedToDashboard: false,
+      createdAt: "not-a-date",
+      updatedAt: "not-a-date",
+    }]));
+    assert.deepEqual(loadMetricAnalyses(), []);
 });
 
 test("updates the definition and mode while preserving identity", () => {
