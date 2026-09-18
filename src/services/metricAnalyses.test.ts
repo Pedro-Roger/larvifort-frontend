@@ -3,7 +3,9 @@ import {
   duplicateMetricAnalysis,
   loadMetricAnalyses,
   removeMetricAnalysis,
+  setMetricAnalysisMode,
   setMetricAnalysisPublished,
+  updateMetricAnalysis,
 } from "./metricAnalyses";
 
 const source = { id: "orders.total", label: "Pedidos", entity: "orders", measure: "total", aggregation: "sum" as const };
@@ -40,5 +42,16 @@ describe("metricAnalyses", () => {
     expect(removeMetricAnalysis(item.id)).toBe(true);
     expect(loadMetricAnalyses()).toEqual([]);
     expect(removeMetricAnalysis(item.id)).toBe(false);
+  });
+
+  it("updates the definition and mode while preserving identity", () => {
+    const item = createMetricAnalysis({ name: "A", mode: "guided", primarySource: source, filters: [], period: "MONTHLY", visualization: "chart", publishedToDashboard: false });
+    const updated = updateMetricAnalysis(item.id, { name: "Pedidos x visitas", visualization: "table" });
+    expect(updated?.id).toBe(item.id);
+    expect(updated?.name).toBe("Pedidos x visitas");
+    expect(updated?.visualization).toBe("table");
+    expect(updated?.createdAt).toBe(item.createdAt);
+    expect(setMetricAnalysisMode(item.id, "advanced")?.mode).toBe("advanced");
+    expect(loadMetricAnalyses()[0].mode).toBe("advanced");
   });
 });
