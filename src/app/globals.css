@@ -50,6 +50,38 @@ body {
     sans-serif;
   min-width: 320px;
   overflow-x: hidden;
+  font-feature-settings: "cv02" 1, "cv03" 1, "cv04" 1, "cv11" 1;
+  text-rendering: optimizeLegibility;
+}
+
+/* Dense operational surfaces use Inter's tabular figures and a restrained
+   hierarchy instead of relying on oversized headings or heavy weights. */
+.orders-surface {
+  font-size: 0.8125rem;
+  letter-spacing: -0.005em;
+}
+
+.orders-surface h1,
+.orders-surface h2,
+.orders-surface h3 {
+  letter-spacing: -0.025em;
+}
+
+.orders-surface table,
+.orders-surface input,
+.orders-surface select,
+.orders-surface button {
+  font-variant-numeric: tabular-nums;
+}
+
+.orders-surface th {
+  letter-spacing: 0.055em;
+  font-size: 0.6875rem;
+  font-weight: 650;
+}
+
+.orders-surface td {
+  line-height: 1.35;
 }
 
 button,

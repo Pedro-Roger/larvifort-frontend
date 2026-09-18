@@ -392,7 +392,7 @@ export default function PedidosPage() {
   );
 
   return (
-    <main className="min-h-full bg-[#f5f7fa] p-4 sm:p-6 xl:p-7">
+    <main className="orders-surface min-h-full bg-[#f5f7fa] p-4 sm:p-6 xl:p-7">
       <div className="mx-auto max-w-[1440px] space-y-5">
         <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
